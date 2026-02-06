@@ -3,6 +3,7 @@
 import { useDashboardStore } from '@/lib/store/dashboard'
 import { ScriptInput } from '@/components/create/ScriptInput'
 import { EmotionSlider } from '@/components/create/EmotionSlider'
+import { RenderButton } from '@/components/create/RenderButton'
 import { EventTimeline } from '@/components/deploy/EventTimeline'
 import { PublishControls } from '@/components/deploy/PublishControls'
 import { RenderStatus } from '@/components/deploy/RenderStatus'
@@ -20,9 +21,7 @@ function CreateScreen() {
         <EmotionSlider />
 
         <div className="pt-6 border-t border-gray-200">
-          <button className="w-full py-4 bg-primary text-accent font-bold rounded-lg hover:bg-gray-800 transition-all">
-            Submit to Render Queue
-          </button>
+          <RenderButton />
         </div>
       </div>
 

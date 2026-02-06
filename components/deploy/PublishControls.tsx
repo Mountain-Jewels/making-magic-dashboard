@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { usePublishMux, usePublishShopify } from '@/lib/api/hooks'
+import { useDashboardStore } from '@/lib/store/dashboard'
 
 type PublishTarget = 'shopify' | 'email' | 'social' | null
 type PublishSchedule = 'immediate' | 'scheduled' | 'event-driven'
@@ -8,6 +10,38 @@ type PublishSchedule = 'immediate' | 'scheduled' | 'event-driven'
 export function PublishControls() {
   const [target, setTarget] = useState<PublishTarget>(null)
   const [schedule, setSchedule] = useState<PublishSchedule>('immediate')
+
+  const publishMux = usePublishMux()
+  const publishShopify = usePublishShopify()
+  const { renderJobId } = useDashboardStore()
+
+  const handlePublish = async () => {
+    if (!target) return
+
+    try {
+      // First publish to Mux
+      const muxResult = await publishMux.mutateAsync({
+        video_file_path: '/path/to/video.mp4', // TODO: Get from render result
+        emotional_tone: 'joyful',
+        event_type: 'engagement'
+      })
+
+      // Then publish to Shopify if that's the target
+      if (target === 'shopify') {
+        await publishShopify.mutateAsync({
+          product_id: 'diamond-solitaire-ring-001',
+          playback_id: 'mock-playback-id', // TODO: Get from Mux result
+          emotional_tone: 'joyful',
+          event_type: 'engagement'
+        })
+      }
+
+      alert('Published successfully!')
+    } catch (error) {
+      console.error('Publish failed:', error)
+      alert('Failed to publish')
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -72,10 +106,11 @@ export function PublishControls() {
       </div>
 
       <button
-        disabled={!target}
+        onClick={handlePublish}
+        disabled={!target || publishMux.isPending || publishShopify.isPending}
         className="w-full py-4 bg-primary text-accent font-bold rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
       >
-        Publish Now
+        {publishMux.isPending || publishShopify.isPending ? 'Publishing...' : 'Publish Now'}
       </button>
     </div>
   )

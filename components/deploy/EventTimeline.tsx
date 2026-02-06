@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useReceiveEvent, useApproveEvent } from '@/lib/api/hooks'
 
 interface Event {
   id: string
@@ -28,7 +29,25 @@ const MOCK_EVENTS: Event[] = [
 ]
 
 export function EventTimeline() {
-  const [events] = useState<Event[]>(MOCK_EVENTS)
+  const [events, setEvents] = useState<Event[]>(MOCK_EVENTS)
+  const approveEvent = useApproveEvent()
+
+  const handleApprove = async (eventId: string) => {
+    try {
+      await approveEvent.mutateAsync({
+        eventId,
+        data: { approved_by: 'dashboard-user' }
+      })
+
+      // Update local state
+      setEvents(events.map(e =>
+        e.id === eventId ? { ...e, status: 'approved' as const } : e
+      ))
+    } catch (error) {
+      console.error('Failed to approve event:', error)
+      alert('Failed to approve event')
+    }
+  }
 
   const getStatusColor = (status: Event['status']) => {
     switch (status) {
@@ -79,8 +98,12 @@ export function EventTimeline() {
 
               <div className="flex gap-2">
                 {event.status === 'pending' && (
-                  <button className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded hover:bg-green-700 transition-all">
-                    Approve
+                  <button
+                    onClick={() => handleApprove(event.id)}
+                    disabled={approveEvent.isPending}
+                    className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded hover:bg-green-700 disabled:opacity-50 transition-all"
+                  >
+                    {approveEvent.isPending ? 'Approving...' : 'Approve'}
                   </button>
                 )}
                 {event.status === 'approved' && (

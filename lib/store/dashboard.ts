@@ -63,6 +63,9 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   selectBackground: (bg) => set({ selectedBackground: bg }),
   setPerformanceMode: (mode) => set({ performanceMode: mode }),
   setScriptText: (text) => set({ scriptText: text }),
+  setRenderJobId: (jobId: string) => set({ renderJobId: jobId }),
+  setRenderStatus: (status: 'idle' | 'queued' | 'rendering' | 'complete' | 'error') => set({ renderStatus: status }),
+  setRenderProgress: (progress: number) => set({ renderProgress: progress }),
   
   generateDialogue: async () => {
     const { scriptText } = get()
@@ -78,15 +81,27 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   },
   
   submitRender: async () => {
+    const { generatedDialogue, selectedAvatar, selectedBackground } = get()
+
+    if (!generatedDialogue) {
+      console.error('No dialogue to render')
+      return
+    }
+
     set({ renderStatus: 'queued', renderProgress: 0 })
-    
+
     try {
-      // TODO: Implement render submission to Making Magic API
-      set({ renderStatus: 'rendering', renderProgress: 50 })
+      // This will be called via API client in the component
+      // Store just manages state
+      set({ renderStatus: 'rendering', renderProgress: 25 })
     } catch (error) {
       set({ renderStatus: 'error' })
     }
   },
+
+  setRenderJobId: (jobId: string) => set({ renderJobId: jobId }),
+  setRenderStatus: (status: 'idle' | 'queued' | 'rendering' | 'complete' | 'error') => set({ renderStatus: status }),
+  setRenderProgress: (progress: number) => set({ renderProgress: progress }),
   
   publish: async () => {
     try {
