@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useDashboardStore } from '@/lib/store/dashboard'
 
 const EMOTIONS = [
   { value: 'joyful', label: 'Joyful', color: 'bg-yellow-500' },
@@ -11,8 +11,7 @@ const EMOTIONS = [
 ]
 
 export function EmotionSlider() {
-  const [selectedEmotion, setSelectedEmotion] = useState('joyful')
-  const [intensity, setIntensity] = useState(50)
+  const { emotionalTone, emotionIntensity, setEmotionalTone, setEmotionIntensity } = useDashboardStore()
 
   return (
     <div className="space-y-4">
@@ -24,9 +23,9 @@ export function EmotionSlider() {
           {EMOTIONS.map((emotion) => (
             <button
               key={emotion.value}
-              onClick={() => setSelectedEmotion(emotion.value)}
+              onClick={() => setEmotionalTone(emotion.value)}
               className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all ${
-                selectedEmotion === emotion.value
+                emotionalTone === emotion.value
                   ? `${emotion.color} text-white`
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
@@ -39,14 +38,14 @@ export function EmotionSlider() {
 
       <div>
         <label className="block text-sm font-semibold mb-2 text-gray-700">
-          Intensity: {intensity}%
+          Intensity: {emotionIntensity}%
         </label>
         <input
           type="range"
           min="0"
           max="100"
-          value={intensity}
-          onChange={(e) => setIntensity(Number(e.target.value))}
+          value={emotionIntensity}
+          onChange={(e) => setEmotionIntensity(Number(e.target.value))}
           className="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-secondary"
         />
       </div>

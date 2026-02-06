@@ -15,6 +15,8 @@ interface DashboardState {
   scriptText: string
   generatedDialogue: string | null
   voiceFile: string | null
+  emotionalTone: string
+  emotionIntensity: number
   
   // Render state
   renderJobId: string | null
@@ -33,6 +35,8 @@ interface DashboardState {
   selectBackground: (bg: string) => void
   setPerformanceMode: (mode: 'speaking' | 'singing' | 'cinematic') => void
   setScriptText: (text: string) => void
+  setEmotionalTone: (tone: string) => void
+  setEmotionIntensity: (intensity: number) => void
   setRenderJobId: (jobId: string) => void
   setRenderStatus: (status: 'idle' | 'queued' | 'rendering' | 'complete' | 'error') => void
   setRenderProgress: (progress: number) => void
@@ -52,6 +56,8 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   scriptText: '',
   generatedDialogue: null,
   voiceFile: null,
+  emotionalTone: 'joyful',
+  emotionIntensity: 50,
   renderJobId: null,
   renderStatus: 'idle',
   renderProgress: 0,
@@ -66,6 +72,8 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   selectBackground: (bg) => set({ selectedBackground: bg }),
   setPerformanceMode: (mode) => set({ performanceMode: mode }),
   setScriptText: (text) => set({ scriptText: text }),
+  setEmotionalTone: (tone) => set({ emotionalTone: tone }),
+  setEmotionIntensity: (intensity) => set({ emotionIntensity: intensity }),
   setRenderJobId: (jobId: string) => set({ renderJobId: jobId }),
   setRenderStatus: (status: 'idle' | 'queued' | 'rendering' | 'complete' | 'error') => set({ renderStatus: status }),
   setRenderProgress: (progress: number) => set({ renderProgress: progress }),
