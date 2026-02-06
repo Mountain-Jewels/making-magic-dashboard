@@ -12,6 +12,8 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+# Bake in the API URL at build time (Next.js public vars are compile-time)
+ENV NEXT_PUBLIC_API_URL=https://making-magic-api.orangemushroom-9c6ca205.eastus.azurecontainerapps.io
 RUN npm run build
 
 # Stage 3: Production
