@@ -1,15 +1,19 @@
 'use client'
 
 import { useDashboardStore } from '@/lib/store/dashboard'
+import { HealthIndicator } from '@/components/shared/HealthIndicator'
 
 export function RightRail() {
   const { activeScreen } = useDashboardStore()
-  
+
   return (
     <div className="w-80 bg-gray-800 border-l border-gray-700 text-white p-4 overflow-y-auto">
-      <h2 className="text-xl font-bold mb-6 text-secondary">
-        {activeScreen === 'create' ? 'Inspector' : 'Deploy Controls'}
-      </h2>
+      <div className="mb-6">
+        <h2 className="text-xl font-bold mb-2 text-secondary">
+          {activeScreen === 'create' ? 'Inspector' : 'Deploy Controls'}
+        </h2>
+        <HealthIndicator />
+      </div>
       
       {activeScreen === 'create' ? (
         <div className="space-y-4">
