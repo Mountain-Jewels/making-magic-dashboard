@@ -1,10 +1,9 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import { QueryProvider } from '@/lib/providers/QueryProvider'
 
 export const metadata: Metadata = {
-  title: 'Making Magic Dashboard',
-  description: 'Creative Command Center - If I can dream it, I can build it.',
+  title: 'Making Magic Console',
+  description: 'Governance + Orchestration Control Console',
 }
 
 export default function RootLayout({
@@ -14,12 +13,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
-        <QueryProvider>
-          {children}
-        </QueryProvider>
+      <body className="bg-gray-950 text-white min-h-screen">
+        {children}
       </body>
     </html>
   )
 }
-

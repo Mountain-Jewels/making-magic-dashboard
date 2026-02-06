@@ -1,50 +1,53 @@
-# Making Magic Dashboard
+# Making Magic Console
 
-> "If I can dream it, I can build it."
+> Governance + Orchestration Control Console
 
-The unified creative command center for Making Magic - merging creation and orchestration into one world-class control room.
-
----
-
-## Overview
-
-This is not a settings panel. This is not a CRUD admin.
-
-**This is a creative command center** — the kind used by film studios, fashion houses, and elite creative teams.
+**This is not a dashboard. This is a control plane.**
 
 ---
 
-## Architecture
+## Identity
 
-### Two Screens, One Brain
+A single-pane-of-glass for Intent, Policy, Time, and Execution.
 
-- **CREATE** (Screen A) - The Studio creative controls
-- **DEPLOY** (Screen B) - Making Magic orchestration & publishing
+| Question | Panel |
+|----------|-------|
+| What is the system trying to do? | MomentIntent Queue |
+| Is it allowed to do it? | MomentIntent Detail (Policy) |
+| Is it happening now, later, or never? | MomentIntent Detail (TemporalPhase) |
+| What did it produce? | MomentIntent Detail (Assets) |
+| What did it cost? | Budget & Costs |
+| Can it be stopped instantly? | Emergency Controls |
+| Is the system safe to run? | System Health |
 
-### Three-Rail Layout
+---
 
-- **Left Rail** - Creative palette (avatars, outfits, jewelry, backgrounds, performance modes)
-- **Center Canvas** - Main work area (Unreal viewport or timeline)
-- **Right Rail** - Inspector & deployment controls
+## 6 Canonical Panels
+
+1. **MomentIntent Queue** — Primary screen, all intents
+2. **MomentIntent Detail** — TemporalPhase, Signals, Assets, Audit
+3. **System Health** — Provider status, circuit breakers
+4. **Emergency Controls** — Kill switches
+5. **Budget & Costs** — Spend tracking
+6. **Settings** — Connected accounts, webhooks
+
+---
+
+## What This Console Does NOT Do
+
+- Generate content (that's The-Studio)
+- Decide policy (that's Governance Core)
+- Decide timing (that's Making-Magic orchestration)
+- Run pipelines (that's Making-Magic workers)
 
 ---
 
 ## Tech Stack
 
-- **Next.js** (App Router)
-- **TypeScript**
-- **Tailwind CSS**
-- **Zustand** (State Management)
-- **Framer Motion** (Animations)
-- **React Query** (API Integration)
-
----
-
-## Core Flow
-
-```
-Idea (Text) → OpenAI (Script) → ElevenLabs (Voice) → Unreal (Performance) → Mux (Video) → Shopify (Publish)
-```
+- Next.js 14 (App Router)
+- TypeScript
+- Tailwind CSS
+- React Query
 
 ---
 
@@ -59,27 +62,9 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## API Integration
+## Canonical Spec
 
-Integrates with Making Magic API:
-- **Base URL:** `https://making-magic-api.orangemushroom-9c6ca205.eastus.azurecontainerapps.io/`
-- **Version:** 2.0.0
-- **Status:** ✅ LIVE
-
----
-
-## Design Principles
-
-1. **Creation-first** — start with imagination, not configuration
-2. **Progressive disclosure** — power without overwhelm
-3. **Automatic tool orchestration** — dashboard chooses the right tool
-4. **Governance by design** — impossible to make wrong moves
-
----
-
-## License
-
-MIT License - see LICENSE file for details
+See: `/mountain-jewels-platform/docs/CONSOLE-CANONICAL-SPEC.md`
 
 ---
 
@@ -88,4 +73,3 @@ MIT License - see LICENSE file for details
 🚧 **In Active Development**
 
 Built with precision by the Making Magic team.
-
