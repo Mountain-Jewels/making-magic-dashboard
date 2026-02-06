@@ -3,6 +3,9 @@
 import { useDashboardStore } from '@/lib/store/dashboard'
 import { ScriptInput } from '@/components/create/ScriptInput'
 import { EmotionSlider } from '@/components/create/EmotionSlider'
+import { EventTimeline } from '@/components/deploy/EventTimeline'
+import { PublishControls } from '@/components/deploy/PublishControls'
+import { RenderStatus } from '@/components/deploy/RenderStatus'
 
 function CreateScreen() {
   return (
@@ -34,16 +37,27 @@ function CreateScreen() {
 }
 
 function DeployScreen() {
+  const { renderJobId } = useDashboardStore()
+
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-6xl mx-auto space-y-8">
       <div>
         <h1 className="text-4xl font-bold text-gray-800 mb-2">DEPLOY</h1>
         <p className="text-gray-600">Orchestrate and publish</p>
       </div>
 
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Event Timeline</h2>
-        <p className="text-gray-600">Deploy controls coming soon...</p>
+      <div className="grid grid-cols-2 gap-6">
+        <div className="space-y-6">
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <EventTimeline />
+          </div>
+
+          <RenderStatus jobId={renderJobId} />
+        </div>
+
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <PublishControls />
+        </div>
       </div>
     </div>
   )
