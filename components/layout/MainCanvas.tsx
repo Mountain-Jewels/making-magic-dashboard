@@ -7,31 +7,41 @@ import { RenderButton } from '@/components/create/RenderButton'
 import { EventTimeline } from '@/components/deploy/EventTimeline'
 import { PublishControls } from '@/components/deploy/PublishControls'
 import { RenderStatus } from '@/components/deploy/RenderStatus'
+import { AnimatedScreen } from '@/components/shared/AnimatedScreen'
+import { FadeIn } from '@/components/shared/FadeIn'
 
 function CreateScreen() {
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-4xl font-bold text-gray-800 mb-2">CREATE</h1>
-        <p className="text-gray-600">Build scenes, avatars, performances</p>
-      </div>
+    <AnimatedScreen screenKey="create">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <FadeIn>
+          <div>
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">CREATE</h1>
+            <p className="text-gray-600">Build scenes, avatars, performances</p>
+          </div>
+        </FadeIn>
 
-      <div className="bg-white rounded-lg shadow-lg p-6 space-y-6">
-        <ScriptInput />
-        <EmotionSlider />
+        <FadeIn delay={0.1}>
+          <div className="bg-white rounded-lg shadow-lg p-6 space-y-6">
+            <ScriptInput />
+            <EmotionSlider />
 
-        <div className="pt-6 border-t border-gray-200">
-          <RenderButton />
-        </div>
-      </div>
+            <div className="pt-6 border-t border-gray-200">
+              <RenderButton />
+            </div>
+          </div>
+        </FadeIn>
 
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Unreal Viewport Preview</h2>
-        <div className="aspect-video bg-gray-900 rounded-lg flex items-center justify-center">
-          <p className="text-gray-500">Live preview coming soon...</p>
-        </div>
+        <FadeIn delay={0.2}>
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Unreal Viewport Preview</h2>
+            <div className="aspect-video bg-gray-900 rounded-lg flex items-center justify-center">
+              <p className="text-gray-500">Live preview coming soon...</p>
+            </div>
+          </div>
+        </FadeIn>
       </div>
-    </div>
+    </AnimatedScreen>
   )
 }
 
@@ -39,26 +49,36 @@ function DeployScreen() {
   const { renderJobId } = useDashboardStore()
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-4xl font-bold text-gray-800 mb-2">DEPLOY</h1>
-        <p className="text-gray-600">Orchestrate and publish</p>
-      </div>
+    <AnimatedScreen screenKey="deploy">
+      <div className="max-w-6xl mx-auto space-y-8">
+        <FadeIn>
+          <div>
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">DEPLOY</h1>
+            <p className="text-gray-600">Orchestrate and publish</p>
+          </div>
+        </FadeIn>
 
-      <div className="grid grid-cols-2 gap-6">
-        <div className="space-y-6">
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <EventTimeline />
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-6">
+            <FadeIn delay={0.1}>
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <EventTimeline />
+              </div>
+            </FadeIn>
+
+            <FadeIn delay={0.2}>
+              <RenderStatus jobId={renderJobId} />
+            </FadeIn>
           </div>
 
-          <RenderStatus jobId={renderJobId} />
-        </div>
-
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <PublishControls />
+          <FadeIn delay={0.15}>
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <PublishControls />
+            </div>
+          </FadeIn>
         </div>
       </div>
-    </div>
+    </AnimatedScreen>
   )
 }
 

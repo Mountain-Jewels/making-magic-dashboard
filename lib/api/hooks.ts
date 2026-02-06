@@ -59,9 +59,9 @@ export function useRenderStatus(jobId: string | null, enabled: boolean = true) {
     queryKey: ['render-status', jobId],
     queryFn: () => api.renderStatus(jobId!),
     enabled: enabled && !!jobId,
-    refetchInterval: (data) => {
+    refetchInterval: (query) => {
       // Stop polling if complete or error
-      if (data?.status === 'complete' || data?.status === 'error') {
+      if (query.state.data?.status === 'complete' || query.state.data?.status === 'error') {
         return false
       }
       // Poll every 5 seconds while rendering

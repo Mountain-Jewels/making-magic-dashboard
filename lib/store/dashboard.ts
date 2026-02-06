@@ -33,6 +33,9 @@ interface DashboardState {
   selectBackground: (bg: string) => void
   setPerformanceMode: (mode: 'speaking' | 'singing' | 'cinematic') => void
   setScriptText: (text: string) => void
+  setRenderJobId: (jobId: string) => void
+  setRenderStatus: (status: 'idle' | 'queued' | 'rendering' | 'complete' | 'error') => void
+  setRenderProgress: (progress: number) => void
   generateDialogue: () => Promise<void>
   submitRender: () => Promise<void>
   publish: () => Promise<void>
@@ -99,10 +102,6 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     }
   },
 
-  setRenderJobId: (jobId: string) => set({ renderJobId: jobId }),
-  setRenderStatus: (status: 'idle' | 'queued' | 'rendering' | 'complete' | 'error') => set({ renderStatus: status }),
-  setRenderProgress: (progress: number) => set({ renderProgress: progress }),
-  
   publish: async () => {
     try {
       // TODO: Implement publish flow via Making Magic API
