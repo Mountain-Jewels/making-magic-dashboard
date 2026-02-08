@@ -3,8 +3,8 @@ import './globals.css'
 import { Shell } from '@/components/layout/Shell'
 
 export const metadata: Metadata = {
-  title: 'Making Magic Console',
-  description: 'Governance + Orchestration Control Console',
+  title: 'The Studio — Mountain Jewels',
+  description: 'Content Production Console',
 }
 
 export default function RootLayout({
