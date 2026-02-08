@@ -16,9 +16,13 @@ export default function DeployPage() {
           <h3 className="font-semibold text-white mb-1">Gift Card Manager</h3>
           <p className="text-sm text-gray-500">Gift card moments, message editor</p>
         </a>
-        <a href="/deploy/liquid" className="bg-gray-900 border border-gray-800 rounded-lg p-6 hover:border-[#D4AF37]/50 transition-colors">
+        <a href="/deploy/social" className="bg-gray-900 border border-gray-800 rounded-lg p-6 hover:border-[#D4AF37]/50 transition-colors opacity-50">
+          <h3 className="font-semibold text-white mb-1">Social Queue</h3>
+          <p className="text-sm text-gray-500">Coming in V2</p>
+        </a>
+        <a href="/deploy/liquid" className="bg-gray-900 border border-gray-800 rounded-lg p-6 hover:border-[#D4AF37]/50 transition-colors col-span-2">
           <h3 className="font-semibold text-white mb-1">Liquid Generator</h3>
-          <p className="text-sm text-gray-500">Auto-generate Shopify Liquid snippets</p>
+          <p className="text-sm text-gray-500">Auto-generate Shopify Liquid snippets, copy-to-clipboard</p>
         </a>
       </div>
     </div>
