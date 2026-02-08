@@ -1,22 +1,31 @@
 'use client'
 
 import { useState } from 'react'
+import { approveMoment, rejectMoment } from '@/lib/api/moments'
 
 export function ActionButtons({ momentId, currentState }: { momentId: string; currentState: string }) {
   const [loading, setLoading] = useState(false)
   
   const handleApprove = async () => {
     setLoading(true)
-    // TODO: Call API
-    console.log('Approve:', momentId)
-    setLoading(false)
+    try {
+      await approveMoment(momentId)
+    } catch (error) {
+      console.error('Failed to approve:', error)
+    } finally {
+      setLoading(false)
+    }
   }
-  
+
   const handleReject = async () => {
     setLoading(true)
-    // TODO: Call API
-    console.log('Reject:', momentId)
-    setLoading(false)
+    try {
+      await rejectMoment(momentId, 'Rejected by operator')
+    } catch (error) {
+      console.error('Failed to reject:', error)
+    } finally {
+      setLoading(false)
+    }
   }
   
   if (currentState !== 'pending_approval') {

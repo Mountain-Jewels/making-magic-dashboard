@@ -44,7 +44,7 @@ export default function MomentDetailPage({ params }: { params: { id: string } })
           <div>
             <h3 className="text-sm text-gray-500 mb-1">Delivery Window</h3>
             <p className="text-white">
-              {new Date(moment.temporal_window.earliest).toLocaleDateString()}
+              {new Date(moment.delivery_window.earliest).toLocaleDateString()}
             </p>
           </div>
           <div>

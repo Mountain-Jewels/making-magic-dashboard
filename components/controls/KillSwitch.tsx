@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { apiClient } from '@/lib/api/client'
 
 interface KillSwitchProps {
   name: string
@@ -12,19 +13,33 @@ export function KillSwitch({ name, description, initialState }: KillSwitchProps)
   const [killed, setKilled] = useState(initialState)
   const [confirming, setConfirming] = useState(false)
   
-  const handleToggle = () => {
+  const handleToggle = async () => {
     if (!killed) {
       setConfirming(true)
     } else {
-      setKilled(false)
-      // TODO: Call API to restore
+      try {
+        await apiClient('/api/controls/switches', {
+          method: 'POST',
+          body: JSON.stringify({ name, killed: false }),
+        })
+        setKilled(false)
+      } catch (error) {
+        console.error('Failed to restore:', error)
+      }
     }
   }
-  
-  const confirmKill = () => {
-    setKilled(true)
-    setConfirming(false)
-    // TODO: Call API to kill
+
+  const confirmKill = async () => {
+    try {
+      await apiClient('/api/controls/switches', {
+        method: 'POST',
+        body: JSON.stringify({ name, killed: true }),
+      })
+      setKilled(true)
+      setConfirming(false)
+    } catch (error) {
+      console.error('Failed to kill:', error)
+    }
   }
   
   return (
