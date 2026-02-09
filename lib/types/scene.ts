@@ -1,3 +1,24 @@
+import type { Asset } from './asset'
+import type { AssetVersion } from './version'
+
+// ─── Scene Asset Model (Steps 1–4) ───
+
+export interface SceneAsset extends Asset {
+  asset_type: 'scene'
+
+  scene_profile: {
+    environment_type: 'indoor' | 'outdoor' | 'abstract'
+    supports_lighting: boolean
+    supports_camera: boolean
+  }
+}
+
+export interface SceneVersion extends AssetVersion {
+  asset_id: string
+}
+
+// ─── Creative Control Types (Step 2: Edit Categories) ───
+
 export type BackgroundPreset =
   | 'jewelry_studio'
   | 'luxury_showroom'
@@ -30,6 +51,13 @@ export type JewelryPosition =
   | 'flat_lay'
   | 'gift_box'
 
+/** Capability state at current version — single source of truth for 2D/3D. */
+export type SceneCapabilityState = {
+  two_d: 'available' | 'not_available'
+  three_d: 'available' | 'not_available'
+  interactive: 'available' | 'not_available'
+}
+
 export interface SceneConfig {
   id: string
   name: string
@@ -41,4 +69,8 @@ export interface SceneConfig {
   duration_seconds: number
   created_at: string
   status: 'draft' | 'ready' | 'rendering' | 'complete'
+  /** Asset/version correctness: optional link to asset and current version capability */
+  asset_id?: string
+  version_id?: string
+  capability_state?: SceneCapabilityState
 }
