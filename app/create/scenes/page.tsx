@@ -2,7 +2,16 @@
 
 import { useState } from 'react'
 import { useSceneStore } from '@/lib/stores/scene-store'
-import type { SceneConfig, BackgroundPreset, CameraAngle, LightingMood, JewelryPosition } from '@/lib/types/scene'
+import type { SceneConfig, BackgroundPreset, CameraAngle, LightingMood, JewelryPosition, SceneCapabilityState } from '@/lib/types/scene'
+import { is3DRequiredContext } from '@/lib/utils/capability'
+import { CapabilityBadge } from '@/components/create/CapabilityBadge'
+import { ConversionGate } from '@/components/create/ConversionGate'
+
+const DEFAULT_2D_ONLY: SceneCapabilityState = {
+  two_d: 'available',
+  three_d: 'not_available',
+  interactive: 'not_available',
+}
 
 const BACKGROUNDS: { value: BackgroundPreset; label: string }[] = [
   { value: 'jewelry_studio', label: 'Jewelry Studio' },
@@ -68,11 +77,16 @@ export default function ScenesPage() {
       duration_seconds: newDuration,
       created_at: new Date().toISOString(),
       status: 'draft',
+      capability_state: DEFAULT_2D_ONLY,
     }
     addScene(scene)
     setShowNew(false)
     setNewName('')
   }
+
+  const sceneCapability = currentScene?.capability_state ?? DEFAULT_2D_ONLY
+  const requires3D = currentScene ? is3DRequiredContext({ camera: currentScene.camera }) : false
+  const showConversionGate = requires3D && sceneCapability.three_d === 'not_available'
 
   return (
     <div className="flex gap-6 h-full">
@@ -126,6 +140,11 @@ export default function ScenesPage() {
               <p className="text-xs text-gray-500">
                 {scene.background.replace(/_/g, ' ')} · {scene.camera.replace(/_/g, ' ')} · {scene.duration_seconds}s
               </p>
+              {scene.capability_state && (
+                <div className="mt-1.5">
+                  <CapabilityBadge capabilityState={scene.capability_state} />
+                </div>
+              )}
             </button>
           ))}
         </div>
@@ -142,11 +161,20 @@ export default function ScenesPage() {
               </span>
             </div>
 
+            {/* 2D → 3D conversion gate: show when camera requires 3D but asset is 2D only */}
+            {showConversionGate && (
+              <ConversionGate
+                capabilityState={sceneCapability}
+                required="three_d"
+                contextLabel="this camera angle"
+              />
+            )}
+
             {/* Preview Placeholder */}
             <div className="bg-gray-900 border border-gray-800 rounded-lg aspect-video flex items-center justify-center">
               <div className="text-center">
                 <p className="text-gray-500 text-sm">Scene Preview</p>
-                <p className="text-gray-600 text-xs mt-1">Connects to Unreal Engine in Phase 8</p>
+                <p className="text-gray-600 text-xs mt-1">Scene preview connects when render service is available</p>
               </div>
             </div>
 

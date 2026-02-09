@@ -468,7 +468,7 @@ export default function CreateWorkspacePage() {
                 <p className="text-sm text-gray-600">
                   {currentScene.background.replace(/_/g, ' ')} · {currentScene.camera.replace(/_/g, ' ')} · {currentScene.lighting.replace(/_/g, ' ')}
                 </p>
-                <p className="text-xs text-gray-700 mt-2">Image / video / 3D canvas connects in Phase 8</p>
+                <p className="text-xs text-gray-700 mt-2">Preview connects when render service is available</p>
               </div>
             )}
             {assetTab === 'avatar' && (currentDirection || selectedPreset) && (
@@ -477,7 +477,7 @@ export default function CreateWorkspacePage() {
                 <p className="text-sm text-gray-600">
                   {selectedPreset?.name} · {currentDirection?.moment_type ?? '—'}
                 </p>
-                <p className="text-xs text-gray-700 mt-2">Avatar preview connects in Phase 8</p>
+                <p className="text-xs text-gray-700 mt-2">Preview connects when render service is available</p>
               </div>
             )}
             {assetTab === 'singing' && currentTrack && (
@@ -486,7 +486,7 @@ export default function CreateWorkspacePage() {
                 <p className="text-sm text-gray-600">
                   {currentTrack.title} · {currentTrack.voice.replace(/_/g, ' ')} · {currentTrack.genre.replace(/_/g, ' ')}
                 </p>
-                <p className="text-xs text-gray-700 mt-2">Audio/video preview connects in Phase 8</p>
+                <p className="text-xs text-gray-700 mt-2">Preview connects when render service is available</p>
               </div>
             )}
             {!(assetTab === 'scene' && currentScene) && !(assetTab === 'avatar' && (currentDirection || selectedPreset)) && !(assetTab === 'singing' && currentTrack) && (

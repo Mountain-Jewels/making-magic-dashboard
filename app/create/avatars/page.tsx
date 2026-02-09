@@ -209,7 +209,7 @@ export default function AvatarsPage() {
                       Approve Script
                     </button>
                   )}
-                  <p className="text-xs text-gray-600 self-center">AI script generation connects to OpenAI in Phase 7</p>
+                  <p className="text-xs text-gray-600 self-center">AI script generation connects when service is available</p>
                 </div>
               </div>
             ) : (

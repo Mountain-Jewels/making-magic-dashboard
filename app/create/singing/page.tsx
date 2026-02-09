@@ -314,7 +314,7 @@ export default function SingingPage() {
                   Add to {playlists[0].name}
                 </button>
               )}
-              <p className="text-xs text-gray-600 self-center">Audio generation connects to ElevenLabs in Phase 7</p>
+              <p className="text-xs text-gray-600 self-center">Audio generation connects when voice service is available</p>
             </div>
           </div>
         ) : (

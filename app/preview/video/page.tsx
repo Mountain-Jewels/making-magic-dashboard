@@ -1,6 +1,31 @@
 'use client'
 
 import { usePreviewStore } from '@/lib/stores/preview-store'
+import { useSceneStore } from '@/lib/stores/scene-store'
+import { getCapabilityLabels } from '@/lib/utils/capability'
+import type { PreviewVideo } from '@/lib/types/preview'
+
+function useVideoCapabilityLabels(video: PreviewVideo): string[] {
+  const { scenes } = useSceneStore()
+  if (video.source !== 'scene_render') return []
+  const scene = scenes.find((s) => s.id === video.source_id)
+  if (!scene?.capability_state) return []
+  return getCapabilityLabels(scene.capability_state)
+}
+
+function VideoCapabilityBadge({ video }: { video: PreviewVideo }) {
+  const labels = useVideoCapabilityLabels(video)
+  if (labels.length === 0) return null
+  return (
+    <span className="inline-flex gap-1 text-xs text-gray-400">
+      {labels.map((l) => (
+        <span key={l} className="px-1.5 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700">
+          {l}
+        </span>
+      ))}
+    </span>
+  )
+}
 
 const STATUS_DISPLAY: Record<string, { label: string; color: string }> = {
   processing: { label: 'Processing', color: 'bg-yellow-900 text-yellow-300' },
@@ -55,6 +80,9 @@ export default function VideoPreviewPage() {
                   <span>·</span>
                   <span>{video.resolution}</span>
                 </div>
+                <div className="mt-1.5">
+                  <VideoCapabilityBadge video={video} />
+                </div>
               </button>
             )
           })}
@@ -73,7 +101,7 @@ export default function VideoPreviewPage() {
                         <p className="text-4xl mb-2">▶️</p>
                         <p className="text-sm text-gray-400">Mux Player</p>
                         <p className="text-xs text-gray-600 mt-1">Playback ID: {selectedVideo.mux_playback_id}</p>
-                        <p className="text-xs text-gray-600">Connects to Mux in Phase 7</p>
+                        <p className="text-xs text-gray-600">Playback connects when video service is available</p>
                       </div>
                     ) : (
                       <div className="text-center">
@@ -130,6 +158,10 @@ export default function VideoPreviewPage() {
               <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
                 <h3 className="text-sm font-bold text-gray-400 mb-3">Metadata</h3>
                 <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="col-span-2 flex items-center gap-2">
+                    <span className="text-gray-500">Capability</span>
+                    <VideoCapabilityBadge video={selectedVideo} />
+                  </div>
                   {Object.entries(selectedVideo.metadata).map(([key, value]) => (
                     <div key={key} className="flex justify-between">
                       <span className="text-gray-500 capitalize">{key.replace(/_/g, ' ')}</span>

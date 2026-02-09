@@ -142,14 +142,14 @@ export default function ShopifyPreviewPage() {
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-gray-600 mt-3">Metafields sync to Shopify Admin API in Phase 7</p>
+                <p className="text-xs text-gray-600 mt-3">Metafields sync when Shopify Admin API is available</p>
               </div>
             )}
 
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
               <h3 className="text-sm font-bold text-gray-400 mb-3">Storefront URL</h3>
               <p className="text-sm text-[#D4AF37] font-mono">mountainjewels.com/products/{selectedProduct.handle}</p>
-              <p className="text-xs text-gray-600 mt-1">Shopify deploy connects in Phase 6</p>
+              <p className="text-xs text-gray-600 mt-1">Shopify deploy connects when service is available</p>
             </div>
           </div>
         </div>

@@ -267,7 +267,7 @@ export default function PlaylistPage() {
                       </div>
                       <div className="flex justify-between mt-1 text-xs text-gray-600">
                         <span>0:00</span>
-                        <span>Audio player connects in Phase 7</span>
+                        <span>Audio player connects when playback service is available</span>
                         <span>{Math.floor(track.duration_seconds / 60)}:{(track.duration_seconds % 60).toString().padStart(2, '0')}</span>
                       </div>
                     </div>

@@ -1,6 +1,6 @@
 /**
  * Download utilities for playlist export.
- * In Phase 7, these will point to real Mux/ElevenLabs/Azure Blob URLs.
+ * These will point to real media URLs when backend services are available.
  * For now, they generate mock downloads to prove the UI flow.
  */
 
@@ -29,11 +29,11 @@ export function downloadCSV(filename: string, headers: string[], rows: string[][
 }
 
 export function triggerMockMediaDownload(filename: string, type: 'audio' | 'video') {
-  // In Phase 7, this will fetch from Mux (video) or ElevenLabs/Azure Blob (audio)
+  // When media services are available, this will fetch real audio/video
   // For now, create a small placeholder file so the browser download flow works
   const placeholder = type === 'audio'
-    ? `[Mountain Jewels Audio Placeholder]\nFile: ${filename}\nThis will be replaced with real MP3 from ElevenLabs in Phase 7.`
-    : `[Mountain Jewels Video Placeholder]\nFile: ${filename}\nThis will be replaced with real MP4 from Mux in Phase 7.`
+    ? `[Mountain Jewels Audio Placeholder]\nFile: ${filename}\nThis will be replaced with real MP3 when voice service is available.`
+    : `[Mountain Jewels Video Placeholder]\nFile: ${filename}\nThis will be replaced with real MP4 when video service is available.`
   downloadTextFile(filename, placeholder, type === 'audio' ? 'audio/mpeg' : 'video/mp4')
 }
 
@@ -42,7 +42,7 @@ export async function downloadPlaylistBundle(
   tracks: { title: string; id: string; hasAudio: boolean; hasVideo: boolean }[],
   metadata: unknown
 ) {
-  // In Phase 7, this will use JSZip or server-side bundling to create a real ZIP
+  // When bundling is available, this will create a real ZIP with audio/video files
   // For now, download the metadata JSON as a stand-in
   const bundleManifest = {
     playlist: playlistName,
@@ -54,7 +54,7 @@ export async function downloadPlaylistBundle(
       video_file: t.hasVideo ? `${t.title.replace(/[^a-zA-Z0-9]/g, '_')}.mp4` : null,
     })),
     metadata,
-    note: 'Full ZIP bundle with actual audio/video files will be available after Phase 7 (backend wiring).',
+    note: 'Full ZIP bundle with actual audio/video files when backend is available.',
   }
   downloadJSON(`${playlistName.replace(/[^a-zA-Z0-9]/g, '_')}_bundle.json`, bundleManifest)
 }
