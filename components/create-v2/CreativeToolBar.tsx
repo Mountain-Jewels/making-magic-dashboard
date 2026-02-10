@@ -5,7 +5,6 @@ import {
   Upload,
   User,
   Music,
-  Mic,
   Gem,
   Shirt,
   Image,
@@ -27,7 +26,6 @@ export type ToolId =
   | 'upload'
   | 'avatars'
   | 'music'
-  | 'singing'
   | 'jewelry'
   | 'dressing'
   | 'backgrounds'
@@ -40,7 +38,6 @@ const TOOLS: { id: ToolId; icon: React.ComponentType<{ className?: string }>; la
   { id: 'upload', icon: Upload, label: 'Upload' },
   { id: 'avatars', icon: User, label: 'Avatars' },
   { id: 'music', icon: Music, label: 'Music' },
-  { id: 'singing', icon: Mic, label: 'Singing' },
   { id: 'jewelry', icon: Gem, label: 'Jewelry' },
   { id: 'dressing', icon: Shirt, label: 'Dressing' },
   { id: 'backgrounds', icon: Image, label: 'Backgrounds' },

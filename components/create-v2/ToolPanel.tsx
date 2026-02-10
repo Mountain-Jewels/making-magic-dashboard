@@ -12,7 +12,6 @@ import { JewelryGallery } from './panels/JewelryGallery'
 import { DressingRoomPanel } from './panels/DressingRoomPanel'
 import { HairMakeupPanel } from './panels/HairMakeupPanel'
 import { DecorationsPanel } from './panels/DecorationsPanel'
-import { SingingPanel } from './panels/SingingPanel'
 
 interface ToolPanelProps {
   activeTool: ToolId | null
@@ -26,7 +25,6 @@ const PANEL_MAP: Partial<Record<ToolId, React.ReactNode>> = {
   lighting: <LightingPanel />,
   avatars: <AvatarGallery />,
   music: <MusicBrowser />,
-  singing: <SingingPanel />,
   jewelry: <JewelryGallery />,
   dressing: <DressingRoomPanel />,
   hair: <HairMakeupPanel />,

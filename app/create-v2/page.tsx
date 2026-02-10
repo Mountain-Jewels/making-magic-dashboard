@@ -1,24 +1,26 @@
 'use client'
 
 import { useState } from 'react'
-import { Gem, Play, Save, Upload } from 'lucide-react'
+import { ChevronLeft, Gem, Play, Save, Upload } from 'lucide-react'
 import { CreativeToolBar, type ToolId } from '@/components/create-v2/CreativeToolBar'
 import { ToolPanel } from '@/components/create-v2/ToolPanel'
 import { ChatInput } from '@/components/create-v2/ChatInput'
 import { CreationWizard, type CreationConfig } from '@/components/create-v2/CreationWizard'
 
 function formatConfigSummary(config: CreationConfig): string {
-  const ct = config.contentType.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+  const fmt = config.format.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
   const pf = config.platform.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
-  return `${ct} • ${pf} • ${config.event} • ${config.purpose.replace(/_/g, ' ')}`
+  return `${fmt} • ${pf} • ${config.event} • ${config.purpose.replace(/_/g, ' ')}`
 }
 
 function LeftPanelContent({
   creationConfig,
   onCreationConfig,
+  onBackToSetup,
 }: {
   creationConfig: CreationConfig | null
   onCreationConfig: (config: CreationConfig) => void
+  onBackToSetup: () => void
 }) {
   const [activeTool, setActiveTool] = useState<ToolId | null>(null)
   const [wizardOpen, setWizardOpen] = useState(false)
@@ -30,6 +32,19 @@ function LeftPanelContent({
 
   return (
     <>
+      {/* Back to Setup — above toolbar when wizard complete */}
+      {creationConfig && (
+        <div className="flex-shrink-0 flex justify-start">
+          <button
+            type="button"
+            onClick={onBackToSetup}
+            className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+          >
+            <ChevronLeft className="h-4 w-4" /> Back to Setup
+          </button>
+        </div>
+      )}
+
       {/* Top-left: Canvas + edit chat */}
       <div className="flex-[3] min-h-0 flex flex-col rounded-2xl shadow-sm bg-white text-gray-900 border border-brand-gold/40 overflow-hidden">
         {/* Canvas area */}
@@ -141,12 +156,13 @@ export default function CreateV2Page() {
       </div>
 
       {/* Panels below logo */}
-      <div className="flex-1 min-h-0 flex gap-4 px-6 pb-6">
+        <div className="flex-1 min-h-0 flex gap-4 px-6 pb-6">
         {/* Left side — 60% width */}
         <div className="flex flex-col gap-4 min-h-0" style={{ width: '60%' }}>
           <LeftPanelContent
             creationConfig={creationConfig}
             onCreationConfig={setCreationConfig}
+            onBackToSetup={() => setCreationConfig(null)}
           />
         </div>
         {/* Right side — 40% width */}

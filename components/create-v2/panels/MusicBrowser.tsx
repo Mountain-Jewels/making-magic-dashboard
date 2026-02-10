@@ -1,106 +1,101 @@
 'use client'
 
-import { useSingingStore } from '@/lib/stores/singing-store'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Play } from 'lucide-react'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { useState } from 'react'
 import { cn } from '@/lib/utils'
 
-function formatDuration(seconds: number) {
-  const m = Math.floor(seconds / 60)
-  const s = seconds % 60
-  return `${m}:${s.toString().padStart(2, '0')}`
-}
+const MUSIC_CATEGORIES = [
+  { id: 'country', label: 'Country', emoji: '🤠' },
+  { id: 'classic_rock', label: 'Classic Rock', emoji: '🎸' },
+  { id: 'pop', label: 'Pop', emoji: '🎤' },
+  { id: 'latest_hits', label: 'Latest Hits', emoji: '🔥' },
+  { id: 'event_songs', label: 'Event Songs', emoji: '🎉' },
+  { id: 'custom', label: 'Custom', emoji: '📁' },
+]
+
+const CATEGORY_LABELS: Record<string, string> = Object.fromEntries(
+  MUSIC_CATEGORIES.map((c) => [c.id, c.label])
+)
 
 export function MusicBrowser() {
-  const { tracks, playlists, currentTrack, currentPlaylist, setCurrentTrack, setCurrentPlaylist } = useSingingStore()
+  const [selectedCategory, setSelectedCategory] = useState<string>('country')
+  const [uploadCategory, setUploadCategory] = useState<string>('country')
 
-  const displayedTracks = currentPlaylist
-    ? tracks.filter((t) => currentPlaylist.track_ids.includes(t.id))
-    : tracks
+  const categoryLabel = CATEGORY_LABELS[selectedCategory] ?? selectedCategory
 
   return (
     <div className="p-4 space-y-4">
-      <div className="space-y-2">
-        <p className="text-xs font-medium text-gray-600">Playlist</p>
-        <Select
-          value={currentPlaylist?.id ?? ''}
-          onValueChange={(id) => {
-            const pl = playlists.find((p) => p.id === id) ?? null
-            setCurrentPlaylist(pl)
-          }}
-        >
-          <SelectTrigger className="bg-white border-brand-gold/40">
-            <SelectValue placeholder="Select playlist" />
-          </SelectTrigger>
-          <SelectContent>
-            {playlists.map((pl) => (
-              <SelectItem key={pl.id} value={pl.id}>
-                {pl.name}
-              </SelectItem>
+      <h3 className="text-sm font-semibold text-gray-900">🎵 Music Library</h3>
+
+      <div>
+        <p className="text-xs text-gray-500 mb-2">Category</p>
+        <div className="grid grid-cols-3 gap-2">
+          {MUSIC_CATEGORIES.map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => setSelectedCategory(cat.id)}
+              className={cn(
+                'rounded-lg border-2 p-3 flex flex-col items-center justify-center gap-0.5 text-sm font-medium transition-colors',
+                selectedCategory === cat.id
+                  ? 'border-brand-gold bg-brand-gold/10 text-gray-900'
+                  : 'border-brand-gold/40 hover:border-brand-gold/60 text-gray-700 bg-white'
+              )}
+            >
+              <span className="text-lg">{cat.emoji}</span>
+              <span>{cat.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <p className="text-xs text-gray-500 mb-2">Songs in {categoryLabel}:</p>
+        <div className="rounded-lg border border-brand-gold/40 bg-gray-50 p-6 text-center text-sm text-gray-500">
+          No songs in this category — upload to add
+        </div>
+      </div>
+
+      <div className="rounded-lg border-2 border-dashed border-brand-gold/40 p-4 space-y-3 bg-white">
+        <p className="text-sm font-medium text-gray-900">📤 Upload Music</p>
+        <p className="text-xs text-gray-500">.mp3, .wav, .m4a</p>
+        <div>
+          <p className="text-xs text-gray-500 mb-1">Assign to:</p>
+          <select
+            value={uploadCategory}
+            onChange={(e) => setUploadCategory(e.target.value)}
+            className="w-full rounded-md border border-brand-gold/40 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-brand-gold"
+          >
+            {MUSIC_CATEGORIES.map((c) => (
+              <option key={c.id} value={c.id}>{c.label}</option>
             ))}
-          </SelectContent>
-        </Select>
+          </select>
+        </div>
+        <label className="block">
+          <input type="file" accept=".mp3,.wav,.m4a" className="hidden" />
+          <span className="inline-block rounded-lg border border-brand-gold/40 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer">
+            Choose file
+          </span>
+        </label>
       </div>
 
-      <div className="space-y-2">
-        <p className="text-xs font-medium text-gray-600">Tracks</p>
-        <div className="space-y-1">
-          {displayedTracks.map((track) => {
-            const isSelected = currentTrack?.id === track.id
-            return (
-              <button
-                key={track.id}
-                type="button"
-                onClick={() => setCurrentTrack(track)}
-                className={cn(
-                  'w-full flex items-center gap-3 p-2 rounded-md border transition-colors text-left',
-                  isSelected
-                    ? 'border-brand-gold bg-brand-gold/10'
-                    : 'border-transparent hover:bg-gray-50'
-                )}
-              >
-                <div className="h-8 w-8 rounded flex items-center justify-center bg-gray-200 shrink-0">
-                  <Play className="h-3 w-3 text-gray-500" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{track.title}</p>
-                  <p className="text-xs text-gray-500">{formatDuration(track.duration_seconds)}</p>
-                </div>
-                <Badge variant="secondary" className="text-xs shrink-0">
-                  {track.genre.replace(/_/g, ' ')}
-                </Badge>
-              </button>
-            )
-          })}
+      <div className="pt-2">
+        <p className="text-xs text-gray-500 text-center mb-2">——— Or Import ———</p>
+        <div className="space-y-2">
+          <button
+            type="button"
+            className="w-full rounded-lg border border-brand-gold/40 py-2 text-sm text-gray-700 hover:bg-gray-50"
+          >
+            Import from Spotify
+          </button>
+          <button
+            type="button"
+            className="w-full rounded-lg border border-brand-gold/40 py-2 text-sm text-gray-700 hover:bg-gray-50"
+          >
+            Import from Apple Music
+          </button>
         </div>
+        <p className="text-xs text-gray-500 text-center mt-2">Coming soon — Phase 7</p>
       </div>
-
-      {currentTrack && (
-        <div className="rounded-md border border-brand-gold/40 bg-gray-50 p-2 flex items-center gap-2">
-          <div className="h-8 w-8 rounded bg-brand-gold/20 flex items-center justify-center">
-            <Play className="h-3 w-3 text-brand-gold" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{currentTrack.title}</p>
-            <p className="text-xs text-gray-500">{formatDuration(currentTrack.duration_seconds)}</p>
-          </div>
-        </div>
-      )}
-
-      <Button variant="outline" size="sm" className="w-full">
-        Import Playlist
-      </Button>
-      <p className="text-xs text-gray-500 text-center">
-        Coming soon — requires Spotify/Apple Music API
-      </p>
     </div>
   )
 }

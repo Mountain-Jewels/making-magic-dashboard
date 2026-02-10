@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 export interface CreationConfig {
-  contentType: '3d_video' | '3d_interactive' | 'still_image' | 'web_content'
+  format: '3d_video' | '2d_video' | '3d_interactive' | 'still_image'
   platform: string
   event: string
   purpose: 'gift_card' | 'marketing'
@@ -14,12 +14,12 @@ interface CreationWizardProps {
   onComplete: (config: CreationConfig) => void
 }
 
-const CONTENT_TYPES = [
-  { id: '3d_video', label: '3D Video' },
-  { id: '3d_interactive', label: '3D Interactive' },
-  { id: 'still_image', label: 'Still Image' },
-  { id: 'web_content', label: 'Web Content' },
-] as const
+const FORMATS = [
+  { id: '3d_video' as const, label: '3D Video', description: 'Cinematic 3D rendered video' },
+  { id: '2d_video' as const, label: '2D Video (Talking Avatar)', description: 'Avatar-driven talking video' },
+  { id: '3d_interactive' as const, label: '3D Interactive', description: 'Interactive 3D experience' },
+  { id: 'still_image' as const, label: 'Still Image', description: 'High-quality rendered image' },
+]
 
 const PLATFORMS = [
   { id: 'instagram_feed', label: 'Instagram Feed', category: 'social' },
@@ -30,7 +30,7 @@ const PLATFORMS = [
   { id: 'youtube_shorts', label: 'YouTube Shorts', category: 'social' },
   { id: 'facebook', label: 'Facebook', category: 'social' },
   { id: 'pinterest', label: 'Pinterest', category: 'social' },
-  { id: 'web', label: 'Web', category: 'web' },
+  { id: 'shopify', label: 'Shopify', category: 'commerce' },
   { id: 'email', label: 'Email', category: 'email' },
   { id: 'custom', label: 'Custom', category: 'custom' },
 ]
@@ -49,7 +49,7 @@ const PURPOSES: { id: CreationConfig['purpose']; label: string }[] = [
 
 export function CreationWizard({ onComplete }: CreationWizardProps) {
   const [step, setStep] = useState(1)
-  const [contentType, setContentType] = useState<CreationConfig['contentType'] | null>(null)
+  const [format, setFormat] = useState<CreationConfig['format'] | null>(null)
   const [platform, setPlatform] = useState('')
   const [event, setEvent] = useState('')
   const [purpose, setPurpose] = useState<CreationConfig['purpose'] | null>(null)
@@ -58,8 +58,8 @@ export function CreationWizard({ onComplete }: CreationWizardProps) {
 
   const handleNext = () => {
     if (step === 4) {
-      if (contentType && platform && event && purpose) {
-        onComplete({ contentType, platform, event, purpose })
+      if (format && platform && event && purpose) {
+        onComplete({ format, platform, event, purpose })
       }
     } else {
       setStep((s) => Math.min(4, s + 1))
@@ -67,7 +67,7 @@ export function CreationWizard({ onComplete }: CreationWizardProps) {
   }
 
   const canNext = () => {
-    if (step === 1) return contentType !== null
+    if (step === 1) return format !== null
     if (step === 2) return platform !== ''
     if (step === 3) return event !== ''
     if (step === 4) return purpose !== null
@@ -76,9 +76,9 @@ export function CreationWizard({ onComplete }: CreationWizardProps) {
 
   const title =
     step === 1
-      ? 'What are you creating?'
+      ? 'Choose Your Format'
       : step === 2
-        ? 'Where will it be published?'
+        ? 'Where Will It Be Published?'
         : step === 3
           ? "What's the occasion?"
           : "What's the purpose?"
@@ -89,19 +89,22 @@ export function CreationWizard({ onComplete }: CreationWizardProps) {
 
       {step === 1 && (
         <div className="space-y-2">
-          {CONTENT_TYPES.map((opt) => (
+          {FORMATS.map((opt) => (
             <label
               key={opt.id}
-              className="flex items-center gap-3 p-3 rounded-xl border border-brand-gold/40 hover:bg-gray-50 cursor-pointer"
+              className="flex items-start gap-3 p-3 rounded-xl border border-brand-gold/40 hover:bg-gray-50 cursor-pointer"
             >
               <input
                 type="radio"
-                name="contentType"
-                checked={contentType === opt.id}
-                onChange={() => setContentType(opt.id)}
-                className="text-brand-gold focus:ring-brand-gold"
+                name="format"
+                checked={format === opt.id}
+                onChange={() => setFormat(opt.id)}
+                className="text-brand-gold focus:ring-brand-gold mt-1"
               />
-              <span className="text-gray-900">{opt.label}</span>
+              <div>
+                <span className="text-gray-900 font-medium block">{opt.label}</span>
+                <span className="text-sm text-gray-500">{opt.description}</span>
+              </div>
             </label>
           ))}
         </div>
