@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Gem, Film, Eye, Library, Download, Settings } from 'lucide-react'
@@ -10,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { STUDIO_OPEN_EXPORT } from './KeyboardShortcuts'
 
 const tabs = [
   { href: '/create', label: 'Create', icon: Film },
@@ -19,6 +21,13 @@ const tabs = [
 
 export function TopBar() {
   const pathname = usePathname()
+  const [exportOpen, setExportOpen] = useState(false)
+
+  useEffect(() => {
+    const handler = () => setExportOpen(true)
+    window.addEventListener(STUDIO_OPEN_EXPORT, handler)
+    return () => window.removeEventListener(STUDIO_OPEN_EXPORT, handler)
+  }, [])
 
   return (
     <header
@@ -29,6 +38,7 @@ export function TopBar() {
         <div className="flex items-center gap-2">
           <Gem className="h-5 w-5 text-brand-gold" />
           <span className="font-semibold text-text-primary">The Studio</span>
+          <span className="text-xs font-mono text-text-muted">v3.0</span>
         </div>
         <nav className="flex items-center gap-1">
           {tabs.map(({ href, label, icon: Icon }) => {
@@ -55,7 +65,7 @@ export function TopBar() {
           <span className="h-2 w-2 rounded-full bg-green-500" aria-hidden />
           Ready
         </div>
-        <DropdownMenu>
+        <DropdownMenu open={exportOpen} onOpenChange={setExportOpen}>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="border-brand-gold text-brand-gold hover:bg-brand-gold/10">
               <Download className="h-4 w-4 mr-1.5" />

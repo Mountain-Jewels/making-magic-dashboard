@@ -84,9 +84,9 @@ export function AssetGrid() {
     [assets, filter, searchQuery]
   )
 
-  const handleDuplicate = (asset: LibraryAsset) => {
+  const handleDuplicate = (_asset: LibraryAsset) => {
     // Duplicate is best-effort: CREATE tab has add logic; here we only support navigation.
-    // Full duplicate would require store actions and is optional for R4.
+    // Full duplicate would require store actions and is deferred.
   }
 
   return (
