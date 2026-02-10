@@ -1,25 +1,34 @@
+'use client'
+
+import Link from 'next/link'
+import { Play, ListMusic, ShoppingBag, Mail, Share2, Code } from 'lucide-react'
+
+const PREVIEW_MODES = [
+  { href: '/preview/video', label: 'Video Preview', description: 'Mux player, side-by-side comparison', icon: Play },
+  { href: '/preview/playlist', label: 'Playlist Manager', description: 'Browse, play, edit playlists', icon: ListMusic },
+  { href: '/preview/shopify', label: 'Shopify PDP Preview', description: 'Mock product page + Liquid code', icon: ShoppingBag },
+  { href: '/preview/email', label: 'Email Preview', description: 'Moment type templates, mobile/desktop', icon: Mail },
+  { href: '/preview/social', label: 'Social Export', description: 'Multi-platform export with compliance', icon: Share2 },
+  { href: '/preview/embed', label: 'Embed Code', description: 'Video, 3D, iFrame code generator', icon: Code },
+]
+
 export default function PreviewPage() {
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-[#D4AF37] mb-2">PREVIEW</h1>
-      <p className="text-gray-400 mb-8">Review content before publishing</p>
-      <div className="grid grid-cols-2 gap-4">
-        <a href="/preview/video" className="bg-gray-900 border border-gray-800 rounded-lg p-6 hover:border-[#D4AF37]/50 transition-colors">
-          <h3 className="font-semibold text-white mb-1">Video Preview</h3>
-          <p className="text-sm text-gray-500">Mux player, side-by-side comparison</p>
-        </a>
-        <a href="/preview/playlist" className="bg-gray-900 border border-gray-800 rounded-lg p-6 hover:border-[#D4AF37]/50 transition-colors">
-          <h3 className="font-semibold text-white mb-1">Playlist Manager</h3>
-          <p className="text-sm text-gray-500">Browse, play, edit playlists</p>
-        </a>
-        <a href="/preview/shopify" className="bg-gray-900 border border-gray-800 rounded-lg p-6 hover:border-[#D4AF37]/50 transition-colors">
-          <h3 className="font-semibold text-white mb-1">Shopify PDP Preview</h3>
-          <p className="text-sm text-gray-500">Mock product page with video</p>
-        </a>
-        <a href="/preview/email" className="bg-gray-900 border border-gray-800 rounded-lg p-6 hover:border-[#D4AF37]/50 transition-colors">
-          <h3 className="font-semibold text-white mb-1">Email Preview</h3>
-          <p className="text-sm text-gray-500">Moment type templates, mobile/desktop</p>
-        </a>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold text-brand-gold mb-2">PREVIEW</h1>
+      <p className="text-text-muted mb-8">Review content before publishing</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {PREVIEW_MODES.map(({ href, label, description, icon: Icon }) => (
+          <Link
+            key={href}
+            href={href}
+            className="bg-surface-panel border border-surface-border rounded-lg p-6 hover:border-brand-gold/50 transition-colors group"
+          >
+            <Icon className="h-6 w-6 text-text-muted group-hover:text-brand-gold mb-2" />
+            <h3 className="font-semibold text-text-primary mb-1 group-hover:text-brand-gold transition-colors">{label}</h3>
+            <p className="text-sm text-text-muted">{description}</p>
+          </Link>
+        ))}
       </div>
     </div>
   )
