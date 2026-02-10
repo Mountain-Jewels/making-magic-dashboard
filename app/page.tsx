@@ -4,40 +4,14 @@ const modules = [
     href: '/create',
     icon: '🎬',
     description: 'Build scenes, direct avatars, compose singing performances',
-    status: 'Phase 3',
     color: 'border-purple-500/30',
-  },
-  {
-    name: 'INTELLIGENCE',
-    href: '/intelligence',
-    icon: '🔍',
-    description: 'Direct intelligence gathering, review detected signals',
-    status: 'Phase 4',
-    color: 'border-blue-500/30',
   },
   {
     name: 'PREVIEW',
     href: '/preview',
     icon: '👁️',
     description: 'Review content before publishing',
-    status: 'Phase 5',
     color: 'border-green-500/30',
-  },
-  {
-    name: 'DEPLOY',
-    href: '/deploy',
-    icon: '🚀',
-    description: 'Publish to Shopify, email, gift cards',
-    status: 'Phase 6',
-    color: 'border-orange-500/30',
-  },
-  {
-    name: 'GOVERNANCE',
-    href: '/governance',
-    icon: '🛡️',
-    description: 'Review moments, manage safety, track costs',
-    status: 'Live',
-    color: 'border-[#D4AF37]/30',
   },
 ]
 
@@ -58,13 +32,6 @@ export default function HomePage() {
           >
             <div className="flex items-center justify-between mb-3">
               <span className="text-2xl">{mod.icon}</span>
-              <span className={`text-xs px-2 py-1 rounded ${
-                mod.status === 'Live'
-                  ? 'bg-[#D4AF37]/20 text-[#D4AF37]'
-                  : 'bg-gray-800 text-gray-500'
-              }`}>
-                {mod.status}
-              </span>
             </div>
             <h2 className="text-lg font-bold text-white group-hover:text-[#D4AF37] transition-colors">
               {mod.name}

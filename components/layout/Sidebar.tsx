@@ -6,10 +6,7 @@ import { usePathname } from 'next/navigation'
 const modules = [
   { href: '/', label: 'Home', icon: '🏠', exact: true },
   { href: '/create', label: 'CREATE', icon: '🎬', exact: false },
-  { href: '/intelligence', label: 'INTELLIGENCE', icon: '🔍', exact: false },
   { href: '/preview', label: 'PREVIEW', icon: '👁️', exact: false },
-  { href: '/deploy', label: 'DEPLOY', icon: '🚀', exact: false },
-  { href: '/governance', label: 'GOVERNANCE', icon: '🛡️', exact: false },
 ]
 
 export function Sidebar() {
