@@ -1,22 +1,3 @@
-import type { Asset } from './asset'
-import type { AssetVersion } from './version'
-
-// ─── Scene Asset Model (Steps 1–4) ───
-
-export interface SceneAsset extends Asset {
-  asset_type: 'scene'
-
-  scene_profile: {
-    environment_type: 'indoor' | 'outdoor' | 'abstract'
-    supports_lighting: boolean
-    supports_camera: boolean
-  }
-}
-
-export interface SceneVersion extends AssetVersion {
-  asset_id: string
-}
-
 // ─── Creative Control Types (Step 2: Edit Categories) ───
 
 export type BackgroundPreset =
