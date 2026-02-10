@@ -61,11 +61,13 @@ export function TopBar() {
         </nav>
       </div>
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 text-sm text-text-secondary">
-          <span className="h-2 w-2 rounded-full bg-green-500" aria-hidden />
-          Ready
-        </div>
-        <DropdownMenu open={exportOpen} onOpenChange={setExportOpen}>
+        {!pathname.startsWith('/create') && (
+          <>
+            <div className="flex items-center gap-2 text-sm text-text-secondary">
+              <span className="h-2 w-2 rounded-full bg-green-500" aria-hidden />
+              ● Online
+            </div>
+            <DropdownMenu open={exportOpen} onOpenChange={setExportOpen}>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="border-brand-gold text-brand-gold hover:bg-brand-gold/10">
               <Download className="h-4 w-4 mr-1.5" />
@@ -79,7 +81,9 @@ export function TopBar() {
             <DropdownMenuItem>Audio</DropdownMenuItem>
             <DropdownMenuItem>Bundle</DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenu>
+            </DropdownMenu>
+          </>
+        )}
         <Button variant="ghost" size="icon" className="text-text-secondary hover:text-text-primary">
           <Settings className="h-4 w-4" />
           <span className="sr-only">Settings</span>

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
-import { Shell } from '@/components/layout/Shell'
+import { LayoutSwitcher } from '@/components/layout/LayoutSwitcher'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -28,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="min-h-screen font-sans antialiased">
-        <Shell>{children}</Shell>
+        <LayoutSwitcher>{children}</LayoutSwitcher>
       </body>
     </html>
   )
