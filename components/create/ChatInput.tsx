@@ -93,7 +93,7 @@ export function ChatInput({ placeholder, onSubmit, className = '', creationConfi
         </div>
       )}
       <div
-        className="flex items-end gap-3 rounded-2xl border-2 border-brand-gold/40 shadow-sm px-4 py-3"
+        className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 rounded-2xl border-2 border-brand-gold/40 shadow-sm px-3 sm:px-4 py-3"
         style={{ backgroundColor: '#FFFFFF', minHeight: 90 }}
       >
         <textarea
@@ -108,7 +108,7 @@ export function ChatInput({ placeholder, onSubmit, className = '', creationConfi
           placeholder={placeholder}
           rows={4}
           style={{ minHeight: 70, color: '#111827' }}
-          className="flex-1 bg-transparent placeholder:text-gray-400 text-sm resize-none focus:outline-none leading-relaxed"
+          className="flex-1 min-w-0 w-full bg-transparent placeholder:text-gray-400 text-sm resize-none focus:outline-none leading-relaxed"
           disabled={loading}
         />
         <button

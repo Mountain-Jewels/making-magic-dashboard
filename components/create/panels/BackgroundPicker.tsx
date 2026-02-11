@@ -196,7 +196,7 @@ export function BackgroundPicker() {
       {/* Generate Background */}
       <div className="space-y-2">
         <label className="text-sm font-medium">Generate Background</label>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <input
             type="text"
             placeholder="Describe your background..."
@@ -204,7 +204,7 @@ export function BackgroundPicker() {
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
             disabled={generating}
-            className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand-gold focus:outline-none focus:ring-1 focus:ring-brand-gold disabled:opacity-50"
+            className="flex-1 min-w-0 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand-gold focus:outline-none focus:ring-1 focus:ring-brand-gold disabled:opacity-50"
           />
           <Button
             onClick={handleGenerate}
@@ -217,7 +217,7 @@ export function BackgroundPicker() {
       </div>
 
       <Tabs defaultValue="studio">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 gap-1">
           {(Object.keys(CATEGORY_LABELS) as BackgroundCategory[]).map((cat) => (
             <TabsTrigger key={cat} value={cat} className="text-xs">
               {CATEGORY_LABELS[cat]}
@@ -231,7 +231,7 @@ export function BackgroundPicker() {
                 {generatedBackgrounds.length === 0 ? (
                   <p className="text-sm text-gray-500">No generated backgrounds yet. Generate one above.</p>
                 ) : (
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                     {generatedBackgrounds.map((bg) => (
                       <div
                         key={bg.id}
@@ -295,7 +295,7 @@ export function BackgroundPicker() {
             ) : BACKGROUNDS_BY_CATEGORY[cat].length === 0 ? (
               <p className="text-sm text-gray-500">No backgrounds in this category.</p>
             ) : (
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                 {BACKGROUNDS_BY_CATEGORY[cat].map(({ id, label }) => (
                   <button
                     key={id}

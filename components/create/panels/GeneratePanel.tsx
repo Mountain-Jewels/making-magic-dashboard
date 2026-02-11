@@ -255,7 +255,7 @@ export function GeneratePanel() {
 
         <div className="space-y-1">
           <span className="text-xs text-gray-500">Duration</span>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {DURATIONS.map((d) => (
               <Button
                 key={d}
@@ -272,7 +272,7 @@ export function GeneratePanel() {
 
         <div className="space-y-1">
           <span className="text-xs text-gray-500">Aspect ratio</span>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {ASPECT_RATIOS.map((ar) => (
               <Button
                 key={ar}
@@ -338,7 +338,7 @@ export function GeneratePanel() {
       {/* Generate 3D */}
       <div className="space-y-2 pt-4 border-t border-gray-200">
         <label className="text-sm font-medium">Generate 3D</label>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             type="button"
             variant={threeDMode === 'luma' ? 'default' : 'outline'}

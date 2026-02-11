@@ -130,7 +130,7 @@ export function AvatarGallery() {
         <p className="text-[11px] text-amber-600">{voicesError}</p>
       )}
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
         {/* Pre-made avatars — no initials circle, name + Age + Voice only */}
         {safePresets.map((preset) => {
           const isSelected = selectedId === preset.id
@@ -270,7 +270,7 @@ export function AvatarGallery() {
       </div>
 
       {/* Upload + Create (AI) — same h-[76px] so visually identical */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <label className="block">
           <input type="file" accept=".jpg,.jpeg,.png,.webp,.heic" className="hidden" />
           <div

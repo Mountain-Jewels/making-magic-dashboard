@@ -243,7 +243,7 @@ export function UploadPanel() {
           <p className="text-xs text-gray-500 py-4 text-center">No assets yet</p>
         )}
         {!listLoading && assets.length > 0 && (
-          <div className="grid grid-cols-2 gap-2 max-h-[280px] overflow-y-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[280px] overflow-y-auto">
             {assets.map((asset) => {
               const isAudio = assetType === 'music' || isAudioFile(asset.filename)
               const isImg = !isAudio || isImageFile(asset.filename)

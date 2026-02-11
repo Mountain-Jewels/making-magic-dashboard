@@ -148,7 +148,7 @@ export function JewelryGallery() {
           }}
           disabled={categoriesLoading}
         >
-          <SelectTrigger className="bg-white border-2 border-brand-gold/40 text-gray-900">
+          <SelectTrigger className="w-full bg-white border-2 border-brand-gold/40 text-gray-900">
             <SelectValue placeholder={categoriesLoading ? 'Loading...' : 'Select category'} />
           </SelectTrigger>
           <SelectContent>
@@ -169,7 +169,7 @@ export function JewelryGallery() {
         <div>
           <p className="text-xs text-gray-500 mb-2">Diamond Shape</p>
           <Select value={shape} onValueChange={setShape}>
-            <SelectTrigger className="bg-white border-2 border-brand-gold/40 text-gray-900">
+            <SelectTrigger className="w-full bg-white border-2 border-brand-gold/40 text-gray-900">
               <SelectValue placeholder="Any shape" />
             </SelectTrigger>
             <SelectContent>
@@ -189,7 +189,7 @@ export function JewelryGallery() {
         <div>
           <p className="text-xs text-gray-500 mb-2">Carat Weight</p>
           <Select value={carat} onValueChange={setCarat}>
-            <SelectTrigger className="bg-white border-2 border-brand-gold/40 text-gray-900">
+            <SelectTrigger className="w-full bg-white border-2 border-brand-gold/40 text-gray-900">
               <SelectValue placeholder="Any carat" />
             </SelectTrigger>
             <SelectContent>
@@ -216,7 +216,7 @@ export function JewelryGallery() {
           <p className="text-xs text-gray-500 py-4 text-center">No products in this category</p>
         )}
         {!productsLoading && products.length > 0 && (
-          <div className="grid grid-cols-2 gap-2 max-h-[280px] overflow-y-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[280px] overflow-y-auto">
             {products.map((p) => {
               const firstImage = p.images?.[0] ?? ''
               const firstVariant = p.variants?.[0]

@@ -191,7 +191,7 @@ export function MusicBrowser() {
                     {list.map((track) => (
                       <div
                         key={track.id}
-                        className="flex items-center justify-between gap-2 rounded-lg border-2 border-brand-gold/40 bg-white p-3"
+                        className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 rounded-lg border-2 border-brand-gold/40 bg-white p-3"
                       >
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium text-gray-900 truncate">
@@ -302,7 +302,7 @@ export function MusicBrowser() {
           </div>
           <div className="space-y-2">
             <label className="text-xs text-gray-500">Duration</label>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {DURATIONS.map((d) => (
                 <Button
                   key={d}

@@ -340,23 +340,19 @@ function CreateV2PageContent() {
   }, [currentScene?.id])
 
   return (
-    <div className="h-full w-full flex flex-col">
-      <div className="flex-shrink-0 flex items-center justify-center gap-4 py-6">
-        <Gem className="h-12 w-12 text-brand-gold" />
+    <div className="h-full w-full min-h-0 flex flex-col overflow-hidden">
+      <div className="flex-shrink-0 flex items-center justify-center gap-2 sm:gap-4 py-4 sm:py-6 px-2">
+        <Gem className="h-8 w-8 sm:h-12 sm:w-12 text-brand-gold shrink-0" />
         <span
-          style={{
-            fontSize: '2rem',
-            fontWeight: 700,
-            color: '#111827',
-            letterSpacing: '-0.02em',
-          }}
+          className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900"
+          style={{ letterSpacing: '-0.02em' }}
         >
           The Studio
         </span>
       </div>
 
-      <div className="flex-1 min-h-0 flex gap-4 px-6 pb-6">
-        <div className="flex flex-col gap-4 min-h-0" style={{ width: '60%' }}>
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-4 px-3 sm:px-4 md:px-6 pb-4 md:pb-6 overflow-hidden">
+        <div className="flex flex-col gap-4 min-h-0 min-w-0 overflow-hidden">
           <LeftPanelContent
             creationConfig={creationConfig}
             showWizard={showWizard}
@@ -365,7 +361,7 @@ function CreateV2PageContent() {
             onBackToSetup={() => setShowWizard(true)}
           />
         </div>
-        <div className="flex flex-col gap-4 min-h-0" style={{ width: '40%' }}>
+        <div className="flex flex-col gap-4 min-h-0 min-w-0 overflow-hidden">
           <RightPanelContent
             creationConfig={creationConfig}
             currentSceneId={currentSceneId}

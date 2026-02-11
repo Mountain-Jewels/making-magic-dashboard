@@ -5,7 +5,7 @@ export default function CreateV2Layout({
 }) {
   return (
     <div
-      className="h-screen w-screen overflow-hidden"
+      className="min-h-screen h-full w-full max-w-full overflow-hidden min-w-0"
       style={{
         backgroundColor: '#F9FAFB',
         color: '#111827',

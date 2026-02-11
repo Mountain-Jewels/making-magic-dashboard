@@ -33,9 +33,9 @@ export function DisplayCanvas({
   const showPlaceholder = !showVideo && !showImage && !show3D
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 p-4">
+    <div className="flex-1 flex flex-col min-h-0 p-3 sm:p-4 min-w-0">
       <div
-        className="flex-1 relative rounded-lg border border-gray-200 bg-white flex items-center justify-center min-h-[200px] overflow-hidden"
+        className="flex-1 relative rounded-lg border border-gray-200 bg-white flex items-center justify-center min-h-[200px] overflow-hidden w-full max-w-full"
         style={{ aspectRatio: '1' }}
       >
         {tabCount > 1 && (
@@ -84,7 +84,7 @@ export function DisplayCanvas({
             src={videoUrl}
             controls
             playsInline
-            className="w-full h-full object-contain"
+            className="w-full max-w-full h-full object-contain"
           >
             Your browser does not support the video tag.
           </video>
@@ -95,7 +95,7 @@ export function DisplayCanvas({
             src={threeDUrl}
             controls
             playsInline
-            className="w-full h-full object-contain"
+            className="w-full max-w-full h-full object-contain"
           >
             Your browser does not support the video tag.
           </video>

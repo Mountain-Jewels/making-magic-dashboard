@@ -76,7 +76,7 @@ export function LightingPanel() {
     <div className="p-4 space-y-4">
       <div className="space-y-2">
         <p className="text-xs font-medium text-gray-600">Presets</p>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {PRESETS.map(({ id, label, emoji }) => (
             <Button
               key={id}
@@ -108,7 +108,7 @@ export function LightingPanel() {
           <div>
             <div className="text-xs text-gray-500 mb-2">Direction</div>
             <Select value={direction} onValueChange={setDirection}>
-              <SelectTrigger className="bg-white border-brand-gold/40">
+              <SelectTrigger className="w-full bg-white border-brand-gold/40">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

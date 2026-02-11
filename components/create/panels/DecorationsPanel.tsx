@@ -27,7 +27,7 @@ export function DecorationsPanel() {
   return (
     <div className="p-4 space-y-4">
       <p className="text-sm text-gray-600">Select one or more decoration themes for your scene.</p>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {DECORATION_CATEGORIES.map(({ id, label, emoji }) => (
           <button
             key={id}

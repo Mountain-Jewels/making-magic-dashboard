@@ -124,7 +124,7 @@ export function HairMakeupPanel() {
         <TabsContent value="hair" className="mt-4 space-y-4">
           <div>
             <p className="text-xs text-gray-500 mb-2">Style</p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {HAIR_STYLES.map((style) => (
                 <button
                   key={style}
@@ -154,7 +154,7 @@ export function HairMakeupPanel() {
           </div>
         </TabsContent>
         <TabsContent value="makeup" className="mt-4">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {MAKEUP_PRESETS.map((preset) => (
               <Button
                 key={preset}

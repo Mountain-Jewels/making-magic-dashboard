@@ -39,7 +39,7 @@ const PREVIEW_ROUTES: { href: string; icon: typeof Play; label: string }[] = [
   { href: '/preview/embed', icon: Code, label: 'Embed' },
 ]
 
-export function ToolBar() {
+export function ToolBar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname()
   const isCreate = pathname.startsWith('/create')
   const isPreview = pathname.startsWith('/preview')
@@ -89,6 +89,7 @@ export function ToolBar() {
                 <TooltipTrigger asChild>
                   <Link
                     href={href}
+                    onClick={onNavigate}
                     className={`flex items-center justify-center h-9 w-9 rounded-md transition-colors ${
                       isActive ? 'bg-brand-gold/20 text-brand-gold' : 'text-text-secondary hover:bg-surface-elevated hover:text-text-primary'
                     }`}

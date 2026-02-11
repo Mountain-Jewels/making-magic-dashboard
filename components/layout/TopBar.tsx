@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Gem, Film, Eye, Library, Download, Settings } from 'lucide-react'
+import { Gem, Film, Eye, Library, Download, Settings, Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -19,7 +19,7 @@ const tabs = [
   { href: '/library', label: 'Library', icon: Library },
 ]
 
-export function TopBar() {
+export function TopBar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void }) {
   const pathname = usePathname()
   const [exportOpen, setExportOpen] = useState(false)
 
@@ -31,16 +31,27 @@ export function TopBar() {
 
   return (
     <header
-      className="h-12 flex-shrink-0 flex items-center justify-between px-4 border-b border-surface-border"
+      className="h-12 flex-shrink-0 flex items-center justify-between px-3 sm:px-4 border-b border-surface-border gap-2"
       style={{ backgroundColor: '#0A0A0F' }}
     >
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-2 sm:gap-6 min-w-0">
+        {onMobileMenuToggle && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden shrink-0 text-text-secondary hover:text-text-primary"
+            onClick={onMobileMenuToggle}
+            aria-label="Open menu"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        )}
         <div className="flex items-center gap-2">
           <Gem className="h-5 w-5 text-brand-gold" />
           <span className="font-semibold text-text-primary">The Studio</span>
           <span className="text-xs font-mono text-text-muted">v3.0</span>
         </div>
-        <nav className="flex items-center gap-1">
+        <nav className="flex items-center gap-1 overflow-x-auto">
           {tabs.map(({ href, label, icon: Icon }) => {
             const isActive = pathname === href || (href !== '/create' && pathname.startsWith(href))
             return (

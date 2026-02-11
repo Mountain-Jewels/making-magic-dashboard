@@ -1,24 +1,13 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Menu } from 'lucide-react'
 import { TopBar } from './TopBar'
 import { ToolBar } from './ToolBar'
 import { BottomBar } from './BottomBar'
 import { KeyboardShortcuts } from './KeyboardShortcuts'
-
-function useMinWidth(width: number) {
-  const [ok, setOk] = useState(true)
-  useEffect(() => {
-    setOk(window.innerWidth >= width)
-    const mql = window.matchMedia(`(min-width: ${width}px)`)
-    const handler = () => setOk(mql.matches)
-    mql.addEventListener('change', handler)
-    return () => mql.removeEventListener('change', handler)
-  }, [width])
-  return ok
-}
 
 const pageTransition = {
   initial: { opacity: 0 },
@@ -29,23 +18,34 @@ const pageTransition = {
 
 export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const isWideEnough = useMinWidth(1024)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden min-w-0" style={{ backgroundColor: '#0A0A0F' }}>
+    <div className="flex flex-col min-h-screen h-screen overflow-hidden w-full max-w-full min-w-0" style={{ backgroundColor: '#0A0A0F' }}>
       <KeyboardShortcuts />
-      {!isWideEnough && (
-        <div
-          className="flex-shrink-0 px-4 py-2 bg-amber-900/30 border-b border-amber-700/50 text-amber-200 text-sm text-center"
-          role="status"
-        >
-          For the best experience, use a screen at least 1024px wide.
-        </div>
-      )}
-      <TopBar />
-      <div className="flex flex-1 min-h-0 min-w-[1024px]">
-        <ToolBar />
-        <main className="flex-1 min-w-0 overflow-auto">
+      <TopBar onMobileMenuToggle={() => setMobileMenuOpen((o) => !o)} />
+      <div className="flex flex-1 min-h-0 min-w-0 w-full overflow-hidden">
+        {/* Sidebar: visible on md+, hidden on mobile */}
+        <aside className="hidden md:flex w-14 flex-shrink-0 flex-col border-r border-surface-border overflow-hidden">
+          <ToolBar />
+        </aside>
+        {/* Mobile sidebar overlay */}
+        {mobileMenuOpen && (
+          <div
+            className="fixed inset-0 z-40 md:hidden"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-hidden
+          >
+            <div className="absolute inset-0 bg-black/50" />
+            <aside
+              className="absolute left-0 top-0 bottom-0 w-14 flex flex-col border-r border-surface-border bg-[#0A0A0F] z-50 py-3"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ToolBar onNavigate={() => setMobileMenuOpen(false)} />
+            </aside>
+          </div>
+        )}
+        <main className="flex-1 min-w-0 min-h-0 overflow-auto w-full">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={pathname}
@@ -57,7 +57,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
           </AnimatePresence>
         </main>
       </div>
-      <BottomBar />
+      <div className="flex-shrink-0">
+        <BottomBar />
+      </div>
     </div>
   )
 }

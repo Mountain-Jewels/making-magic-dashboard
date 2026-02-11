@@ -24,7 +24,7 @@ export function DressingRoomPanel() {
           <TabsTrigger value="accessories">Accessories</TabsTrigger>
         </TabsList>
         <TabsContent value="tops" className="mt-4">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {OUTFITS.filter((o) => o.category === 'tops').map((item) => (
               <button
                 key={item.id}
@@ -43,7 +43,7 @@ export function DressingRoomPanel() {
           </div>
         </TabsContent>
         <TabsContent value="dresses" className="mt-4">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {OUTFITS.filter((o) => o.category === 'dresses').map((item) => (
               <button
                 key={item.id}
@@ -62,7 +62,7 @@ export function DressingRoomPanel() {
           </div>
         </TabsContent>
         <TabsContent value="suits" className="mt-4">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {OUTFITS.filter((o) => o.category === 'suits').map((item) => (
               <button
                 key={item.id}
@@ -81,7 +81,7 @@ export function DressingRoomPanel() {
           </div>
         </TabsContent>
         <TabsContent value="accessories" className="mt-4">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {OUTFITS.filter((o) => o.category === 'accessories').map((item) => (
               <button
                 key={item.id}

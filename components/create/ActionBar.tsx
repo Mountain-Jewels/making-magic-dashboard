@@ -181,15 +181,15 @@ export function ActionBar({
   }
 
   return (
-    <div className="flex-shrink-0 rounded-2xl bg-white text-gray-900 border-[3px] border-brand-gold/50 shadow-sm p-4 flex items-center justify-between gap-3">
-      <div className="flex items-center gap-3 min-w-0 flex-1">
+    <div className="flex-shrink-0 rounded-2xl bg-white text-gray-900 border-[3px] border-brand-gold/50 shadow-sm p-3 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 min-w-0 flex-1">
         <input
           type="text"
           value={sceneName}
           onChange={(e) => onSceneNameChange(e.target.value)}
           placeholder="Scene name"
           disabled={disabled}
-          className="flex-1 min-w-0 max-w-[200px] rounded-md border-2 border-brand-gold/40 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-brand-gold disabled:opacity-50"
+          className="flex-1 min-w-0 w-full sm:max-w-[200px] rounded-md border-2 border-brand-gold/40 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-brand-gold disabled:opacity-50"
         />
         <span className="text-xs text-gray-500 shrink-0">
           {saveStatus === 'saved' && 'Saved ✓'}
@@ -197,36 +197,36 @@ export function ActionBar({
           {saveStatus === 'unsaved' && 'Unsaved changes'}
         </span>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Button
           variant="outline"
           size="sm"
-          className="border-2 border-brand-gold/40"
+          className="border-2 border-brand-gold/40 shrink-0"
           disabled={disabled}
         >
-          <Play className="h-4 w-4 mr-1.5" />
-          Preview
+          <Play className="h-4 w-4 sm:mr-1.5" />
+          <span className="hidden sm:inline">Preview</span>
         </Button>
         <Button
           variant="outline"
           size="sm"
-          className="border-2 border-brand-gold/40"
+          className="border-2 border-brand-gold/40 shrink-0"
           onClick={onSave}
           disabled={disabled || saveStatus === 'saving'}
         >
-          <Save className="h-4 w-4 mr-1.5" />
-          {saveStatus === 'saving' ? 'Saving...' : 'Save'}
+          <Save className="h-4 w-4 sm:mr-1.5" />
+          {saveStatus === 'saving' ? 'Saving...' : <span className="hidden sm:inline">Save</span>}
         </Button>
         <DropdownMenu open={loadOpen} onOpenChange={setLoadOpen}>
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
               size="sm"
-              className="border-2 border-brand-gold/40"
+              className="border-2 border-brand-gold/40 shrink-0"
               disabled={disabled}
             >
-              <FolderOpen className="h-4 w-4 mr-1.5" />
-              Load
+              <FolderOpen className="h-4 w-4 sm:mr-1.5" />
+              <span className="hidden sm:inline">Load</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="max-h-[300px] overflow-y-auto">
@@ -251,7 +251,7 @@ export function ActionBar({
         <Button
           variant="outline"
           size="sm"
-          className="border-2 border-brand-gold/40"
+          className="border-2 border-brand-gold/40 shrink-0"
           onClick={onNew}
           disabled={disabled}
         >
@@ -261,14 +261,14 @@ export function ActionBar({
           <DropdownMenuTrigger asChild>
             <Button
               size="sm"
-              className="bg-brand-gold text-black hover:bg-brand-gold/90"
+              className="bg-brand-gold text-black hover:bg-brand-gold/90 shrink-0 w-full sm:w-auto"
               disabled={!canExport || exportLoading !== null}
             >
-              <Upload className="h-4 w-4 mr-1.5" />
-              {exportLoading ? 'Exporting...' : 'Export'}
+              <Upload className="h-4 w-4 sm:mr-1.5" />
+              {exportLoading ? 'Exporting...' : <span className="hidden sm:inline">Export</span>}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-[200px]">
+          <DropdownMenuContent align="end" className="min-w-[200px] sm:min-w-[200px]">
             <DropdownMenuItem
               onClick={handleExportImage}
               disabled={!hasImage || exportLoading !== null}
