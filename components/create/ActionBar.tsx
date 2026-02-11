@@ -1,14 +1,23 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FolderOpen, Play, Save, Upload } from 'lucide-react'
+import { Copy, FolderOpen, Image, Music, Play, Save, Share2, ShoppingBag, Upload, Video } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  exportAudio,
+  exportImage,
+  exportShare,
+  exportToShopify,
+  exportVideo,
+} from '@/lib/api/export'
 import { listScenes } from '@/lib/api/scenes'
 import type { SceneListItem } from '@/lib/api/types'
 import { useSceneStore } from '@/lib/stores/scene-store'
@@ -42,6 +51,8 @@ export interface ActionBarProps {
   disabled?: boolean
 }
 
+type ExportKind = 'image' | 'video' | 'audio' | 'shopify' | 'share'
+
 export function ActionBar({
   currentSceneId,
   saveStatus,
@@ -52,9 +63,18 @@ export function ActionBar({
   onSceneNameChange,
   disabled = false,
 }: ActionBarProps) {
+  const { currentScene } = useSceneStore()
   const [loadOpen, setLoadOpen] = useState(false)
   const [scenes, setScenes] = useState<SceneListItem[]>([])
   const [loadScenesLoading, setLoadScenesLoading] = useState(false)
+  const [exportLoading, setExportLoading] = useState<ExportKind | null>(null)
+  const [shareUrl, setShareUrl] = useState<string | null>(null)
+  const [shareModalOpen, setShareModalOpen] = useState(false)
+
+  const hasImage = !!(currentScene?.backgroundImageUrl)
+  const hasVideo = !!(currentScene?.videoUrl || currentScene?.threeDUrl)
+  const hasAudio = !!(currentScene?.musicUrl)
+  const canExport = !!currentSceneId && !disabled
 
   useEffect(() => {
     if (loadOpen) {
@@ -69,6 +89,95 @@ export function ActionBar({
   const handleLoadScene = async (id: string) => {
     setLoadOpen(false)
     await onLoad(id)
+  }
+
+  const handleExportImage = async () => {
+    if (!currentSceneId) return
+    setExportLoading('image')
+    try {
+      const res = await exportImage(currentSceneId, 'png')
+      window.open(res.export_url, '_blank')
+      toast.success('Image exported')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Export failed')
+    } finally {
+      setExportLoading(null)
+    }
+  }
+
+  const handleExportVideo = async () => {
+    if (!currentSceneId) return
+    setExportLoading('video')
+    try {
+      const res = await exportVideo(currentSceneId)
+      window.open(res.export_url, '_blank')
+      toast.success('Video exported')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Export failed')
+    } finally {
+      setExportLoading(null)
+    }
+  }
+
+  const handleExportAudio = async () => {
+    if (!currentSceneId) return
+    setExportLoading('audio')
+    try {
+      const res = await exportAudio(currentSceneId)
+      window.open(res.export_url, '_blank')
+      toast.success('Audio exported')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Export failed')
+    } finally {
+      setExportLoading(null)
+    }
+  }
+
+  const handleExportShopify = async () => {
+    if (!currentSceneId) return
+    setExportLoading('shopify')
+    try {
+      const res = await exportToShopify(currentSceneId, sceneName || 'Untitled Scene')
+      toast.success(
+        <div>
+          <p className="font-medium">Published to Shopify</p>
+          <a
+            href={res.shopify_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm underline mt-1 block"
+          >
+            View product →
+          </a>
+        </div>
+      )
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Shopify publish failed')
+    } finally {
+      setExportLoading(null)
+    }
+  }
+
+  const handleExportShare = async () => {
+    if (!currentSceneId) return
+    setExportLoading('share')
+    try {
+      const res = await exportShare(currentSceneId)
+      setShareUrl(res.share_url)
+      setShareModalOpen(true)
+      toast.success('Share link created')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Share failed')
+    } finally {
+      setExportLoading(null)
+    }
+  }
+
+  const copyShareUrl = () => {
+    if (shareUrl) {
+      navigator.clipboard.writeText(shareUrl)
+      toast.success('Copied to clipboard')
+    }
   }
 
   return (
@@ -148,11 +257,89 @@ export function ActionBar({
         >
           New
         </Button>
-        <Button size="sm" className="bg-brand-gold text-black hover:bg-brand-gold/90">
-          <Upload className="h-4 w-4 mr-1.5" />
-          Deploy
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              size="sm"
+              className="bg-brand-gold text-black hover:bg-brand-gold/90"
+              disabled={!canExport || exportLoading !== null}
+            >
+              <Upload className="h-4 w-4 mr-1.5" />
+              {exportLoading ? 'Exporting...' : 'Export'}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-[200px]">
+            <DropdownMenuItem
+              onClick={handleExportImage}
+              disabled={!hasImage || exportLoading !== null}
+              className="gap-2"
+            >
+              <Image className="h-4 w-4" />
+              {exportLoading === 'image' ? 'Exporting...' : 'Download Image (PNG)'}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={handleExportVideo}
+              disabled={!hasVideo || exportLoading !== null}
+              className="gap-2"
+            >
+              <Video className="h-4 w-4" />
+              {exportLoading === 'video' ? 'Exporting...' : 'Download Video (MP4)'}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={handleExportAudio}
+              disabled={!hasAudio || exportLoading !== null}
+              className="gap-2"
+            >
+              <Music className="h-4 w-4" />
+              {exportLoading === 'audio' ? 'Exporting...' : 'Download Audio (MP3)'}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={handleExportShopify}
+              disabled={exportLoading !== null}
+              className="gap-2"
+            >
+              <ShoppingBag className="h-4 w-4" />
+              {exportLoading === 'shopify' ? 'Publishing...' : 'Publish to Shopify'}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={handleExportShare}
+              disabled={exportLoading !== null}
+              className="gap-2"
+            >
+              <Share2 className="h-4 w-4" />
+              {exportLoading === 'share' ? 'Creating...' : 'Share Link'}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
+      {shareModalOpen && shareUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl shadow-lg p-6 max-w-md w-full mx-4 border-2 border-brand-gold/40">
+            <h3 className="font-semibold text-gray-900 mb-2">Share Link</h3>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                readOnly
+                value={shareUrl}
+                className="flex-1 rounded-md border-2 border-gray-200 px-3 py-2 text-sm bg-gray-50"
+              />
+              <Button size="sm" onClick={copyShareUrl} className="shrink-0">
+                <Copy className="h-4 w-4 mr-1" />
+                Copy
+              </Button>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-4 w-full"
+              onClick={() => { setShareModalOpen(false); setShareUrl(null) }}
+            >
+              Close
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
+import { Toaster } from 'sonner'
 import './globals.css'
 import { LayoutSwitcher } from '@/components/layout/LayoutSwitcher'
 
@@ -29,6 +30,7 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="min-h-screen font-sans antialiased">
         <LayoutSwitcher>{children}</LayoutSwitcher>
+        <Toaster position="top-right" richColors closeButton />
       </body>
     </html>
   )
