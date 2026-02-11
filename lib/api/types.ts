@@ -160,11 +160,24 @@ export interface ChatMessageResponse {
 }
 
 export interface SuggestionsRequest {
-  scene_state: Record<string, unknown>
+  scene_state?: Record<string, unknown>
+  scene_context?: Record<string, unknown>
+}
+
+export interface SuggestionItem {
+  type: 'lighting' | 'background' | 'jewelry' | 'avatar'
+  action: string
+  value: string
 }
 
 export interface SuggestionsResponse {
-  suggestions: string[]
+  suggestions: SuggestionItem[]
+}
+
+export interface GrokResponse {
+  response?: string
+  content?: string
+  trends?: string[]
 }
 
 // ─── Assets ───

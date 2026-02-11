@@ -83,6 +83,7 @@ function LeftPanelContent({
           <ChatInput
             placeholder="Type to edit your scene..."
             onSubmit={() => {}}
+            creationConfig={creationConfig}
           />
         )}
       </div>
@@ -112,6 +113,7 @@ function LeftPanelContent({
           <ChatInput
             placeholder="Describe what you want to create..."
             onSubmit={() => {}}
+            creationConfig={creationConfig}
           />
         )}
       </div>

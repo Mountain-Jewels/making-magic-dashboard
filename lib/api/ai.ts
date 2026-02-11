@@ -3,12 +3,18 @@
  */
 
 import { apiPost } from './client'
-import type { ChatMessageRequest, ChatMessageResponse, SuggestionsRequest, SuggestionsResponse } from './types'
+import type {
+  ChatMessageRequest,
+  ChatMessageResponse,
+  SuggestionsRequest,
+  SuggestionsResponse,
+  GrokResponse,
+} from './types'
 
 export async function chatMessage(
   request: ChatMessageRequest
-): Promise<ChatMessageResponse> {
-  return apiPost<ChatMessageResponse>('/ai/chat', request)
+): Promise<ChatMessageResponse & { suggestions?: { type: string; action: string; value: string }[] }> {
+  return apiPost('/ai/chat', request)
 }
 
 export async function getSuggestions(
@@ -19,6 +25,6 @@ export async function getSuggestions(
 
 export async function chatWithGrok(
   request: ChatMessageRequest
-): Promise<ChatMessageResponse> {
-  return apiPost<ChatMessageResponse>('/ai/grok', request)
+): Promise<GrokResponse & { content?: string }> {
+  return apiPost('/ai/grok', request)
 }
