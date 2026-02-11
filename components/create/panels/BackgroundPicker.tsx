@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useSceneStore } from '@/lib/stores/scene-store'
 import type { BackgroundPreset } from '@/lib/types/scene'
 import { generateImage, upscaleImage, removeBackground } from '@/lib/api/generate'
+import { uploadAsset, getAssetUrl } from '@/lib/api/assets'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -73,6 +74,8 @@ export function BackgroundPicker() {
   const [prompt, setPrompt] = useState('')
   const [generating, setGenerating] = useState(false)
   const [processing, setProcessing] = useState<{ id: string; action: 'upscale' | 'removebg' } | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const uploadInputRef = useRef<HTMLInputElement>(null)
 
   const ensureScene = useCallback(() => {
     if (currentScene) return currentScene.id
@@ -160,6 +163,28 @@ export function BackgroundPicker() {
       }
     } finally {
       setProcessing(null)
+    }
+  }
+
+  const handleUploadCustom = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || uploading) return
+    setUploading(true)
+    try {
+      const res = await uploadAsset(file, 'background')
+      const { url } = await getAssetUrl(res.id)
+      if (url) {
+        setGeneratedBackgrounds((prev) => [
+          ...prev,
+          { id: res.id, url },
+        ])
+        handleSelectGenerated(url)
+      }
+    } catch {
+      // ignore
+    } finally {
+      setUploading(false)
+      if (uploadInputRef.current) uploadInputRef.current.value = ''
     }
   }
 
@@ -291,9 +316,24 @@ export function BackgroundPicker() {
           </TabsContent>
         ))}
       </Tabs>
-      <Button variant="outline" size="sm" className="w-full">
-        Upload Custom
-      </Button>
+      <div>
+        <input
+          ref={uploadInputRef}
+          type="file"
+          accept=".jpg,.jpeg,.png,.webp,.heic"
+          onChange={handleUploadCustom}
+          className="hidden"
+        />
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full"
+          onClick={() => uploadInputRef.current?.click()}
+          disabled={uploading}
+        >
+          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Upload Custom'}
+        </Button>
+      </div>
     </div>
   )
 }

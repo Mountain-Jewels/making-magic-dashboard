@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useSceneStore } from '@/lib/stores/scene-store'
 import { generateMusic, getMusicStatus } from '@/lib/api/generate'
 import { apiGet } from '@/lib/api/client'
+import { uploadAsset, getAssetUrl } from '@/lib/api/assets'
 import type { MusicLibraryResponse } from '@/lib/api/types'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -38,6 +39,7 @@ export function MusicBrowser() {
   const [jobId, setJobId] = useState<string | null>(null)
   const [musicStatus, setMusicStatus] = useState<{ status: string; progress?: number } | null>(null)
   const [generatedTracks, setGeneratedTracks] = useState<{ url: string; id: string }[]>([])
+  const [uploading, setUploading] = useState(false)
 
   const ensureScene = useCallback(() => {
     if (currentScene) return currentScene.id
@@ -240,9 +242,34 @@ export function MusicBrowser() {
             <p className="text-sm font-medium text-gray-900">📤 Upload Music</p>
             <p className="text-xs text-gray-500">.mp3, .wav, .m4a</p>
             <label className="block">
-              <input type="file" accept=".mp3,.wav,.m4a" className="hidden" />
+              <input
+                type="file"
+                accept=".mp3,.wav,.m4a"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  if (!file || uploading) return
+                  setUploading(true)
+                  try {
+                    const res = await uploadAsset(file, 'music')
+                    const { url } = await getAssetUrl(res.id)
+                    if (url) {
+                      setGeneratedTracks((prev) => [
+                        ...prev,
+                        { url, id: res.id },
+                      ])
+                      playPreview(url)
+                    }
+                  } catch {
+                    // ignore
+                  } finally {
+                    setUploading(false)
+                    e.target.value = ''
+                  }
+                }}
+              />
               <span className="inline-block rounded-lg border-2 border-brand-gold/40 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer">
-                Choose file
+                {uploading ? 'Uploading...' : 'Choose file'}
               </span>
             </label>
           </div>

@@ -212,9 +212,10 @@ export interface GrokResponse {
 // ─── Assets ───
 export interface Asset {
   id: string
-  type: 'avatar' | 'music' | 'background' | 'generated' | 'export'
+  type?: 'avatar' | 'music' | 'background' | 'generated' | 'export'
   url?: string
   filename: string
+  size?: number
   size_bytes?: number
   created_at: string
 }
@@ -223,6 +224,8 @@ export interface UploadAssetResponse {
   id: string
   url: string
   filename: string
+  type?: string
+  size?: number
 }
 
 // ─── Scenes ───

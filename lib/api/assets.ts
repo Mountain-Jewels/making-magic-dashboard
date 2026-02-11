@@ -29,9 +29,9 @@ export async function listAssets(
 }
 
 export async function deleteAsset(id: string): Promise<void> {
-  await apiDelete(`/assets/${id}`)
+  await apiDelete(`/assets/${encodeURIComponent(id)}`)
 }
 
-export async function getAssetUrl(id: string): Promise<{ url: string }> {
-  return apiGet<{ url: string }>(`/assets/${id}/url`)
+export async function getAssetUrl(id: string): Promise<{ url: string; expires_at?: string }> {
+  return apiGet<{ url: string; expires_at?: string }>(`/assets/${encodeURIComponent(id)}/url`)
 }
