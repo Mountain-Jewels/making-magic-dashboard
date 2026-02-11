@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
   async redirects() {
-    return [{ source: '/studio', destination: '/create-v2', permanent: false }]
+    return [{ source: '/studio', destination: '/create', permanent: false }]
   },
 }
 
