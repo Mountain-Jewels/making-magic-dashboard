@@ -55,7 +55,7 @@ interface CreativeToolBarProps {
 export function CreativeToolBar({ activeTool, onToolChange, disabled }: CreativeToolBarProps) {
   return (
     <TooltipProvider>
-      <div className="flex-shrink-0 flex items-center justify-center gap-1 bg-white text-gray-900 rounded-2xl border-2 border-brand-gold/40 shadow-sm px-3 py-2">
+      <div className="flex-shrink-0 flex items-center justify-center gap-1 bg-white text-gray-900 rounded-2xl border-[3px] border-brand-gold/50 shadow-sm px-3 py-2">
         {TOOLS.map(({ id, icon: Icon, label }) => {
           const isActive = !disabled && activeTool === id
           return (

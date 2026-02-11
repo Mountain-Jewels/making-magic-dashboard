@@ -12,6 +12,7 @@ export interface CreationConfig {
 
 interface CreationWizardProps {
   onComplete: (config: CreationConfig) => void
+  initialValues?: CreationConfig | null
 }
 
 const FORMATS = [
@@ -47,12 +48,12 @@ const PURPOSES: { id: CreationConfig['purpose']; label: string }[] = [
   { id: 'marketing', label: 'Marketing' },
 ]
 
-export function CreationWizard({ onComplete }: CreationWizardProps) {
+export function CreationWizard({ onComplete, initialValues }: CreationWizardProps) {
   const [step, setStep] = useState(1)
-  const [format, setFormat] = useState<CreationConfig['format'] | null>(null)
-  const [platform, setPlatform] = useState('')
-  const [event, setEvent] = useState('')
-  const [purpose, setPurpose] = useState<CreationConfig['purpose'] | null>(null)
+  const [format, setFormat] = useState<CreationConfig['format'] | null>(initialValues?.format ?? null)
+  const [platform, setPlatform] = useState(initialValues?.platform ?? '')
+  const [event, setEvent] = useState(initialValues?.event ?? '')
+  const [purpose, setPurpose] = useState<CreationConfig['purpose'] | null>(initialValues?.purpose ?? null)
 
   const handleBack = () => setStep((s) => Math.max(1, s - 1))
 

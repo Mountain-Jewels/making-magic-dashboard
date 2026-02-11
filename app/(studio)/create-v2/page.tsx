@@ -15,25 +15,28 @@ function formatConfigSummary(config: CreationConfig): string {
 
 function LeftPanelContent({
   creationConfig,
+  showWizard,
   onCreationConfig,
+  onShowWizard,
   onBackToSetup,
 }: {
   creationConfig: CreationConfig | null
+  showWizard: boolean
   onCreationConfig: (config: CreationConfig) => void
+  onShowWizard: (show: boolean) => void
   onBackToSetup: () => void
 }) {
   const [activeTool, setActiveTool] = useState<ToolId | null>(null)
-  const [wizardOpen, setWizardOpen] = useState(false)
 
   const handleWizardComplete = (config: CreationConfig) => {
     onCreationConfig(config)
-    setWizardOpen(false)
+    onShowWizard(false)
   }
 
   return (
     <>
-      {/* Back to Setup — above toolbar when wizard complete */}
-      {creationConfig && (
+      {/* Back to Setup — re-opens wizard with current config, does NOT clear work */}
+      {creationConfig && !showWizard && (
         <div className="flex-shrink-0 flex justify-start">
           <button
             type="button"
@@ -46,21 +49,23 @@ function LeftPanelContent({
       )}
 
       {/* Top-left: Canvas + edit chat */}
-      <div className="flex-[3] min-h-0 flex flex-col rounded-2xl shadow-sm bg-white text-gray-900 border-2 border-brand-gold/40 overflow-hidden">
+      <div className="flex-[3] min-h-0 flex flex-col rounded-2xl shadow-sm bg-white text-gray-900 border-[3px] border-brand-gold/50 overflow-hidden">
         {/* Canvas area */}
         <div className="flex-1 min-h-0 flex flex-col items-center justify-center p-4">
-          {!creationConfig ? (
-            wizardOpen ? (
-              <CreationWizard onComplete={handleWizardComplete} />
-            ) : (
-              <button
-                type="button"
-                onClick={() => setWizardOpen(true)}
-                className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-base font-medium bg-brand-gold text-black hover:bg-brand-gold/90 transition-colors"
-              >
-                ✨ Start Creating
-              </button>
-            )
+          {showWizard ? (
+            <CreationWizard
+              key="wizard"
+              initialValues={creationConfig}
+              onComplete={handleWizardComplete}
+            />
+          ) : !creationConfig ? (
+            <button
+              type="button"
+              onClick={() => onShowWizard(true)}
+              className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-base font-medium bg-brand-gold text-black hover:bg-brand-gold/90 transition-colors"
+            >
+              ✨ Start Creating
+            </button>
           ) : (
             <div className="w-full text-center">
               <p className="text-sm font-medium text-gray-700">
@@ -69,8 +74,8 @@ function LeftPanelContent({
             </div>
           )}
         </div>
-        {/* Edit chat input — only when wizard done */}
-        {creationConfig && (
+        {/* Edit chat input — only when wizard done and not re-opening */}
+        {creationConfig && !showWizard && (
           <ChatInput
             placeholder="Type to edit your scene..."
             onSubmit={() => {}}
@@ -88,18 +93,18 @@ function LeftPanelContent({
 
       {/* Toolbar — icon strip (disabled until wizard done) */}
       <CreativeToolBar
-        activeTool={creationConfig ? activeTool : null}
+        activeTool={creationConfig && !showWizard ? activeTool : null}
         onToolChange={setActiveTool}
-        disabled={!creationConfig}
+        disabled={!creationConfig || showWizard}
       />
 
       {/* Bottom-left: Tool panel + generate chat */}
-      <div className="flex-[2] min-h-0 flex flex-col rounded-2xl shadow-sm bg-white text-gray-900 border-2 border-brand-gold/40 overflow-hidden">
+      <div className="flex-[2] min-h-0 flex flex-col rounded-2xl shadow-sm bg-white text-gray-900 border-[3px] border-brand-gold/50 overflow-hidden">
         <div className="flex-1 min-h-0 overflow-auto">
           <ToolPanel activeTool={activeTool} wizardCompleted={!!creationConfig} />
         </div>
         {/* Generate chat input — only when wizard done */}
-        {creationConfig && (
+        {creationConfig && !showWizard && (
           <ChatInput
             placeholder="Describe what you want to create..."
             onSubmit={() => {}}
@@ -114,12 +119,12 @@ function RightPanelContent() {
   return (
     <>
       {/* Display canvas — rounded card */}
-      <div className="flex-1 min-h-0 rounded-2xl shadow-sm bg-white text-gray-900 border-2 border-brand-gold/40 flex items-center justify-center overflow-hidden">
+      <div className="flex-1 min-h-0 rounded-2xl shadow-sm bg-white text-gray-900 border-[3px] border-brand-gold/50 flex items-center justify-center overflow-hidden">
         <p className="text-base text-gray-500">Your creation will appear here</p>
       </div>
 
       {/* Action bar — always visible at bottom */}
-      <div className="flex-shrink-0 rounded-2xl bg-white text-gray-900 border-2 border-brand-gold/40 shadow-sm p-4 flex items-center justify-end gap-3">
+      <div className="flex-shrink-0 rounded-2xl bg-white text-gray-900 border-[3px] border-brand-gold/50 shadow-sm p-4 flex items-center justify-end gap-3">
         <button
           type="button"
           className="inline-flex items-center gap-2 rounded-full border-2 border-brand-gold/40 px-5 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 transition-colors"
@@ -145,6 +150,7 @@ function RightPanelContent() {
 
 export default function CreateV2Page() {
   const [creationConfig, setCreationConfig] = useState<CreationConfig | null>(null)
+  const [showWizard, setShowWizard] = useState(false)
 
   return (
     <div className="h-full w-full flex flex-col">
@@ -169,8 +175,10 @@ export default function CreateV2Page() {
         <div className="flex flex-col gap-4 min-h-0" style={{ width: '60%' }}>
           <LeftPanelContent
             creationConfig={creationConfig}
+            showWizard={showWizard}
             onCreationConfig={setCreationConfig}
-            onBackToSetup={() => setCreationConfig(null)}
+            onShowWizard={setShowWizard}
+            onBackToSetup={() => setShowWizard(true)}
           />
         </div>
         {/* Right side — 40% width */}
