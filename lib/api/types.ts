@@ -45,8 +45,13 @@ export interface GenerateImageResponse {
 export interface GenerateVideoRequest {
   prompt?: string
   image_url?: string
-  duration_seconds?: 5 | 10 | 15
+  duration?: 5 | 10 | 15
   aspect_ratio?: '16:9' | '9:16' | '1:1'
+}
+
+export interface GenerateVideoResultResponse {
+  video_url: string
+  duration: number
 }
 
 export interface GenerateVideoResponse {
@@ -56,7 +61,7 @@ export interface GenerateVideoResponse {
 
 export interface GenerateVideoStatusResponse {
   job_id: string
-  status: 'queued' | 'processing' | 'completed' | 'failed'
+  status: 'queued' | 'processing' | 'completed' | 'complete' | 'succeeded' | 'failed'
   progress?: number
   video_url?: string
   error?: string

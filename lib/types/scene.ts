@@ -83,6 +83,8 @@ export interface SceneConfig {
   status: 'draft' | 'ready' | 'rendering' | 'complete'
   /** Generated/uploaded background image URL (overrides preset when set) */
   backgroundImageUrl?: string
+  /** Generated video URL (from Runway) */
+  videoUrl?: string
   /** Asset/version correctness: optional link to asset and current version capability */
   asset_id?: string
   version_id?: string

@@ -9,6 +9,7 @@ import type {
   GenerateVideoRequest,
   GenerateVideoResponse,
   GenerateVideoStatusResponse,
+  GenerateVideoResultResponse,
   GenerateAvatarRequest,
   GenerateAvatarResponse,
   Generate3DRequest,
@@ -43,8 +44,8 @@ export async function getVideoStatus(jobId: string): Promise<GenerateVideoStatus
   return apiGet<GenerateVideoStatusResponse>(`/generate/video/${jobId}/status`)
 }
 
-export async function getVideoResult(jobId: string): Promise<GenerateVideoStatusResponse> {
-  return apiGet<GenerateVideoStatusResponse>(`/generate/video/${jobId}/result`)
+export async function getVideoResult(jobId: string): Promise<GenerateVideoResultResponse> {
+  return apiGet<GenerateVideoResultResponse>(`/generate/video/${jobId}/result`)
 }
 
 // ─── Avatar (HeyGen) ───
