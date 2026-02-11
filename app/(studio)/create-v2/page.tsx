@@ -9,8 +9,12 @@ import { CreationWizard, type CreationConfig } from '@/components/create-v2/Crea
 
 function formatConfigSummary(config: CreationConfig): string {
   const fmt = config.format.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
-  const pf = config.platform.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
-  return `${fmt} • ${pf} • ${config.event} • ${config.purpose.replace(/_/g, ' ')}`
+  const purposeLabel = config.purpose.replace(/_/g, ' ')
+  const parts = [fmt, purposeLabel]
+  if (config.platform) parts.push(config.platform.replace(/_/g, ' '))
+  if (config.event) parts.push(config.event)
+  if (config.eventType) parts.push(config.eventType.replace(/_/g, ' '))
+  return parts.join(' • ')
 }
 
 function LeftPanelContent({
