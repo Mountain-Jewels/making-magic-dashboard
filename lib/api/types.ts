@@ -36,7 +36,8 @@ export interface GenerateImageRequest {
 }
 
 export interface GenerateImageResponse {
-  url: string
+  url?: string
+  image_url?: string
   revised_prompt?: string
   approval_required?: boolean
 }
@@ -144,7 +145,9 @@ export interface PostprocessStyleTransferRequest {
 }
 
 export interface PostprocessResponse {
-  url: string
+  url?: string
+  output_url?: string
+  status?: string
   approval_required?: boolean
 }
 

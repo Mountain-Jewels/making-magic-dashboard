@@ -81,6 +81,8 @@ export interface SceneConfig {
   duration_seconds: number
   created_at: string
   status: 'draft' | 'ready' | 'rendering' | 'complete'
+  /** Generated/uploaded background image URL (overrides preset when set) */
+  backgroundImageUrl?: string
   /** Asset/version correctness: optional link to asset and current version capability */
   asset_id?: string
   version_id?: string

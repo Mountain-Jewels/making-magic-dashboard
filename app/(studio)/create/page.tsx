@@ -6,6 +6,7 @@ import { CreativeToolBar, type ToolId } from '@/components/create/CreativeToolBa
 import { ToolPanel } from '@/components/create/ToolPanel'
 import { ChatInput } from '@/components/create/ChatInput'
 import { CreationWizard, type CreationConfig } from '@/components/create/CreationWizard'
+import { DisplayCanvas } from '@/components/create/DisplayCanvas'
 
 function formatConfigSummary(config: CreationConfig): string {
   const fmt = config.format.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
@@ -121,12 +122,20 @@ function LeftPanelContent({
   )
 }
 
-function RightPanelContent() {
+function RightPanelContent({ creationConfig }: { creationConfig: CreationConfig | null }) {
   return (
     <>
       {/* Display canvas — rounded card */}
-      <div className="flex-1 min-h-0 rounded-2xl shadow-sm bg-white text-gray-900 border-[3px] border-brand-gold/50 flex items-center justify-center overflow-hidden">
-        <p className="text-base text-gray-500">Your creation will appear here</p>
+      <div className="flex-1 min-h-0 rounded-2xl shadow-sm bg-white text-gray-900 border-[3px] border-brand-gold/50 flex flex-col overflow-hidden">
+        {creationConfig ? (
+          <div className="flex-1 min-h-0">
+            <DisplayCanvas isEmpty={false} />
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center">
+            <p className="text-base text-gray-500">Your creation will appear here</p>
+          </div>
+        )}
       </div>
 
       {/* Action bar — always visible at bottom */}
@@ -189,7 +198,7 @@ export default function CreateV2Page() {
         </div>
         {/* Right side — 40% width */}
         <div className="flex flex-col gap-4 min-h-0" style={{ width: '40%' }}>
-          <RightPanelContent />
+          <RightPanelContent creationConfig={creationConfig} />
         </div>
       </div>
     </div>

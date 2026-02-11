@@ -54,9 +54,15 @@ export const useSceneStore = create<SceneStore>((set) => ({
   setCurrentScene: (scene) => set({ currentScene: scene }),
   addScene: (scene) => set((state) => ({ scenes: [...state.scenes, scene] })),
   updateScene: (id, updates) =>
-    set((state) => ({
-      scenes: state.scenes.map((s) => (s.id === id ? { ...s, ...updates } : s)),
-    })),
+    set((state) => {
+      const updated = state.scenes.map((s) => (s.id === id ? { ...s, ...updates } : s))
+      const updatedScene = updated.find((s) => s.id === id)
+      const nextCurrent =
+        state.currentScene?.id === id && updatedScene
+          ? { ...state.currentScene, ...updates }
+          : state.currentScene
+      return { scenes: updated, currentScene: nextCurrent }
+    }),
   removeScene: (id) =>
     set((state) => ({ scenes: state.scenes.filter((s) => s.id !== id) })),
 }))
