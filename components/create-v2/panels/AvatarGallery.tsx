@@ -27,17 +27,6 @@ const CUSTOM_SLOT_COUNT = 10
 
 type CustomSlot = { name: string; filled: boolean; age: number; voice: string }
 
-// FIXED SIZE — every card identical, no bleeding
-const CARD_CLASS = cn(
-  'h-[76px] w-full',
-  'p-2 rounded-lg',
-  'border-2 border-brand-gold/40',
-  'overflow-hidden',
-  'text-left transition-colors',
-  'flex flex-col justify-between'
-)
-const FILLED_CLASS = 'bg-gray-100'
-const EMPTY_CLASS = 'bg-white'
 const SELECTED_CLASS = 'border-brand-gold bg-brand-gold/10'
 
 export function AvatarGallery() {
@@ -84,7 +73,10 @@ export function AvatarGallery() {
               tabIndex={0}
               onClick={() => setSelectedId(preset.id)}
               onKeyDown={(e) => e.key === 'Enter' && setSelectedId(preset.id)}
-              className={cn(CARD_CLASS, FILLED_CLASS, isSelected && SELECTED_CLASS)}
+              className={cn(
+                'h-[76px] w-full p-2 rounded-lg border-2 border-brand-gold/40 overflow-hidden flex flex-col justify-between bg-gray-100',
+                isSelected && SELECTED_CLASS
+              )}
             >
               <span className="text-[11px] font-semibold truncate block">{preset.name}</span>
               <Select
@@ -95,9 +87,9 @@ export function AvatarGallery() {
                   <SelectValue placeholder="Age" />
                 </SelectTrigger>
                 <SelectContent className="max-h-48">
-                  {Array.from({ length: 68 }, (_, i) => i + 13).map((a) => (
+                  {[0, 3, 5, 8, 13, 16, 21, 30, 40, 50, 60, 70, 80].map((a) => (
                     <SelectItem key={a} value={a.toString()} className="text-[11px]">
-                      {a}
+                      {a === 0 ? 'Newborn' : a}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -128,7 +120,11 @@ export function AvatarGallery() {
         {customSlots.map((slot, i) => (
           <div
             key={`custom-${i}`}
-            className={cn(CARD_CLASS, slot.filled ? FILLED_CLASS : EMPTY_CLASS)}
+            className={
+              slot.filled
+                ? 'h-[76px] w-full p-2 rounded-lg border-2 border-brand-gold/40 overflow-hidden flex flex-col justify-between bg-gray-100'
+                : 'h-[76px] w-full p-2 rounded-lg border-2 border-brand-gold/40 overflow-hidden flex flex-col justify-between bg-white'
+            }
           >
             {slot.filled ? (
               <>
@@ -141,9 +137,9 @@ export function AvatarGallery() {
                     <SelectValue placeholder="Age" />
                   </SelectTrigger>
                   <SelectContent className="max-h-48">
-                    {Array.from({ length: 68 }, (_, a) => a + 13).map((a) => (
+                    {[0, 3, 5, 8, 13, 16, 21, 30, 40, 50, 60, 70, 80].map((a) => (
                       <SelectItem key={a} value={a.toString()} className="text-[11px]">
-                        {a}
+                        {a === 0 ? 'Newborn' : a}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -185,22 +181,14 @@ export function AvatarGallery() {
         <label className="block">
           <input type="file" accept=".jpg,.jpeg,.png,.webp,.heic" className="hidden" />
           <div
-            className={cn(
-              CARD_CLASS,
-              EMPTY_CLASS,
-              'flex items-center justify-center text-[11px] text-gray-500 cursor-pointer hover:bg-gray-50'
-            )}
+            className="h-[76px] w-full p-2 rounded-lg border-2 border-brand-gold/40 overflow-hidden flex flex-col justify-between bg-white flex items-center justify-center text-[11px] text-gray-500 cursor-pointer hover:bg-gray-50"
           >
             📤 Upload Image
           </div>
         </label>
         <button
           type="button"
-          className={cn(
-            CARD_CLASS,
-            EMPTY_CLASS,
-            'flex items-center justify-center text-[11px] text-gray-500 hover:bg-gray-50'
-          )}
+          className="h-[76px] w-full p-2 rounded-lg border-2 border-brand-gold/40 overflow-hidden flex flex-col justify-between bg-white flex items-center justify-center text-[11px] text-gray-500 hover:bg-gray-50"
         >
           ✨ Create (AI)
         </button>
