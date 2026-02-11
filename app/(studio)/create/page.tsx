@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import { ChevronLeft, Gem, Play, Save, Sparkles, Upload } from 'lucide-react'
-import { CreativeToolBar, type ToolId } from '@/components/create-v2/CreativeToolBar'
-import { ToolPanel } from '@/components/create-v2/ToolPanel'
-import { ChatInput } from '@/components/create-v2/ChatInput'
-import { CreationWizard, type CreationConfig } from '@/components/create-v2/CreationWizard'
+import { CreativeToolBar, type ToolId } from '@/components/create/CreativeToolBar'
+import { ToolPanel } from '@/components/create/ToolPanel'
+import { ChatInput } from '@/components/create/ChatInput'
+import { CreationWizard, type CreationConfig } from '@/components/create/CreationWizard'
 
 function formatConfigSummary(config: CreationConfig): string {
   const fmt = config.format.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
