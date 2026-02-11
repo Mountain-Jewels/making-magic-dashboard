@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronLeft, Gem, Play, Save, Upload } from 'lucide-react'
+import { ChevronLeft, Gem, Play, Save, Sparkles, Upload } from 'lucide-react'
 import { CreativeToolBar, type ToolId } from '@/components/create-v2/CreativeToolBar'
 import { ToolPanel } from '@/components/create-v2/ToolPanel'
 import { ChatInput } from '@/components/create-v2/ChatInput'
@@ -46,7 +46,7 @@ function LeftPanelContent({
       )}
 
       {/* Top-left: Canvas + edit chat */}
-      <div className="flex-[3] min-h-0 flex flex-col rounded-2xl shadow-sm bg-white text-gray-900 border border-brand-gold/40 overflow-hidden">
+      <div className="flex-[3] min-h-0 flex flex-col rounded-2xl shadow-sm bg-white text-gray-900 border-2 border-brand-gold/40 overflow-hidden">
         {/* Canvas area */}
         <div className="flex-1 min-h-0 flex flex-col items-center justify-center p-4">
           {!creationConfig ? (
@@ -78,6 +78,14 @@ function LeftPanelContent({
         )}
       </div>
 
+      {/* AI icon between top and bottom left panels */}
+      <div className="flex items-center justify-center py-1">
+        <div className="flex items-center gap-1 text-brand-gold">
+          <Sparkles className="h-4 w-4" />
+          <span className="text-xs font-medium">AI</span>
+        </div>
+      </div>
+
       {/* Toolbar — icon strip (disabled until wizard done) */}
       <CreativeToolBar
         activeTool={creationConfig ? activeTool : null}
@@ -86,7 +94,7 @@ function LeftPanelContent({
       />
 
       {/* Bottom-left: Tool panel + generate chat */}
-      <div className="flex-[2] min-h-0 flex flex-col rounded-2xl shadow-sm bg-white text-gray-900 border border-brand-gold/40 overflow-hidden">
+      <div className="flex-[2] min-h-0 flex flex-col rounded-2xl shadow-sm bg-white text-gray-900 border-2 border-brand-gold/40 overflow-hidden">
         <div className="flex-1 min-h-0 overflow-auto">
           <ToolPanel activeTool={activeTool} wizardCompleted={!!creationConfig} />
         </div>
@@ -106,21 +114,21 @@ function RightPanelContent() {
   return (
     <>
       {/* Display canvas — rounded card */}
-      <div className="flex-1 min-h-0 rounded-2xl shadow-sm bg-white text-gray-900 border border-brand-gold/40 flex items-center justify-center overflow-hidden">
+      <div className="flex-1 min-h-0 rounded-2xl shadow-sm bg-white text-gray-900 border-2 border-brand-gold/40 flex items-center justify-center overflow-hidden">
         <p className="text-base text-gray-500">Your creation will appear here</p>
       </div>
 
       {/* Action bar — always visible at bottom */}
-      <div className="flex-shrink-0 rounded-2xl bg-white text-gray-900 border border-brand-gold/40 shadow-sm p-4 flex items-center justify-end gap-3">
+      <div className="flex-shrink-0 rounded-2xl bg-white text-gray-900 border-2 border-brand-gold/40 shadow-sm p-4 flex items-center justify-end gap-3">
         <button
           type="button"
-          className="inline-flex items-center gap-2 rounded-full border border-brand-gold/40 px-5 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 transition-colors"
+          className="inline-flex items-center gap-2 rounded-full border-2 border-brand-gold/40 px-5 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 transition-colors"
         >
           <Play className="h-4 w-4 mr-2" /> Preview
         </button>
         <button
           type="button"
-          className="inline-flex items-center gap-2 rounded-full border border-brand-gold/40 px-5 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 transition-colors"
+          className="inline-flex items-center gap-2 rounded-full border-2 border-brand-gold/40 px-5 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 transition-colors"
         >
           <Save className="h-4 w-4 mr-2" /> Save
         </button>

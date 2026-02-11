@@ -94,7 +94,7 @@ export function LightingPanel() {
         </div>
       </div>
 
-      <div className="space-y-2 rounded-md border border-brand-gold/40 bg-gray-50 p-3">
+      <div className="space-y-2 rounded-md border-2 border-brand-gold/40 bg-gray-50 p-3">
         <p className="text-xs font-medium text-gray-600">Custom</p>
         <div className="space-y-3">
           <div>

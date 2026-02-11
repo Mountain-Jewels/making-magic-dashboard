@@ -11,7 +11,7 @@ export function GeneratePanel() {
       <input
         type="text"
         placeholder="Describe what you want to create..."
-        className="w-full rounded-lg border border-brand-gold/40 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-brand-gold"
+        className="w-full rounded-lg border-2 border-brand-gold/40 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-brand-gold"
       />
       <div className="flex flex-wrap gap-2">
         {STYLE_PRESETS.map((style) => (

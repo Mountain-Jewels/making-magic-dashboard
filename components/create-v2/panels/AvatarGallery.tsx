@@ -3,12 +3,13 @@
 import { useState } from 'react'
 import { useAvatarStore } from '@/lib/stores/avatar-store'
 import { Button } from '@/components/ui/button'
-import { Slider } from '@/components/ui/slider'
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 
 function getInitials(name: string) {
@@ -41,14 +42,14 @@ const AGE_41_60_EXCLUDE = ['Playful & Fun', 'Edgy & Modern']
 const AGE_61_80 = ['Warm & Intimate', 'Wise & Thoughtful', 'Elegant & Sophisticated', 'Classic & Timeless', 'Gentle & Nurturing', 'Compassionate & Kind', 'Reverent & Respectful', 'Serious & Professional']
 
 const ELEVENLABS_VOICES = [
-  { id: 'rachel', name: 'Rachel', gender: 'female' as const, accent: 'American', style: 'Soft & Warm' },
-  { id: 'adam', name: 'Adam', gender: 'male' as const, accent: 'British', style: 'Deep & Confident' },
-  { id: 'bella', name: 'Bella', gender: 'female' as const, accent: 'American', style: 'Warm & Friendly' },
-  { id: 'marcus', name: 'Marcus', gender: 'male' as const, accent: 'American', style: 'Authoritative' },
-  { id: 'sophia', name: 'Sophia', gender: 'female' as const, accent: 'European', style: 'Elegant & Refined' },
-  { id: 'james', name: 'James', gender: 'male' as const, accent: 'British', style: 'Classic & Polished' },
-  { id: 'luna', name: 'Luna', gender: 'female' as const, accent: 'American', style: 'Young & Energetic' },
-  { id: 'noah', name: 'Noah', gender: 'male' as const, accent: 'American', style: 'Casual & Friendly' },
+  { id: 'rachel', name: 'Rachel' },
+  { id: 'adam', name: 'Adam' },
+  { id: 'bella', name: 'Bella' },
+  { id: 'marcus', name: 'Marcus' },
+  { id: 'sophia', name: 'Sophia' },
+  { id: 'james', name: 'James' },
+  { id: 'luna', name: 'Luna' },
+  { id: 'noah', name: 'Noah' },
 ]
 
 function getPersonalitiesForAge(age: number): string[] {
@@ -58,268 +59,167 @@ function getPersonalitiesForAge(age: number): string[] {
   return [...PERSONALITIES]
 }
 
+const CUSTOM_SLOT_COUNT = 10
+
 export function AvatarGallery() {
   const { presets, setSelectedPreset } = useAvatarStore()
-  const [popoverOpen, setPopoverOpen] = useState<string | null>(null)
-  const [popoverTab, setPopoverTab] = useState<'age' | 'voice'>('age')
+  const [selectedId, setSelectedId] = useState<string | null>(null)
   const [avatarAge, setAvatarAge] = useState<Record<string, number>>({})
   const [avatarPersonality, setAvatarPersonality] = useState<Record<string, string | null>>({})
   const [avatarVoice, setAvatarVoice] = useState<Record<string, string | null>>({})
-  const [createOwnOpen, setCreateOwnOpen] = useState(false)
+  const [customNames, setCustomNames] = useState<Record<number, string>>({})
 
   const getAge = (id: string) => avatarAge[id] ?? 21
   const getPersonality = (id: string) => avatarPersonality[id] ?? null
   const getVoice = (id: string) => avatarVoice[id] ?? null
+  const ageForDropdown = selectedId ? getAge(selectedId) : 21
+  const personalitiesForSelected = getPersonalitiesForAge(ageForDropdown)
 
   const safePresets = presets ?? []
   const hasPresets = safePresets.length > 0
 
+  const handleAddToScene = () => {
+    if (!selectedId) return
+    const preset = safePresets.find((p) => p.id === selectedId)
+    if (preset) setSelectedPreset(preset)
+  }
+
   return (
     <div className="p-4 space-y-4">
-      <div className="grid grid-cols-3 gap-2">
+      <h3 className="text-sm font-semibold text-gray-900">Avatars</h3>
+
+      <div className="grid grid-cols-3 gap-1.5">
         {!hasPresets ? (
-          <div className="col-span-3 rounded-lg border border-brand-gold/40 p-4 text-center text-sm text-gray-500">
+          <div className="col-span-3 rounded-lg border-2 border-brand-gold/40 p-3 text-center text-xs text-gray-500">
             No avatars configured. Add presets in the avatar store to see them here.
           </div>
         ) : (
           safePresets.map((preset) => {
-            const age = getAge(preset.id)
-            const personality = getPersonality(preset.id)
-            const voiceId = getVoice(preset.id)
-            const availablePersonalities = getPersonalitiesForAge(age)
-            const currentPersonalityInvalid = personality && !availablePersonalities.includes(personality)
-
+            const isSelected = selectedId === preset.id
             return (
-              <Popover
+              <button
                 key={preset.id}
-                open={popoverOpen === preset.id}
-                onOpenChange={(open) => {
-                  setPopoverOpen(open ? preset.id : null)
-                  if (!open) {
-                    if (currentPersonalityInvalid) {
-                      setAvatarPersonality((prev) => ({ ...prev, [preset.id]: null }))
-                    }
-                    setPopoverTab('age')
-                  }
-                }}
+                type="button"
+                onClick={() => setSelectedId(preset.id)}
+                className={cn(
+                  'flex flex-col items-center gap-0.5 p-1.5 rounded-lg border-2 transition-colors h-14',
+                  isSelected
+                    ? 'border-brand-gold bg-brand-gold/10 text-gray-900'
+                    : 'border-brand-gold/40 hover:border-brand-gold/60 bg-white text-gray-900'
+                )}
               >
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    className="flex flex-col items-center gap-1 p-2 rounded-lg border-2 border-brand-gold/40 hover:border-brand-gold/60 bg-white text-gray-900 transition-colors"
-                  >
-                    <div
-                      className={cn(
-                        'h-14 w-14 rounded-full flex items-center justify-center text-base font-medium',
-                        STYLE_COLORS[preset.style] ?? 'bg-gray-200'
-                      )}
-                    >
-                      {getInitials(preset.name)}
-                    </div>
-                    <span className="text-sm font-medium truncate w-full text-center">{preset.name}</span>
-                    <span className="text-xs text-gray-500">Age: {age}</span>
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80 bg-white text-gray-900 border-brand-gold/40" align="start">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={cn(
-                          'h-12 w-12 rounded-full flex items-center justify-center text-sm font-medium shrink-0',
-                          STYLE_COLORS[preset.style] ?? 'bg-gray-200'
-                        )}
-                      >
-                        {getInitials(preset.name)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{preset.name}</p>
-                        <p className="text-xs text-gray-500">Age: {age}</p>
-                      </div>
-                    </div>
-
-                    {/* Age | Voice tabs */}
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setPopoverTab('age')}
-                        className={cn(
-                          'flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-colors',
-                          popoverTab === 'age'
-                            ? 'border-brand-gold bg-brand-gold/10 text-gray-900'
-                            : 'border-brand-gold/40 hover:border-brand-gold/60 text-gray-700'
-                        )}
-                      >
-                        🎂 Age
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setPopoverTab('voice')}
-                        className={cn(
-                          'flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-colors',
-                          popoverTab === 'voice'
-                            ? 'border-brand-gold bg-brand-gold/10 text-gray-900'
-                            : 'border-brand-gold/40 hover:border-brand-gold/60 text-gray-700'
-                        )}
-                      >
-                        🎙 Voice
-                      </button>
-                    </div>
-
-                    {popoverTab === 'age' && (
-                      <>
-                        <div>
-                          <p className="text-sm font-medium text-gray-700 text-center mb-3">
-                            Select the age of your avatar
-                          </p>
-                          <div className="flex items-center gap-2">
-                            <Slider
-                              value={[age]}
-                              onValueChange={([v]) => {
-                                const newAge = v ?? 21
-                                setAvatarAge((prev) => ({ ...prev, [preset.id]: newAge }))
-                                const nextAvailable = getPersonalitiesForAge(newAge)
-                                if (personality && !nextAvailable.includes(personality)) {
-                                  setAvatarPersonality((prev) => ({ ...prev, [preset.id]: null }))
-                                }
-                              }}
-                              min={13}
-                              max={80}
-                              step={1}
-                              className="flex-1"
-                            />
-                            <span className="text-sm w-8">{age}</span>
-                          </div>
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-500 mb-2">Add Personality</p>
-                          <select
-                            value={personality ?? ''}
-                            onChange={(e) =>
-                              setAvatarPersonality((prev) => ({
-                                ...prev,
-                                [preset.id]: e.target.value || null,
-                              }))
-                            }
-                            className="w-full rounded-md border border-brand-gold/40 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-brand-gold"
-                          >
-                            <option value="">Select...</option>
-                            {getPersonalitiesForAge(age).map((p) => (
-                              <option key={p} value={p}>
-                                {p}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </>
-                    )}
-
-                    {popoverTab === 'voice' && (
-                      <>
-                        <div>
-                          <p className="text-sm font-medium text-gray-700 text-center mb-3">
-                            Select a voice for your avatar
-                          </p>
-                          <div className="space-y-1 max-h-48 overflow-auto">
-                            {ELEVENLABS_VOICES.map((v) => {
-                              const isSelected = voiceId === v.id
-                              const genderSymbol = v.gender === 'female' ? '♀' : '♂'
-                              return (
-                                <button
-                                  key={v.id}
-                                  type="button"
-                                  onClick={() => setAvatarVoice((prev) => ({ ...prev, [preset.id]: v.id }))}
-                                  className={cn(
-                                    'w-full text-left rounded-lg border-2 px-3 py-2 text-sm transition-colors',
-                                    isSelected
-                                      ? 'border-brand-gold bg-brand-gold/10 text-gray-900'
-                                      : 'border-brand-gold/40 hover:border-brand-gold/60 text-gray-700'
-                                  )}
-                                >
-                                  <span className="font-medium">{genderSymbol} {v.name}</span>
-                                  <span className="text-gray-500"> — {v.accent}, {v.style.toLowerCase()}</span>
-                                </button>
-                              )
-                            })}
-                          </div>
-                          <button
-                            type="button"
-                            className="w-full mt-2 rounded-lg border-2 border-dashed border-brand-gold/40 py-3 text-sm text-gray-600 hover:bg-gray-50"
-                          >
-                            + Create Custom Voice (ElevenLabs)
-                          </button>
-                          <p className="text-xs text-gray-500 text-center mt-2">
-                            Voice synthesis powered by ElevenLabs — connection coming in Phase 7
-                          </p>
-                        </div>
-                      </>
-                    )}
-
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        className="flex-1 bg-brand-gold text-black hover:bg-brand-gold/90"
-                        onClick={() => {
-                          setSelectedPreset(preset)
-                          setPopoverOpen(null)
-                        }}
-                      >
-                        Apply
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => setPopoverOpen(null)}>
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
+                <div
+                  className={cn(
+                    'h-8 w-8 rounded-full flex items-center justify-center text-xs font-medium shrink-0',
+                    STYLE_COLORS[preset.style] ?? 'bg-gray-200'
+                  )}
+                >
+                  {getInitials(preset.name)}
+                </div>
+                <span className="text-xs font-medium truncate w-full text-center">{preset.name}</span>
+              </button>
             )
           })
         )}
       </div>
 
+      <Button
+        size="sm"
+        className="w-full h-8 text-xs bg-brand-gold text-black hover:bg-brand-gold/90"
+        disabled={!selectedId}
+        onClick={handleAddToScene}
+      >
+        + Add to Scene
+      </Button>
+
+      <p className="text-xs text-gray-500">——— Custom Slots ———</p>
+      <div className="grid grid-cols-4 gap-1.5">
+        {Array.from({ length: CUSTOM_SLOT_COUNT }, (_, i) => (
+          <input
+            key={i}
+            type="text"
+            placeholder="Name..."
+            value={customNames[i] ?? ''}
+            onChange={(e) => setCustomNames((prev) => ({ ...prev, [i]: e.target.value }))}
+            className="h-8 rounded border-2 border-brand-gold/40 bg-gray-50 px-2 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-brand-gold"
+          />
+        ))}
+      </div>
+      <Button size="sm" variant="outline" className="h-8 text-xs border-2 border-brand-gold/40">
+        + Add
+      </Button>
+
       <div className="grid grid-cols-2 gap-2">
         <label className="block">
           <input type="file" accept=".jpg,.jpeg,.png,.webp,.heic" className="hidden" />
-          <div className="flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-brand-gold/40 py-3 text-sm text-gray-600 hover:bg-gray-50 cursor-pointer">
-            📤 Upload Image
+          <div className="flex items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-brand-gold/40 py-2 text-xs text-gray-600 hover:bg-gray-50 cursor-pointer h-14">
+            📤 Upload
           </div>
         </label>
         <button
           type="button"
-          onClick={() => setCreateOwnOpen(!createOwnOpen)}
-          className="flex items-center justify-center gap-2 rounded-lg border-2 border-brand-gold/40 py-3 text-sm text-gray-600 hover:bg-gray-50"
+          className="flex items-center justify-center gap-1.5 rounded-lg border-2 border-brand-gold/40 py-2 text-xs text-gray-600 hover:bg-gray-50 h-14"
         >
-          ✨ Create Your Own (AI)
+          ✨ Create (AI)
         </button>
       </div>
 
-      {createOwnOpen && (
-        <div className="rounded-lg border border-brand-gold/40 p-4 space-y-3 bg-gray-50">
-          <input
-            type="text"
-            placeholder="Describe your avatar..."
-            className="w-full rounded-md border border-brand-gold/40 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-brand-gold"
-          />
-          <div className="flex flex-wrap gap-2">
-            {['Photorealistic', 'Illustrated', 'Anime', '3D Rendered'].map((s) => (
-              <button
-                key={s}
-                type="button"
-                className="rounded-full border border-brand-gold/40 px-3 py-1 text-xs hover:bg-gray-200"
-              >
-                {s}
-              </button>
+      <div className="flex gap-2 flex-wrap">
+        <Select
+          value={selectedId ? getAge(selectedId).toString() : ''}
+          onValueChange={(v) => {
+            if (selectedId) setAvatarAge((prev) => ({ ...prev, [selectedId]: parseInt(v, 10) }))
+          }}
+        >
+          <SelectTrigger className="h-8 text-xs flex-1 min-w-0 border-2 border-brand-gold/40">
+            <SelectValue placeholder="Age" />
+          </SelectTrigger>
+          <SelectContent>
+            {Array.from({ length: 68 }, (_, i) => i + 13).map((age) => (
+              <SelectItem key={age} value={age.toString()} className="text-xs">
+                {age}
+              </SelectItem>
             ))}
-          </div>
-          <Button size="sm" className="w-full bg-brand-gold text-black hover:bg-brand-gold/90">
-            Generate
-          </Button>
-          <p className="text-xs text-gray-500">
-            Powered by GPT-4o image generation — connection coming in Phase 7
-          </p>
-          <p className="text-xs text-gray-400">AI avatar generation will appear here</p>
-        </div>
-      )}
+          </SelectContent>
+        </Select>
+        <Select
+          value={selectedId ? getVoice(selectedId) ?? '' : ''}
+          onValueChange={(v) => {
+            if (selectedId) setAvatarVoice((prev) => ({ ...prev, [selectedId]: v === 'create_custom' ? null : v }))
+          }}
+        >
+          <SelectTrigger className="h-8 text-xs flex-1 min-w-0 border-2 border-brand-gold/40">
+            <SelectValue placeholder="Voice" />
+          </SelectTrigger>
+          <SelectContent>
+            {ELEVENLABS_VOICES.map((v) => (
+              <SelectItem key={v.id} value={v.id} className="text-xs">
+                {v.name}
+              </SelectItem>
+            ))}
+            <SelectItem value="create_custom" className="text-xs font-medium">
+              + Create Custom Voice
+            </SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          value={selectedId ? getPersonality(selectedId) ?? '' : ''}
+          onValueChange={(v) => {
+            if (selectedId) setAvatarPersonality((prev) => ({ ...prev, [selectedId]: v || null }))
+          }}
+        >
+          <SelectTrigger className="h-8 text-xs flex-1 min-w-0 border-2 border-brand-gold/40">
+            <SelectValue placeholder="Personality" />
+          </SelectTrigger>
+          <SelectContent>
+            {personalitiesForSelected.map((p) => (
+              <SelectItem key={p} value={p} className="text-xs">
+                {p}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   )
 }

@@ -84,7 +84,7 @@ export function CreationWizard({ onComplete }: CreationWizardProps) {
           : "What's the purpose?"
 
   return (
-    <div className="bg-white rounded-2xl border border-brand-gold/40 shadow-lg p-6 max-w-md mx-auto">
+    <div className="bg-white rounded-2xl border-2 border-brand-gold/40 shadow-lg p-6 max-w-md mx-auto">
       <h3 className="text-lg font-semibold text-gray-900 mb-6">{title}</h3>
 
       {step === 1 && (
@@ -92,7 +92,7 @@ export function CreationWizard({ onComplete }: CreationWizardProps) {
           {FORMATS.map((opt) => (
             <label
               key={opt.id}
-              className="flex items-start gap-3 p-3 rounded-xl border border-brand-gold/40 hover:bg-gray-50 cursor-pointer"
+              className="flex items-start gap-3 p-3 rounded-xl border-2 border-brand-gold/40 hover:bg-gray-50 cursor-pointer"
             >
               <input
                 type="radio"
@@ -115,7 +115,7 @@ export function CreationWizard({ onComplete }: CreationWizardProps) {
           {PLATFORMS.map((opt) => (
             <label
               key={opt.id}
-              className="flex items-center gap-3 p-3 rounded-xl border border-brand-gold/40 hover:bg-gray-50 cursor-pointer"
+              className="flex items-center gap-3 p-3 rounded-xl border-2 border-brand-gold/40 hover:bg-gray-50 cursor-pointer"
             >
               <input
                 type="radio"
@@ -135,7 +135,7 @@ export function CreationWizard({ onComplete }: CreationWizardProps) {
           {EVENTS.map((opt) => (
             <label
               key={opt}
-              className="flex items-center gap-3 p-3 rounded-xl border border-brand-gold/40 hover:bg-gray-50 cursor-pointer"
+              className="flex items-center gap-3 p-3 rounded-xl border-2 border-brand-gold/40 hover:bg-gray-50 cursor-pointer"
             >
               <input
                 type="radio"
@@ -155,7 +155,7 @@ export function CreationWizard({ onComplete }: CreationWizardProps) {
           {PURPOSES.map((opt) => (
             <label
               key={opt.id}
-              className="flex items-center gap-3 p-3 rounded-xl border border-brand-gold/40 hover:bg-gray-50 cursor-pointer"
+              className="flex items-center gap-3 p-3 rounded-xl border-2 border-brand-gold/40 hover:bg-gray-50 cursor-pointer"
             >
               <input
                 type="radio"
@@ -175,7 +175,7 @@ export function CreationWizard({ onComplete }: CreationWizardProps) {
           type="button"
           onClick={handleBack}
           disabled={step === 1}
-          className="inline-flex items-center gap-2 rounded-full border border-brand-gold/40 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none"
+          className="inline-flex items-center gap-2 rounded-full border-2 border-brand-gold/40 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none"
         >
           <ChevronLeft className="h-4 w-4" /> Back
         </button>

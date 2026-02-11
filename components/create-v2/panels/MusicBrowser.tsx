@@ -50,7 +50,7 @@ export function MusicBrowser() {
 
       <div>
         <p className="text-xs text-gray-500 mb-2">Songs in {categoryLabel}:</p>
-        <div className="rounded-lg border border-brand-gold/40 bg-gray-50 p-6 text-center text-sm text-gray-500">
+        <div className="rounded-lg border-2 border-brand-gold/40 bg-gray-50 p-6 text-center text-sm text-gray-500">
           No songs in this category — upload to add
         </div>
       </div>
@@ -63,7 +63,7 @@ export function MusicBrowser() {
           <select
             value={uploadCategory}
             onChange={(e) => setUploadCategory(e.target.value)}
-            className="w-full rounded-md border border-brand-gold/40 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-brand-gold"
+            className="w-full rounded-md border-2 border-brand-gold/40 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-brand-gold"
           >
             {MUSIC_CATEGORIES.map((c) => (
               <option key={c.id} value={c.id}>{c.label}</option>
@@ -72,7 +72,7 @@ export function MusicBrowser() {
         </div>
         <label className="block">
           <input type="file" accept=".mp3,.wav,.m4a" className="hidden" />
-          <span className="inline-block rounded-lg border border-brand-gold/40 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer">
+          <span className="inline-block rounded-lg border-2 border-brand-gold/40 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer">
             Choose file
           </span>
         </label>
@@ -83,13 +83,13 @@ export function MusicBrowser() {
         <div className="space-y-2">
           <button
             type="button"
-            className="w-full rounded-lg border border-brand-gold/40 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            className="w-full rounded-lg border-2 border-brand-gold/40 py-2 text-sm text-gray-700 hover:bg-gray-50"
           >
             Import from Spotify
           </button>
           <button
             type="button"
-            className="w-full rounded-lg border border-brand-gold/40 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            className="w-full rounded-lg border-2 border-brand-gold/40 py-2 text-sm text-gray-700 hover:bg-gray-50"
           >
             Import from Apple Music
           </button>

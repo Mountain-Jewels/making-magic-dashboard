@@ -25,7 +25,7 @@ export function ChatInput({ placeholder, onSubmit, className = '' }: ChatInputPr
       style={{ backgroundColor: '#F3F4F6', minHeight: 120 }}
     >
       <div
-        className="flex items-end gap-3 rounded-2xl border border-brand-gold/40 shadow-sm px-4 py-3"
+        className="flex items-end gap-3 rounded-2xl border-2 border-brand-gold/40 shadow-sm px-4 py-3"
         style={{ backgroundColor: '#FFFFFF', minHeight: 90 }}
       >
         <textarea

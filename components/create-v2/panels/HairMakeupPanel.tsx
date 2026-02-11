@@ -80,7 +80,7 @@ function CollapsibleColorSection({
   onSelect: (hex: string) => void
 }) {
   return (
-    <div className="border border-brand-gold/40 rounded-lg overflow-hidden">
+    <div className="border-2 border-brand-gold/40 rounded-lg overflow-hidden">
       <button
         type="button"
         onClick={onToggle}
@@ -129,7 +129,7 @@ export function HairMakeupPanel() {
                 <button
                   key={style}
                   type="button"
-                  className="h-10 rounded-lg border border-brand-gold/40 bg-gray-50 flex items-center justify-center text-sm text-gray-900 hover:border-brand-gold/60"
+                  className="h-10 rounded-lg border-2 border-brand-gold/40 bg-gray-50 flex items-center justify-center text-sm text-gray-900 hover:border-brand-gold/60"
                 >
                   {style}
                 </button>

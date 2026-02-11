@@ -28,7 +28,7 @@ export function UploadPanel() {
         </div>
       </label>
       {file && (
-        <div className="rounded-lg border border-brand-gold/40 p-3 space-y-2">
+        <div className="rounded-lg border-2 border-brand-gold/40 p-3 space-y-2">
           <div className="h-16 w-16 rounded bg-gray-100 flex items-center justify-center text-xs text-gray-500">
             Preview
           </div>

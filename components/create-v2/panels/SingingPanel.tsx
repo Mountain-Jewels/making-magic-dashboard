@@ -73,9 +73,9 @@ export function SingingPanel() {
           placeholder="🔍 Search songs..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-md border border-brand-gold/40 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-brand-gold mb-3"
+          className="w-full rounded-md border-2 border-brand-gold/40 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-brand-gold mb-3"
         />
-        <div className="rounded-lg border border-brand-gold/40 divide-y divide-gray-200 max-h-64 overflow-auto">
+        <div className="rounded-lg border-2 border-brand-gold/40 divide-y divide-gray-200 max-h-64 overflow-auto">
           {filteredSongs.map((song) => (
             <button
               key={song.id}
@@ -114,11 +114,11 @@ export function SingingPanel() {
 
       <hr className="border-brand-gold/40" />
 
-      <div className="rounded-lg border border-brand-gold/40 p-3 bg-gray-50">
+      <div className="rounded-lg border-2 border-brand-gold/40 p-3 bg-gray-50">
         <p className="text-sm font-medium text-gray-700">Import Playlist ℹ️</p>
         <p className="text-xs text-gray-500 mt-1">Coming soon — requires Spotify/Apple Music API</p>
       </div>
-      <div className="rounded-lg border border-brand-gold/40 p-3 bg-gray-50">
+      <div className="rounded-lg border-2 border-brand-gold/40 p-3 bg-gray-50">
         <p className="text-sm font-medium text-gray-700">Upload Custom Song ℹ️</p>
         <p className="text-xs text-gray-500 mt-1">Coming soon — requires audio processing pipeline</p>
       </div>
