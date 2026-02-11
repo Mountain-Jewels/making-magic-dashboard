@@ -119,10 +119,10 @@ export interface Generate3DStatusResponse {
 }
 
 export interface GenerateMusicRequest {
-  genre: string
+  prompt: string
+  duration?: number
+  genre?: string
   mood?: string
-  duration_seconds?: number
-  lyrics?: string
 }
 
 export interface GenerateMusicResponse {
@@ -132,10 +132,15 @@ export interface GenerateMusicResponse {
 
 export interface GenerateMusicStatusResponse {
   job_id: string
-  status: 'queued' | 'processing' | 'completed' | 'failed'
+  status: 'queued' | 'processing' | 'completed' | 'complete' | 'failed'
   progress?: number
   audio_url?: string
   error?: string
+}
+
+export interface MusicLibraryResponse {
+  tracks: { id: string; title: string; artist: string; genre: string; duration: number; preview_url: string }[]
+  categories: string[]
 }
 
 export interface GenerateDialogueRequest {
