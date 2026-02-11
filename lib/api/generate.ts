@@ -15,6 +15,9 @@ import type {
   Generate3DRequest,
   Generate3DResponse,
   Generate3DStatusResponse,
+  UnrealRenderRequest,
+  UnrealRenderResponse,
+  UnrealStatusResponse,
   GenerateMusicRequest,
   GenerateMusicResponse,
   GenerateMusicStatusResponse,
@@ -66,8 +69,14 @@ export async function get3DStatus(jobId: string): Promise<Generate3DStatusRespon
   return apiGet<Generate3DStatusResponse>(`/generate/3d/${jobId}/status`)
 }
 
-export async function getUnrealStatus(jobId: string): Promise<Generate3DStatusResponse> {
-  return apiGet<Generate3DStatusResponse>(`/render/unreal/${jobId}/status`)
+export async function renderUnreal(
+  request: UnrealRenderRequest
+): Promise<UnrealRenderResponse> {
+  return apiPost<UnrealRenderResponse>('/render/unreal', request)
+}
+
+export async function getUnrealStatus(jobId: string): Promise<UnrealStatusResponse> {
+  return apiGet<UnrealStatusResponse>(`/render/unreal/${jobId}/status`)
 }
 
 // ─── Music (Suno) ───

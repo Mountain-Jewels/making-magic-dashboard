@@ -85,6 +85,8 @@ export interface SceneConfig {
   backgroundImageUrl?: string
   /** Generated video URL (from Runway) */
   videoUrl?: string
+  /** Generated 3D output URL (Luma video or Unreal video) */
+  threeDUrl?: string
   /** Asset/version correctness: optional link to asset and current version capability */
   asset_id?: string
   version_id?: string

@@ -83,7 +83,23 @@ export interface GenerateAvatarResponse {
 export interface Generate3DRequest {
   prompt?: string
   image_url?: string
-  mode: 'luma' | 'unreal'
+  aspect_ratio?: '16:9' | '1:1' | '9:16'
+}
+
+export interface UnrealRenderRequest {
+  scene_manifest: Record<string, unknown>
+}
+
+export interface UnrealRenderResponse {
+  job_id: string
+  status: string
+}
+
+export interface UnrealStatusResponse {
+  job_id: string
+  status: string
+  progress?: number
+  video_url?: string
 }
 
 export interface Generate3DResponse {
@@ -95,7 +111,7 @@ export interface Generate3DResponse {
 
 export interface Generate3DStatusResponse {
   job_id: string
-  status: 'queued' | 'processing' | 'completed' | 'failed'
+  status: 'queued' | 'processing' | 'completed' | 'complete' | 'succeeded' | 'failed'
   progress?: number
   model_url?: string
   video_url?: string
