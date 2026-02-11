@@ -1,12 +1,17 @@
 'use client'
 
-import { useState } from 'react'
-import { ChevronLeft, Gem, Play, Save, Sparkles, Upload } from 'lucide-react'
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { ChevronLeft, Gem, Sparkles } from 'lucide-react'
 import { CreativeToolBar, type ToolId } from '@/components/create/CreativeToolBar'
 import { ToolPanel } from '@/components/create/ToolPanel'
 import { ChatInput } from '@/components/create/ChatInput'
 import { CreationWizard, type CreationConfig } from '@/components/create/CreationWizard'
 import { DisplayCanvas } from '@/components/create/DisplayCanvas'
+import { ActionBar, type SaveStatus } from '@/components/create/ActionBar'
+import { saveScene, loadScene } from '@/lib/api/scenes'
+import { useSceneStore } from '@/lib/stores/scene-store'
+import type { SceneConfig } from '@/lib/types/scene'
 
 function formatConfigSummary(config: CreationConfig): string {
   const fmt = config.format.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
@@ -16,6 +21,14 @@ function formatConfigSummary(config: CreationConfig): string {
   if (config.event) parts.push(config.event)
   if (config.eventType) parts.push(config.eventType.replace(/_/g, ' '))
   return parts.join(' • ')
+}
+
+function sceneToState(scene: SceneConfig): Record<string, unknown> {
+  return { ...scene } as Record<string, unknown>
+}
+
+function stateToScene(state: Record<string, unknown>): SceneConfig {
+  return state as unknown as SceneConfig
 }
 
 function LeftPanelContent({
@@ -40,7 +53,6 @@ function LeftPanelContent({
 
   return (
     <>
-      {/* Back to Setup — re-opens wizard with current config, does NOT clear work */}
       {creationConfig && !showWizard && (
         <div className="flex-shrink-0 flex justify-start">
           <button
@@ -53,9 +65,7 @@ function LeftPanelContent({
         </div>
       )}
 
-      {/* Top-left: Canvas + edit chat */}
       <div className="flex-[3] min-h-0 flex flex-col rounded-2xl shadow-sm bg-white text-gray-900 border-[3px] border-brand-gold/50 overflow-hidden">
-        {/* Canvas area */}
         <div className="flex-1 min-h-0 flex flex-col items-center justify-center p-4">
           {showWizard ? (
             <CreationWizard
@@ -79,7 +89,6 @@ function LeftPanelContent({
             </div>
           )}
         </div>
-        {/* Edit chat input — only when wizard done and not re-opening */}
         {creationConfig && !showWizard && (
           <ChatInput
             placeholder="Type to edit your scene..."
@@ -89,7 +98,6 @@ function LeftPanelContent({
         )}
       </div>
 
-      {/* AI icon between top and bottom left panels */}
       <div className="flex items-center justify-center py-1">
         <div className="flex items-center gap-1 text-brand-gold">
           <Sparkles className="h-4 w-4" />
@@ -97,19 +105,16 @@ function LeftPanelContent({
         </div>
       </div>
 
-      {/* Toolbar — icon strip (disabled until wizard done) */}
       <CreativeToolBar
         activeTool={creationConfig && !showWizard ? activeTool : null}
         onToolChange={setActiveTool}
         disabled={!creationConfig || showWizard}
       />
 
-      {/* Bottom-left: Tool panel + generate chat */}
       <div className="flex-[2] min-h-0 flex flex-col rounded-2xl shadow-sm bg-white text-gray-900 border-[3px] border-brand-gold/50 overflow-hidden">
         <div className="flex-1 min-h-0 overflow-auto">
           <ToolPanel activeTool={activeTool} wizardCompleted={!!creationConfig} />
         </div>
-        {/* Generate chat input — only when wizard done */}
         {creationConfig && !showWizard && (
           <ChatInput
             placeholder="Describe what you want to create..."
@@ -122,10 +127,27 @@ function LeftPanelContent({
   )
 }
 
-function RightPanelContent({ creationConfig }: { creationConfig: CreationConfig | null }) {
+function RightPanelContent({
+  creationConfig,
+  currentSceneId,
+  saveStatus,
+  onSave,
+  onLoad,
+  onNew,
+  sceneName,
+  onSceneNameChange,
+}: {
+  creationConfig: CreationConfig | null
+  currentSceneId: string | null
+  saveStatus: SaveStatus
+  onSave: () => Promise<void>
+  onLoad: (id: string) => Promise<void>
+  onNew: () => void
+  sceneName: string
+  onSceneNameChange: (name: string) => void
+}) {
   return (
     <>
-      {/* Display canvas — rounded card */}
       <div className="flex-1 min-h-0 rounded-2xl shadow-sm bg-white text-gray-900 border-[3px] border-brand-gold/50 flex flex-col overflow-hidden">
         {creationConfig ? (
           <div className="flex-1 min-h-0">
@@ -138,38 +160,187 @@ function RightPanelContent({ creationConfig }: { creationConfig: CreationConfig 
         )}
       </div>
 
-      {/* Action bar — always visible at bottom */}
-      <div className="flex-shrink-0 rounded-2xl bg-white text-gray-900 border-[3px] border-brand-gold/50 shadow-sm p-4 flex items-center justify-end gap-3">
-        <button
-          type="button"
-          className="inline-flex items-center gap-2 rounded-full border-2 border-brand-gold/40 px-5 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 transition-colors"
-        >
-          <Play className="h-4 w-4 mr-2" /> Preview
-        </button>
-        <button
-          type="button"
-          className="inline-flex items-center gap-2 rounded-full border-2 border-brand-gold/40 px-5 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 transition-colors"
-        >
-          <Save className="h-4 w-4 mr-2" /> Save
-        </button>
-        <button
-          type="button"
-          className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium bg-brand-gold text-black hover:bg-brand-gold/90 transition-colors"
-        >
-          <Upload className="h-4 w-4 mr-2" /> Deploy
-        </button>
-      </div>
+      <ActionBar
+        currentSceneId={currentSceneId}
+        saveStatus={saveStatus}
+        onSave={onSave}
+        onLoad={onLoad}
+        onNew={onNew}
+        sceneName={sceneName}
+        onSceneNameChange={onSceneNameChange}
+        disabled={!creationConfig}
+      />
     </>
   )
 }
 
-export default function CreateV2Page() {
+const DEFAULT_SCENE: Omit<SceneConfig, 'id' | 'created_at'> = {
+  name: 'Untitled Scene',
+  background: 'jewelry_studio',
+  camera: 'close_up',
+  lighting: 'warm_golden',
+  jewelry_position: 'center_pedestal',
+  duration_seconds: 15,
+  status: 'draft',
+}
+
+function CreateV2PageContent() {
+  const searchParams = useSearchParams()
   const [creationConfig, setCreationConfig] = useState<CreationConfig | null>(null)
   const [showWizard, setShowWizard] = useState(false)
+  const [currentSceneId, setCurrentSceneId] = useState<string | null>(null)
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved')
+  const [sceneName, setSceneName] = useState('Untitled Scene')
+  const isLoadingFromUrl = useRef(false)
+  const lastSavedRef = useRef<string>('')
+
+  const {
+    currentScene,
+    scenes,
+    addScene,
+    setCurrentScene,
+    loadSceneIntoStore,
+    clearAll,
+    updateScene,
+  } = useSceneStore()
+
+  const ensureScene = useCallback((): SceneConfig => {
+    if (currentScene) return currentScene
+    const scene: SceneConfig = {
+      ...DEFAULT_SCENE,
+      id: `scene-${Date.now()}`,
+      created_at: new Date().toISOString(),
+    }
+    addScene(scene)
+    setCurrentScene(scene)
+    return scene
+  }, [currentScene, addScene, setCurrentScene])
+
+  const handleSave = useCallback(async () => {
+    const scene = ensureScene()
+    setSaveStatus('saving')
+    try {
+      const res = await saveScene(
+        sceneToState(scene),
+        sceneName || scene.name,
+        currentSceneId ?? undefined
+      )
+      setCurrentSceneId(res.id)
+      setSceneName(res.name)
+      const loaded = stateToScene(res.state as Record<string, unknown>)
+      loaded.id = res.id
+      loaded.name = res.name
+      loadSceneIntoStore(loaded)
+      lastSavedRef.current = JSON.stringify(res.state)
+      const url = new URL(window.location.href)
+      url.searchParams.set('scene', res.id)
+      window.history.replaceState({}, '', url.toString())
+    } catch {
+      setSaveStatus('unsaved')
+    } finally {
+      setSaveStatus('saved')
+    }
+  }, [
+    ensureScene,
+    currentSceneId,
+    sceneName,
+    loadSceneIntoStore,
+    setCurrentScene,
+  ])
+
+  const handleLoad = useCallback(async (id: string) => {
+    isLoadingFromUrl.current = true
+    try {
+      const res = await loadScene(id)
+      const scene = stateToScene(res.state as Record<string, unknown>)
+      scene.id = res.id
+      scene.name = res.name
+      loadSceneIntoStore(scene)
+      setCurrentSceneId(res.id)
+      setSceneName(res.name)
+      setSaveStatus('saved')
+      lastSavedRef.current = JSON.stringify(res.state)
+      const url = new URL(window.location.href)
+      url.searchParams.set('scene', id)
+      window.history.replaceState({}, '', url.toString())
+    } finally {
+      isLoadingFromUrl.current = false
+    }
+  }, [loadSceneIntoStore])
+
+  const handleNew = useCallback(() => {
+    clearAll()
+    setCurrentSceneId(null)
+    setSceneName('Untitled Scene')
+    setSaveStatus('saved')
+    lastSavedRef.current = ''
+    const url = new URL(window.location.href)
+    url.searchParams.delete('scene')
+    window.history.replaceState({}, '', url.toString())
+  }, [clearAll])
+
+  const handleSceneNameChange = useCallback((name: string) => {
+    setSceneName(name)
+    if (currentScene) {
+      updateScene(currentScene.id, { name })
+    }
+    setSaveStatus('unsaved')
+  }, [currentScene, updateScene])
+
+  useEffect(() => {
+    const sceneId = searchParams.get('scene')
+    if (sceneId) {
+      isLoadingFromUrl.current = true
+      loadScene(sceneId)
+        .then((res) => {
+          const scene = stateToScene(res.state as Record<string, unknown>)
+          scene.id = res.id
+          scene.name = res.name
+          loadSceneIntoStore(scene)
+          setCurrentSceneId(res.id)
+          setSceneName(res.name)
+          setSaveStatus('saved')
+          lastSavedRef.current = JSON.stringify(res.state)
+        })
+        .catch(() => {})
+        .finally(() => {
+          isLoadingFromUrl.current = false
+        })
+    }
+  }, [searchParams, loadSceneIntoStore])
+
+  useEffect(() => {
+    if (!creationConfig) return
+    const unsub = useSceneStore.subscribe((state) => {
+      if (isLoadingFromUrl.current) return
+      const curr = state.currentScene
+      if (!curr) return
+      const serialized = JSON.stringify(sceneToState(curr))
+      if (serialized !== lastSavedRef.current) {
+        setSaveStatus('unsaved')
+      }
+    })
+    return unsub
+  }, [creationConfig])
+
+  useEffect(() => {
+    if (!creationConfig || !currentSceneId) return
+    const interval = setInterval(() => {
+      if (saveStatus === 'unsaved' && currentSceneId) {
+        void handleSave()
+      }
+    }, 30000)
+    return () => clearInterval(interval)
+  }, [creationConfig, currentSceneId, saveStatus, handleSave])
+
+  useEffect(() => {
+    if (currentScene) {
+      setSceneName(currentScene.name)
+    }
+  }, [currentScene?.id])
 
   return (
     <div className="h-full w-full flex flex-col">
-      {/* Logo — centered, large */}
       <div className="flex-shrink-0 flex items-center justify-center gap-4 py-6">
         <Gem className="h-12 w-12 text-brand-gold" />
         <span
@@ -184,9 +355,7 @@ export default function CreateV2Page() {
         </span>
       </div>
 
-      {/* Panels below logo */}
-        <div className="flex-1 min-h-0 flex gap-4 px-6 pb-6">
-        {/* Left side — 60% width */}
+      <div className="flex-1 min-h-0 flex gap-4 px-6 pb-6">
         <div className="flex flex-col gap-4 min-h-0" style={{ width: '60%' }}>
           <LeftPanelContent
             creationConfig={creationConfig}
@@ -196,11 +365,27 @@ export default function CreateV2Page() {
             onBackToSetup={() => setShowWizard(true)}
           />
         </div>
-        {/* Right side — 40% width */}
         <div className="flex flex-col gap-4 min-h-0" style={{ width: '40%' }}>
-          <RightPanelContent creationConfig={creationConfig} />
+          <RightPanelContent
+            creationConfig={creationConfig}
+            currentSceneId={currentSceneId}
+            saveStatus={saveStatus}
+            onSave={handleSave}
+            onLoad={handleLoad}
+            onNew={handleNew}
+            sceneName={sceneName}
+            onSceneNameChange={handleSceneNameChange}
+          />
         </div>
       </div>
     </div>
+  )
+}
+
+export default function CreateV2Page() {
+  return (
+    <Suspense fallback={<div className="h-full w-full flex items-center justify-center text-gray-500">Loading...</div>}>
+      <CreateV2PageContent />
+    </Suspense>
   )
 }

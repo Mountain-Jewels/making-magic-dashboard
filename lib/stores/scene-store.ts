@@ -5,9 +5,14 @@ interface SceneStore {
   scenes: SceneConfig[]
   currentScene: SceneConfig | null
   setCurrentScene: (scene: SceneConfig | null) => void
+  setScenes: (scenes: SceneConfig[]) => void
   addScene: (scene: SceneConfig) => void
   updateScene: (id: string, updates: Partial<SceneConfig>) => void
   removeScene: (id: string) => void
+  /** Replace store with loaded scene (for load from API) */
+  loadSceneIntoStore: (scene: SceneConfig) => void
+  /** Clear all scenes and current (for New) */
+  clearAll: () => void
 }
 
 const MOCK_SCENES: SceneConfig[] = [
@@ -52,6 +57,7 @@ export const useSceneStore = create<SceneStore>((set) => ({
   scenes: MOCK_SCENES,
   currentScene: null,
   setCurrentScene: (scene) => set({ currentScene: scene }),
+  setScenes: (scenes) => set({ scenes }),
   addScene: (scene) => set((state) => ({ scenes: [...state.scenes, scene] })),
   updateScene: (id, updates) =>
     set((state) => {
@@ -65,4 +71,6 @@ export const useSceneStore = create<SceneStore>((set) => ({
     }),
   removeScene: (id) =>
     set((state) => ({ scenes: state.scenes.filter((s) => s.id !== id) })),
+  loadSceneIntoStore: (scene) => set({ scenes: [scene], currentScene: scene }),
+  clearAll: () => set({ scenes: [], currentScene: null }),
 }))
