@@ -11,18 +11,30 @@ export async function getCategories(): Promise<JewelryCategory[]> {
   return Array.isArray(arr) ? arr : []
 }
 
+export interface GetProductsResult {
+  products: JewelryProduct[]
+  total: number
+}
+
 export async function getProducts(params?: {
   category?: string
   shape?: string
   carat?: string
-}): Promise<JewelryProduct[]> {
-  const search = new URLSearchParams(params as Record<string, string>).toString()
+  limit?: number
+}): Promise<GetProductsResult> {
+  const p: Record<string, string> = {}
+  if (params?.category) p.category = params.category
+  if (params?.shape) p.shape = params.shape
+  if (params?.carat) p.carat = params.carat
+  if (params?.limit) p.limit = String(params.limit)
+  const search = new URLSearchParams(p).toString()
   const query = search ? `?${search}` : ''
-  const res = await apiGet<{ products?: JewelryProduct[] }>(`/jewelry/products${query}`)
+  const res = await apiGet<{ products?: JewelryProduct[]; total?: number }>(`/jewelry/products${query}`)
   const arr = (res as { products?: JewelryProduct[] })?.products
-  return Array.isArray(arr) ? arr : []
+  const total = (res as { total?: number })?.total ?? 0
+  return { products: Array.isArray(arr) ? arr : [], total }
 }
 
 export async function getProduct(id: string): Promise<JewelryProduct> {
-  return apiGet<JewelryProduct>(`/jewelry/${id}`)
+  return apiGet<JewelryProduct>(`/jewelry/${encodeURIComponent(id)}`)
 }

@@ -78,6 +78,12 @@ export interface SceneConfig {
   lighting: LightingMood
   jewelry_position: JewelryPosition
   jewelry_sku?: string
+  /** Product ID from jewelry API */
+  jewelry_product_id?: string
+  /** Display title for selected jewelry */
+  jewelry_title?: string
+  /** First image URL for selected jewelry */
+  jewelry_image_url?: string
   duration_seconds: number
   created_at: string
   status: 'draft' | 'ready' | 'rendering' | 'complete'

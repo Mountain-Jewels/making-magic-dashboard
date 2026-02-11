@@ -244,14 +244,21 @@ export interface SceneListItem {
 export interface JewelryCategory {
   id: string
   name: string
+  slug: string
   product_count: number
+}
+
+export interface JewelryProductVariant {
+  shape?: string
+  carat?: string
+  price?: string
 }
 
 export interface JewelryProduct {
   id: string
   title: string
-  handle: string
-  images: { url: string; alt?: string }[]
-  variants?: { id: string; title: string; price: string }[]
-  category?: string
+  description?: string
+  images: string[]
+  variants: JewelryProductVariant[]
+  available?: boolean
 }
