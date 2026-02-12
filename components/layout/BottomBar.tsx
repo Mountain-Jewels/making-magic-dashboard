@@ -1,3 +1,8 @@
+/**
+ * © 2026 Mountain Jewels LLC. All rights reserved.
+ * Proprietary and confidential.
+ */
+
 'use client'
 
 import { ZoomIn, ZoomOut } from 'lucide-react'

@@ -1,4 +1,9 @@
 /**
+ * © 2026 Mountain Jewels LLC. All rights reserved.
+ * Proprietary and confidential.
+ */
+
+/**
  * Download utilities for playlist export.
  * These will point to real media URLs when backend services are available.
  * For now, they generate mock downloads to prove the UI flow.

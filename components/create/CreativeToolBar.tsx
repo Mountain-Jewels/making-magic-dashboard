@@ -1,3 +1,13 @@
+/**
+ * © 2026 Mountain Jewels LLC. All rights reserved.
+ * Proprietary and confidential.
+ */
+
+/**
+ * © 2026 Mountain Jewels LLC. All rights reserved.
+ * Proprietary and confidential.
+ */
+
 'use client'
 
 import {

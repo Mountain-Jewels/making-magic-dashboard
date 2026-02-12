@@ -1,3 +1,8 @@
+/**
+ * © 2026 Mountain Jewels LLC. All rights reserved.
+ * Proprietary and confidential.
+ */
+
 import type { Metadata } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
 import { Toaster } from 'sonner'

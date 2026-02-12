@@ -1,3 +1,8 @@
+/**
+ * © 2026 Mountain Jewels LLC. All rights reserved.
+ * Proprietary and confidential.
+ */
+
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 

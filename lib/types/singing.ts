@@ -1,3 +1,8 @@
+/**
+ * © 2026 Mountain Jewels LLC. All rights reserved.
+ * Proprietary and confidential.
+ */
+
 export type SingingVoice =
   | 'soprano_warm'
   | 'soprano_bright'

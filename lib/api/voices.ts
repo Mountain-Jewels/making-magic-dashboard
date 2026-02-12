@@ -1,4 +1,9 @@
 /**
+ * © 2026 Mountain Jewels LLC. All rights reserved.
+ * Proprietary and confidential.
+ */
+
+/**
  * Voice API — ElevenLabs voices, preview, clone
  */
 

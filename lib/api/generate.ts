@@ -1,4 +1,9 @@
 /**
+ * © 2026 Mountain Jewels LLC. All rights reserved.
+ * Proprietary and confidential.
+ */
+
+/**
  * Generation API — DALL-E, Runway, HeyGen, Luma, Suno, dialogue
  */
 

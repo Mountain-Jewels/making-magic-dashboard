@@ -1,3 +1,8 @@
+/**
+ * © 2026 Mountain Jewels LLC. All rights reserved.
+ * Proprietary and confidential.
+ */
+
 export type AvatarGender = 'female' | 'male' | 'neutral'
 
 export type AvatarStyle =

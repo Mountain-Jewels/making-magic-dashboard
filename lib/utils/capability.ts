@@ -1,4 +1,9 @@
 /**
+ * © 2026 Mountain Jewels LLC. All rights reserved.
+ * Proprietary and confidential.
+ */
+
+/**
  * Conversion gate and 2D → 3D capability helpers.
  * No scraping, governance, or deploy logic.
  */

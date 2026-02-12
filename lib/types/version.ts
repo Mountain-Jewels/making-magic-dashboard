@@ -1,3 +1,8 @@
+/**
+ * © 2026 Mountain Jewels LLC. All rights reserved.
+ * Proprietary and confidential.
+ */
+
 // ─── Versioning & Change Model (Step 4: Asset Library & Versioning) ───
 
 export type CapabilityState = {

@@ -1,4 +1,9 @@
 /**
+ * © 2026 Mountain Jewels LLC. All rights reserved.
+ * Proprietary and confidential.
+ */
+
+/**
  * Centralized HTTP client for Making Magic API
  * Auth, errors, retries, upload progress
  */

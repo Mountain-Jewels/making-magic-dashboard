@@ -1,3 +1,8 @@
+/**
+ * © 2026 Mountain Jewels LLC. All rights reserved.
+ * Proprietary and confidential.
+ */
+
 import { create } from 'zustand'
 import type { SingingTrack, Playlist, SingingVoice, MusicGenre, PerformanceStyle } from '@/lib/types/singing'
 

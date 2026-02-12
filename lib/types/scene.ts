@@ -1,3 +1,8 @@
+/**
+ * © 2026 Mountain Jewels LLC. All rights reserved.
+ * Proprietary and confidential.
+ */
+
 // ─── Creative Control Types (Step 2: Edit Categories) ───
 
 export type BackgroundPreset =
