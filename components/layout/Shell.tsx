@@ -10,7 +10,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu } from 'lucide-react'
 import { TopBar } from './TopBar'
-import { ToolBar } from './ToolBar'
+import { SidebarMenu } from './SidebarMenu'
 import { BottomBar } from './BottomBar'
 import { KeyboardShortcuts } from './KeyboardShortcuts'
 
@@ -31,8 +31,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <TopBar onMobileMenuToggle={() => setMobileMenuOpen((o) => !o)} />
       <div className="flex flex-1 min-h-0 min-w-0 w-full overflow-hidden">
         {/* Sidebar: visible on md+, hidden on mobile */}
-        <aside className="hidden md:flex w-14 flex-shrink-0 flex-col border-r border-surface-border overflow-hidden">
-          <ToolBar />
+        <aside className="hidden md:flex w-60 flex-shrink-0 flex-col overflow-hidden">
+          <SidebarMenu />
         </aside>
         {/* Mobile sidebar overlay */}
         {mobileMenuOpen && (
@@ -43,10 +43,10 @@ export function Shell({ children }: { children: React.ReactNode }) {
           >
             <div className="absolute inset-0 bg-black/50" />
             <aside
-              className="absolute left-0 top-0 bottom-0 w-14 flex flex-col border-r border-surface-border bg-[#0A0A0F] z-50 py-3"
+              className="absolute left-0 top-0 bottom-0 w-60 flex flex-col bg-[#0A0A0F] z-50 overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              <ToolBar onNavigate={() => setMobileMenuOpen(false)} />
+              <SidebarMenu onNavigate={() => setMobileMenuOpen(false)} />
             </aside>
           </div>
         )}
