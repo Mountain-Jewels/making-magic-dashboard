@@ -8,27 +8,31 @@
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Plus } from 'lucide-react'
-
-const AVATAR_PRESETS = [
-  { id: 'preset_1', label: 'Avatar 1' },
-  { id: 'preset_2', label: 'Avatar 2' },
-  { id: 'preset_3', label: 'Avatar 3' },
-  { id: 'preset_4', label: 'Avatar 4' },
-]
+import type { AvatarPreset } from '@/lib/types/avatar'
 
 export function AvatarSection({
   selected,
   onSelect,
   onGenerateNew,
+  avatarPresets = [],
 }: {
   selected: string | null
   onSelect: (id: string) => void
   onGenerateNew?: () => void
+  avatarPresets?: AvatarPreset[]
 }) {
+  const presets: { id: string; name: string }[] = avatarPresets.length > 0
+    ? avatarPresets.map((p) => ({ id: p.id, name: p.name }))
+    : [
+        { id: 'avatar-isabella', name: 'Isabella' },
+        { id: 'avatar-james', name: 'James' },
+        { id: 'avatar-sophia', name: 'Sophia' },
+        { id: 'avatar-marcus', name: 'Marcus' },
+      ]
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-2">
-        {AVATAR_PRESETS.map((p) => (
+        {presets.map((p) => (
           <button
             key={p.id}
             type="button"
@@ -40,7 +44,7 @@ export function AvatarSection({
                 : 'border-surface-border bg-surface-elevated text-text-secondary hover:text-text-primary'
             )}
           >
-            {p.label}
+            {p.name}
           </button>
         ))}
       </div>

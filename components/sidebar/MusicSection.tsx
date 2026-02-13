@@ -18,9 +18,11 @@ const MUSIC_PRESETS = [
 export function MusicSection({
   selected,
   onSelect,
+  generating = false,
 }: {
   selected: string | null
   onSelect: (id: string) => void
+  generating?: boolean
 }) {
   return (
     <div className="space-y-1.5">
@@ -29,6 +31,7 @@ export function MusicSection({
           key={opt.id}
           type="button"
           onClick={() => onSelect(opt.id)}
+          disabled={generating}
           className={cn(
             'w-full text-left px-3 py-2 rounded-lg text-sm transition-colors',
             selected === opt.id

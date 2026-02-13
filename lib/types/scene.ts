@@ -91,7 +91,7 @@ export interface SceneConfig {
   jewelry_image_url?: string
   duration_seconds: number
   created_at: string
-  status: 'draft' | 'ready' | 'rendering' | 'complete'
+  status: 'draft' | 'ready' | 'rendering' | 'complete' | 'pending_review'
   /** Generated/uploaded background image URL (overrides preset when set) */
   backgroundImageUrl?: string
   /** Generated video URL (from Runway) */
@@ -104,4 +104,10 @@ export interface SceneConfig {
   asset_id?: string
   version_id?: string
   capability_state?: SceneCapabilityState
+  /** Production format — user can switch at any time */
+  format?: 'still_image' | '2d_video' | '3d_video' | 'interactive'
+  /** Export destination (social_media, web, email, events) */
+  destination?: string
+  /** Event theme (wedding, anniversary, etc.) */
+  event?: string
 }

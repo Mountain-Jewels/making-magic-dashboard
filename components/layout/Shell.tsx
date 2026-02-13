@@ -9,10 +9,22 @@ import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu } from 'lucide-react'
+import { toast } from 'sonner'
 import { TopBar } from './TopBar'
 import { SidebarMenu } from './SidebarMenu'
-import { BottomBar } from './BottomBar'
+import { ChatBox } from './ChatBox'
 import { KeyboardShortcuts } from './KeyboardShortcuts'
+import { useSceneStore } from '@/lib/stores/scene-store'
+import { exportToShopify } from '@/lib/api/export'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 
 const pageTransition = {
   initial: { opacity: 0 },
@@ -24,11 +36,55 @@ const pageTransition = {
 export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [deployConfirmOpen, setDeployConfirmOpen] = useState(false)
+  const [deploySubmitting, setDeploySubmitting] = useState(false)
+  const { currentScene, scenes, updateScene } = useSceneStore()
+  const scene = currentScene ?? scenes[0]
+
+  const handleDeployClick = () => setDeployConfirmOpen(true)
+  const handleDeployConfirm = async () => {
+    if (!scene) {
+      toast.error('No scene to deploy')
+      return
+    }
+    setDeploySubmitting(true)
+    try {
+      await exportToShopify(scene.id, scene.name, undefined)
+      updateScene(scene.id, { status: 'pending_review' })
+      toast.success('Sent to governance review')
+      setDeployConfirmOpen(false)
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Deploy failed')
+    } finally {
+      setDeploySubmitting(false)
+    }
+  }
 
   return (
     <div className="flex flex-col min-h-screen h-screen overflow-hidden w-full max-w-full min-w-0" style={{ backgroundColor: '#0A0A0F' }}>
       <KeyboardShortcuts />
-      <TopBar onMobileMenuToggle={() => setMobileMenuOpen((o) => !o)} />
+      <TopBar
+        onMobileMenuToggle={() => setMobileMenuOpen((o) => !o)}
+        onDeploy={handleDeployClick}
+      />
+      <Dialog open={deployConfirmOpen} onOpenChange={setDeployConfirmOpen}>
+        <DialogContent className="bg-surface-panel border-surface-border">
+          <DialogHeader>
+            <DialogTitle>Send to governance review?</DialogTitle>
+            <DialogDescription>
+              Your scene will be submitted for review. You can track its status in the dashboard.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeployConfirmOpen(false)} disabled={deploySubmitting}>
+              Cancel
+            </Button>
+            <Button onClick={handleDeployConfirm} disabled={deploySubmitting} className="bg-brand-gold text-black hover:bg-brand-gold/90">
+              {deploySubmitting ? 'Sending...' : 'Confirm'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <div className="flex flex-1 min-h-0 min-w-0 w-full overflow-hidden">
         {/* Sidebar: visible on md+, hidden on mobile */}
         <aside className="hidden md:flex w-60 flex-shrink-0 flex-col overflow-hidden">
@@ -50,20 +106,20 @@ export function Shell({ children }: { children: React.ReactNode }) {
             </aside>
           </div>
         )}
-        <main className="flex-1 min-w-0 min-h-0 overflow-auto w-full">
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={pathname}
-              className="h-full min-h-full"
-              {...pageTransition}
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
-        </main>
-      </div>
-      <div className="flex-shrink-0">
-        <BottomBar />
+        <div className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden">
+          <main className="flex-1 min-h-0 overflow-auto w-full">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={pathname}
+                className="h-full min-h-full"
+                {...pageTransition}
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
+          </main>
+          <ChatBox />
+        </div>
       </div>
     </div>
   )
