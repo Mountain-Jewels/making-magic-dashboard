@@ -107,8 +107,8 @@ export function JewelrySection({
   const isDropEarrings = product === 'Drop Earrings'
   const showEarringConfig = isStuds || isDropEarrings
 
-  const labelClass = 'block text-xs font-medium text-text-primary mb-1'
-  const selectClass = 'w-full bg-surface-elevated border-2 border-surface-border rounded-lg px-3 py-2 text-sm text-text-primary focus:border-brand-gold focus:outline-none'
+  const labelClass = 'block text-xs font-medium text-white mb-1'
+  const selectClass = 'w-full bg-[#1A1A24] border-2 border-[#3A3A4A] rounded-lg px-3 py-2 text-sm text-white focus:border-[#D4AF37] focus:outline-none'
 
   const StoneConfig = ({
     label,
@@ -123,8 +123,8 @@ export function JewelrySection({
     onShape: (v: string) => void
     onCarat: (v: string) => void
   }) => (
-    <div className="space-y-2 rounded-lg border-2 border-surface-border p-2 bg-surface-elevated/50">
-      <p className="text-xs font-semibold text-brand-gold">{label}</p>
+    <div className="space-y-2 rounded-lg border-2 border-[#3A3A4A] p-2 bg-[#1A1A24]/50">
+      <p className="text-xs font-semibold text-[#D4AF37]">{label}</p>
       <div>
         <label className={labelClass}>Shape</label>
         <select
@@ -182,8 +182,8 @@ export function JewelrySection({
               className={cn(
                 'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border-2',
                 color === c.id
-                  ? 'bg-brand-gold/30 text-brand-gold border-brand-gold'
-                  : 'bg-surface-elevated border-surface-border text-text-primary hover:border-brand-gold hover:text-brand-gold'
+                  ? 'bg-[#D4AF37]/30 text-[#D4AF37] border-[#D4AF37]'
+                  : 'bg-[#1A1A24] border-[#3A3A4A] text-white hover:border-[#D4AF37] hover:text-[#D4AF37]'
               )}
             >
               {c.label}

@@ -5,7 +5,6 @@
 
 'use client'
 
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Plus } from 'lucide-react'
 import type { AvatarPreset } from '@/lib/types/avatar'
@@ -30,8 +29,19 @@ export function AvatarSection({
         { id: 'avatar-marcus', name: 'Marcus' },
       ]
   return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-2">
+    <div className="space-y-4">
+      {/* ADD AVATAR BUTTON - PROMINENT */}
+      <button
+        type="button"
+        onClick={() => onGenerateNew?.()}
+        className="w-full flex items-center justify-center gap-2 p-3 rounded-lg border-2 border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37]/10 transition-colors font-medium"
+      >
+        <Plus className="h-5 w-5" />
+        Add Avatar
+      </button>
+      <div>
+        <h4 className="text-white font-medium text-sm mb-2">Your Avatars</h4>
+        <div className="grid grid-cols-2 gap-2">
         {presets.map((p) => (
           <button
             key={p.id}
@@ -40,23 +50,15 @@ export function AvatarSection({
             className={cn(
               'aspect-square rounded-lg border-2 text-xs font-medium transition-colors flex items-center justify-center',
               selected === p.id
-                ? 'border-brand-gold bg-brand-gold/20 text-brand-gold'
-                : 'border-surface-border bg-surface-elevated text-text-primary hover:border-brand-gold hover:text-brand-gold'
+                ? 'border-[#D4AF37] bg-[#D4AF37]/20 text-[#D4AF37]'
+                : 'border-[#3A3A4A] bg-[#1A1A24] text-white hover:border-[#D4AF37] hover:text-[#D4AF37]'
             )}
           >
             {p.name}
           </button>
         ))}
       </div>
-      <Button
-        variant="outline"
-        size="sm"
-        className="w-full border-2 border-brand-gold/60 text-brand-gold hover:bg-brand-gold/10 text-text-primary"
-        onClick={onGenerateNew}
-      >
-        <Plus className="h-4 w-4 mr-1.5" />
-        Generate New
-      </Button>
+      </div>
     </div>
   )
 }

@@ -271,7 +271,7 @@ export function SidebarMenu({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <aside
-      className="w-60 flex-shrink-0 flex flex-col border-r border-surface-border overflow-hidden"
+      className="w-60 flex-shrink-0 flex flex-col border-r-2 border-[#3A3A4A] overflow-hidden"
       style={{ backgroundColor: '#0A0A0F' }}
     >
       <nav className="flex-1 overflow-y-auto py-3 px-2">
@@ -284,8 +284,8 @@ export function SidebarMenu({ onNavigate }: { onNavigate?: () => void }) {
                 type="button"
                 onClick={() => toggle(section.id)}
                 className={cn(
-                  'w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors border',
-                  isExpanded ? 'bg-brand-gold/15 text-brand-gold border-brand-gold/50' : 'text-text-primary border-surface-border hover:border-brand-gold hover:text-brand-gold hover:bg-surface-elevated'
+                  'w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors border-2',
+                  isExpanded ? 'bg-[#D4AF37]/15 text-[#D4AF37] border-[#D4AF37]' : 'text-white border-[#3A3A4A] hover:border-[#D4AF37] hover:text-[#D4AF37] hover:bg-[#1A1A24]'
                 )}
               >
                 <Icon className="h-4 w-4 shrink-0" />
@@ -293,7 +293,7 @@ export function SidebarMenu({ onNavigate }: { onNavigate?: () => void }) {
                 {isExpanded ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronRight className="h-4 w-4 shrink-0" />}
               </button>
               {isExpanded && (
-                <div className="mt-1 ml-2 pl-4 border-l border-surface-border">
+                <div className="mt-1 ml-2 pl-4 border-l-2 border-[#3A3A4A]">
                   {section.id === 'production_type' && (
                     <ProductionTypeSection selected={productionType} onSelect={handleProductionType} />
                   )}

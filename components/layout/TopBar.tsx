@@ -73,7 +73,7 @@ export function TopBar({
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden shrink-0 text-text-primary border border-surface-border hover:border-brand-gold hover:text-brand-gold"
+            className="md:hidden shrink-0 text-white border-2 border-[#3A3A4A] hover:border-[#D4AF37] hover:text-[#D4AF37]"
             onClick={onMobileMenuToggle}
             aria-label="Open menu"
           >
@@ -81,8 +81,8 @@ export function TopBar({
           </Button>
         )}
         <div className="flex items-center gap-2 shrink-0">
-          <Gem className="h-5 w-5 text-brand-gold" />
-          <span className="font-semibold text-text-primary">The Studio</span>
+          <Gem className="h-5 w-5 text-[#D4AF37]" />
+          <span className="font-semibold text-white">The Studio</span>
         </div>
         <div className="min-w-0 flex-1 max-w-xs">
           {isEditing ? (
@@ -93,13 +93,13 @@ export function TopBar({
               onChange={(e) => setEditValue(e.target.value)}
               onBlur={handleSaveName}
               onKeyDown={handleKeyDown}
-              className="w-full bg-transparent border-b border-brand-gold/50 text-text-primary text-sm font-medium outline-none py-0.5"
+              className="w-full bg-transparent border-b border-[#D4AF37]/50 text-white text-sm font-medium outline-none py-0.5"
             />
           ) : (
             <button
               type="button"
               onClick={() => setIsEditing(true)}
-              className="w-full text-left text-sm font-medium text-text-primary truncate hover:text-brand-gold transition-colors"
+              className="w-full text-left text-sm font-medium text-white truncate hover:text-[#D4AF37] transition-colors"
             >
               {sceneName}
             </button>
@@ -110,7 +110,7 @@ export function TopBar({
         <Button
           variant="ghost"
           size="sm"
-          className="text-text-primary border border-surface-border hover:border-brand-gold hover:text-brand-gold"
+          className="text-white border-2 border-[#3A3A4A] hover:border-[#D4AF37] hover:text-[#D4AF37]"
           onClick={onBack}
           aria-label="Back"
         >
@@ -120,7 +120,7 @@ export function TopBar({
         <Button
           variant="ghost"
           size="sm"
-          className="text-text-primary border border-surface-border hover:border-brand-gold hover:text-brand-gold"
+          className="text-white border-2 border-[#3A3A4A] hover:border-[#D4AF37] hover:text-[#D4AF37]"
           onClick={onForward}
           aria-label="Forward"
         >
@@ -130,7 +130,7 @@ export function TopBar({
         <Button
           variant="ghost"
           size="sm"
-          className="text-text-primary border border-surface-border hover:border-brand-gold hover:text-brand-gold"
+          className="text-white border-2 border-[#3A3A4A] hover:border-[#D4AF37] hover:text-[#D4AF37]"
           onClick={onUndo}
           aria-label="Undo"
         >
@@ -140,7 +140,7 @@ export function TopBar({
         <Button
           variant="ghost"
           size="sm"
-          className="text-text-primary border border-surface-border hover:border-red-500/50 hover:bg-red-500/10"
+          className="text-white border-2 border-[#3A3A4A] hover:border-red-500/50 hover:bg-red-500/10"
           onClick={onDelete}
           aria-label="Delete"
         >
@@ -150,7 +150,7 @@ export function TopBar({
         <Button
           variant="ghost"
           size="sm"
-          className="text-text-primary border border-brand-gold/60 hover:bg-brand-gold/20 text-brand-gold"
+          className="text-white border-2 border-[#3A3A4A] hover:border-[#D4AF37] hover:text-[#D4AF37]"
           onClick={onAIDirector}
           aria-label="AI Director"
         >
@@ -159,7 +159,7 @@ export function TopBar({
         </Button>
         <Button
           size="sm"
-          className="bg-brand-gold text-black border-2 border-brand-gold/80 hover:bg-brand-gold/90 font-medium"
+          className="bg-[#D4AF37] text-black border-2 border-[#D4AF37] hover:bg-[#D4AF37]/90 font-medium"
           onClick={onDeploy}
         >
           <Send className="h-4 w-4 sm:mr-1" />

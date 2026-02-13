@@ -38,8 +38,8 @@ export function BackgroundSection({
             className={cn(
               'aspect-video rounded-lg border-2 text-xs font-medium transition-colors flex items-center justify-center',
               selected === p.id
-                ? 'border-brand-gold bg-brand-gold/20 text-brand-gold'
-                : 'border-surface-border bg-surface-elevated text-text-primary hover:border-brand-gold hover:text-brand-gold'
+                ? 'border-[#D4AF37] bg-[#D4AF37]/20 text-[#D4AF37]'
+                : 'border-[#3A3A4A] bg-[#1A1A24] text-white hover:border-[#D4AF37] hover:text-[#D4AF37]'
             )}
           >
             {p.label}
@@ -49,7 +49,7 @@ export function BackgroundSection({
       <Button
         variant="outline"
         size="sm"
-        className="w-full border-2 border-brand-gold/60 text-brand-gold hover:bg-brand-gold/10 text-text-primary"
+        className="w-full border-2 border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37]/10 text-white"
         onClick={onGenerateNew}
       >
         <Plus className="h-4 w-4 mr-1.5" />

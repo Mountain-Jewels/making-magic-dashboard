@@ -38,7 +38,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [deployConfirmOpen, setDeployConfirmOpen] = useState(false)
   const [deploySubmitting, setDeploySubmitting] = useState(false)
-  const chatBoxRef = useRef<HTMLDivElement>(null)
+  const chatInputRef = useRef<HTMLTextAreaElement>(null)
   const { currentScene, scenes, updateScene } = useSceneStore()
   const scene = currentScene ?? scenes[0]
 
@@ -68,11 +68,13 @@ export function Shell({ children }: { children: React.ReactNode }) {
         onMobileMenuToggle={() => setMobileMenuOpen((o) => !o)}
         onDeploy={handleDeployClick}
         onAIDirector={() => {
-          chatBoxRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+          const chatBox = document.getElementById('studio-chatbox')
+          if (chatBox) {
+            chatBox.scrollIntoView({ behavior: 'smooth', block: 'end' })
+          }
           setTimeout(() => {
-            const input = chatBoxRef.current?.querySelector('textarea')
-            if (input) (input as HTMLTextAreaElement).focus()
-          }, 400)
+            chatInputRef.current?.focus()
+          }, 300)
         }}
       />
       <Dialog open={deployConfirmOpen} onOpenChange={setDeployConfirmOpen}>
@@ -126,9 +128,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
               </motion.div>
             </AnimatePresence>
           </main>
-          <div ref={chatBoxRef}>
-            <ChatBox />
-          </div>
+          <ChatBox inputRef={chatInputRef} />
         </div>
       </div>
     </div>

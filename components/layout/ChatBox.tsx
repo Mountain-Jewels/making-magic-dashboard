@@ -15,7 +15,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 type SuggestionItem = { type: string; action: string; value: string }
 type Message = { role: 'user' | 'assistant'; content: string; suggestions?: SuggestionItem[] }
 
-export function ChatBox() {
+export function ChatBox({ inputRef }: { inputRef?: React.RefObject<HTMLTextAreaElement | null> }) {
   const [value, setValue] = useState('')
   const [loading, setLoading] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
@@ -74,7 +74,8 @@ export function ChatBox() {
 
   return (
     <div
-      className="flex flex-col border-t-2 border-brand-gold flex-shrink-0 bg-surface-elevated min-h-[120px]"
+      id="studio-chatbox"
+      className="flex flex-col border-t-2 border-[#D4AF37] flex-shrink-0 bg-[#1A1A24] min-h-[160px]"
     >
       <ScrollArea className="flex-1 min-h-[60px] max-h-32 px-3 py-2">
         <div className="space-y-3">
@@ -86,8 +87,8 @@ export function ChatBox() {
               <div
                 className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${
                   m.role === 'user'
-                    ? 'bg-brand-gold/20 text-text-primary'
-                    : 'bg-surface-elevated text-text-primary border border-surface-border'
+                    ? 'bg-[#D4AF37]/20 text-white'
+                    : 'bg-[#1A1A24] text-white border-2 border-[#3A3A4A]'
                 }`}
               >
                 <p className="whitespace-pre-wrap">{m.content}</p>
@@ -98,7 +99,7 @@ export function ChatBox() {
                         key={j}
                         type="button"
                         onClick={() => handleApplySuggestion(s)}
-                        className="text-[11px] px-2 py-1 rounded-lg border border-brand-gold/40 hover:bg-brand-gold/10 transition-colors"
+                        className="text-[11px] px-2 py-1 rounded-lg border-2 border-[#3A3A4A] text-white hover:border-[#D4AF37] hover:text-[#D4AF37] transition-colors"
                       >
                         {s.action || s.value}
                       </button>
@@ -111,8 +112,9 @@ export function ChatBox() {
         </div>
         <div ref={scrollRef} />
       </ScrollArea>
-      <div className="flex items-end gap-2 p-3 border-t border-surface-border">
+      <div className="flex items-end gap-2 p-3 border-t-2 border-[#3A3A4A]">
         <textarea
+          ref={inputRef}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => {
@@ -122,15 +124,14 @@ export function ChatBox() {
             }
           }}
           placeholder="Tell the AI what you want to create..."
-          rows={2}
-          className="flex-1 min-w-0 bg-black/30 border-2 border-surface-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-gray-400 resize-none focus:outline-none focus:border-brand-gold"
+          className="flex-1 min-w-0 h-24 bg-black/50 text-white border-2 border-[#3A3A4A] rounded-lg px-4 py-3 resize-none focus:border-[#D4AF37] focus:outline-none placeholder:text-white/60"
           disabled={loading}
         />
         <button
           type="button"
           onClick={handleSubmit}
           disabled={loading}
-          className="shrink-0 p-2.5 rounded-lg bg-brand-gold text-black border-2 border-brand-gold/80 hover:bg-brand-gold/90 transition-colors disabled:opacity-70 font-medium"
+          className="shrink-0 p-2.5 rounded-lg bg-[#D4AF37] text-black border-2 border-[#D4AF37] hover:bg-[#D4AF37]/90 transition-colors disabled:opacity-70 font-medium"
           aria-label="Send"
         >
           {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
