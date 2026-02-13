@@ -73,7 +73,7 @@ export function TopBar({
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden shrink-0 text-text-secondary hover:text-text-primary"
+            className="md:hidden shrink-0 text-text-primary border border-surface-border hover:border-brand-gold hover:text-brand-gold"
             onClick={onMobileMenuToggle}
             aria-label="Open menu"
           >
@@ -82,7 +82,7 @@ export function TopBar({
         )}
         <div className="flex items-center gap-2 shrink-0">
           <Gem className="h-5 w-5 text-brand-gold" />
-          <span className="font-semibold text-text-primary hidden sm:inline">The Studio</span>
+          <span className="font-semibold text-text-primary">The Studio</span>
         </div>
         <div className="min-w-0 flex-1 max-w-xs">
           {isEditing ? (
@@ -110,7 +110,7 @@ export function TopBar({
         <Button
           variant="ghost"
           size="sm"
-          className="text-text-secondary hover:text-text-primary"
+          className="text-text-primary border border-surface-border hover:border-brand-gold hover:text-brand-gold"
           onClick={onBack}
           aria-label="Back"
         >
@@ -120,7 +120,7 @@ export function TopBar({
         <Button
           variant="ghost"
           size="sm"
-          className="text-text-secondary hover:text-text-primary"
+          className="text-text-primary border border-surface-border hover:border-brand-gold hover:text-brand-gold"
           onClick={onForward}
           aria-label="Forward"
         >
@@ -130,7 +130,7 @@ export function TopBar({
         <Button
           variant="ghost"
           size="sm"
-          className="text-text-secondary hover:text-text-primary"
+          className="text-text-primary border border-surface-border hover:border-brand-gold hover:text-brand-gold"
           onClick={onUndo}
           aria-label="Undo"
         >
@@ -140,7 +140,7 @@ export function TopBar({
         <Button
           variant="ghost"
           size="sm"
-          className="text-text-secondary hover:text-text-primary hover:bg-red-500/10"
+          className="text-text-primary border border-surface-border hover:border-red-500/50 hover:bg-red-500/10"
           onClick={onDelete}
           aria-label="Delete"
         >
@@ -150,7 +150,7 @@ export function TopBar({
         <Button
           variant="ghost"
           size="sm"
-          className="text-brand-gold hover:bg-brand-gold/20"
+          className="text-text-primary border border-brand-gold/60 hover:bg-brand-gold/20 text-brand-gold"
           onClick={onAIDirector}
           aria-label="AI Director"
         >
@@ -159,7 +159,7 @@ export function TopBar({
         </Button>
         <Button
           size="sm"
-          className="bg-brand-gold text-black hover:bg-brand-gold/90 font-medium"
+          className="bg-brand-gold text-black border-2 border-brand-gold/80 hover:bg-brand-gold/90 font-medium"
           onClick={onDeploy}
         >
           <Send className="h-4 w-4 sm:mr-1" />

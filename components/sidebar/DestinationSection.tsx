@@ -35,10 +35,10 @@ export function DestinationSection({
             type="button"
             onClick={() => onSelect(opt.id)}
             className={cn(
-              'w-full text-left px-3 py-2 rounded-lg text-sm transition-colors',
+              'w-full text-left px-3 py-2 rounded-lg text-sm transition-colors border',
               selected === opt.id
-                ? 'bg-brand-gold/20 text-brand-gold font-medium'
-                : 'text-text-primary hover:bg-surface-elevated hover:text-brand-gold'
+                ? 'bg-brand-gold/20 text-brand-gold font-medium border-brand-gold/50'
+                : 'text-text-primary border-surface-border hover:border-brand-gold hover:text-brand-gold hover:bg-surface-elevated'
             )}
           >
             {opt.label}
@@ -50,11 +50,11 @@ export function DestinationSection({
                   key={s}
                   type="button"
                   onClick={() => onSubSelect(s)}
-                  className={cn(
-                    'w-full text-left px-2 py-1.5 rounded text-xs transition-colors',
+                    className={cn(
+                    'w-full text-left px-2 py-1.5 rounded text-xs transition-colors border',
                     selectedSub === s
-                      ? 'text-brand-gold font-medium'
-                      : 'text-text-primary hover:text-brand-gold'
+                      ? 'text-brand-gold font-medium border-brand-gold/50'
+                      : 'text-text-primary border-transparent hover:text-brand-gold hover:border-brand-gold/30'
                   )}
                 >
                   {s}

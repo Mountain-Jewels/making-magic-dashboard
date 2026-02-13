@@ -67,7 +67,13 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <TopBar
         onMobileMenuToggle={() => setMobileMenuOpen((o) => !o)}
         onDeploy={handleDeployClick}
-        onAIDirector={() => chatBoxRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })}
+        onAIDirector={() => {
+          chatBoxRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+          setTimeout(() => {
+            const input = chatBoxRef.current?.querySelector('textarea')
+            if (input) (input as HTMLTextAreaElement).focus()
+          }, 400)
+        }}
       />
       <Dialog open={deployConfirmOpen} onOpenChange={setDeployConfirmOpen}>
         <DialogContent className="bg-surface-panel border-surface-border">

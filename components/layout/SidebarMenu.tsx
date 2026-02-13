@@ -38,20 +38,34 @@ type SectionId = (typeof MENU_SECTIONS)[number]['id']
 
 const PRODUCT_TO_CATEGORY: Record<string, string> = {
   'Tennis Necklace': 'necklaces',
+  'Pendant Necklace': 'necklaces',
+  'Chain Necklace': 'necklaces',
+  'Choker': 'necklaces',
+  'Studs': 'earrings',
+  'Drop Earrings': 'earrings',
+  'Hoop Earrings': 'earrings',
+  'Huggie Earrings': 'earrings',
   'Tennis Bracelet': 'bracelets',
+  'Bangle': 'bracelets',
+  'Chain Bracelet': 'bracelets',
+  'Cuff': 'bracelets',
+  'Solitaire Ring': 'rings',
+  'Three-Stone Ring': 'rings',
   'Eternity Band': 'rings',
-  'Solitaire': 'rings',
-  'Halo Ring': 'rings',
-  'Pendant': 'pendants',
+  'Stackable Ring': 'rings',
 }
 
-const SHAPE_MAP: Record<string, string> = {
-  'Br': 'brilliant',
-  'P/S': 'princess',
-  'Ov': 'oval',
-  'E/C': 'emerald',
-  'Cus': 'custom',
-  'H/S': 'heart',
+const SHAPE_TO_SLUG: Record<string, string> = {
+  'Round': 'round',
+  'Pear': 'pear',
+  'Oval': 'oval',
+  'Emerald Cut': 'emerald',
+  'Cushion': 'cushion',
+  'Heart': 'heart',
+  'Marquise': 'marquise',
+  'Princess': 'princess',
+  'Radiant': 'radiant',
+  'Asscher': 'asscher',
 }
 
 export function SidebarMenu({ onNavigate }: { onNavigate?: () => void }) {
@@ -66,13 +80,19 @@ export function SidebarMenu({ onNavigate }: { onNavigate?: () => void }) {
   const [avatar, setAvatar] = useState<string | null>(null)
   const [jewelryProduct, setJewelryProduct] = useState('Tennis Necklace')
   const [jewelryColor, setJewelryColor] = useState('Y')
-  const [jewelryCarat, setJewelryCarat] = useState('')
-  const [jewelryShape, setJewelryShape] = useState('Br')
+  const [jewelryCarat, setJewelryCarat] = useState('1.00')
+  const [jewelryShape, setJewelryShape] = useState('Round')
+  const [jewelryStudShape, setJewelryStudShape] = useState('Round')
+  const [jewelryStudCarat, setJewelryStudCarat] = useState('1.00')
+  const [jewelryTopShape, setJewelryTopShape] = useState('Round')
+  const [jewelryTopCarat, setJewelryTopCarat] = useState('1.00')
+  const [jewelryBottomShape, setJewelryBottomShape] = useState('Pear')
+  const [jewelryBottomCarat, setJewelryBottomCarat] = useState('3.00')
   const [music, setMusic] = useState<string | null>(null)
   const [destination, setDestination] = useState<string | null>(null)
   const [destinationSub, setDestinationSub] = useState<string | null>(null)
   const [events, setEvents] = useState<string | null>(null)
-  const [assetsTab, setAssetsTab] = useState('avatars')
+  const [assetsTab, setAssetsTab] = useState('images')
 
   const [bgGenerating, setBgGenerating] = useState(false)
   const [musicGenerating, setMusicGenerating] = useState(false)
@@ -137,38 +157,69 @@ export function SidebarMenu({ onNavigate }: { onNavigate?: () => void }) {
     }
   }
 
-  const handleJewelryChange = (field: string, value: string) => {
-    if (field === 'product') setJewelryProduct(value)
-    else if (field === 'color') setJewelryColor(value)
-    else if (field === 'carat') setJewelryCarat(value)
-    else if (field === 'shape') setJewelryShape(value)
-
-    const product = field === 'product' ? value : jewelryProduct
-    const color = field === 'color' ? value : jewelryColor
-    const carat = field === 'carat' ? value : jewelryCarat
-    const shape = field === 'shape' ? value : jewelryShape
-
-    const category = PRODUCT_TO_CATEGORY[product]
-    const shapeParam = SHAPE_MAP[shape]
-    if (!category || !carat) return
-
+  const fetchJewelryForScene = (
+    prod: string,
+    shapeVal: string,
+    caratVal: string,
+    shapeVal2?: string,
+    caratVal2?: string
+  ) => {
+    const category = PRODUCT_TO_CATEGORY[prod]
+    const shapeParam = SHAPE_TO_SLUG[shapeVal]
+    if (!category || !caratVal) return
     getProducts({
       category,
       shape: shapeParam || undefined,
-      carat: carat || undefined,
+      carat: caratVal || undefined,
       limit: 1,
     }).then(({ products }) => {
       const p = products[0]
       if (p) {
         const sceneId = ensureScene()
+        const title = shapeVal2 && caratVal2
+          ? `${prod}: Top ${caratVal}ct ${shapeVal} + Bottom ${caratVal2}ct ${shapeVal2}`
+          : p.title
         updateScene(sceneId, {
           jewelry_sku: p.id,
           jewelry_product_id: p.id,
-          jewelry_title: p.title,
+          jewelry_title: title,
           jewelry_image_url: p.images?.[0],
         })
       }
     }).catch(() => {})
+  }
+
+  const handleJewelryChange = (field: string, value: string) => {
+    if (field === 'product') setJewelryProduct(value)
+    else if (field === 'color') setJewelryColor(value)
+    else if (field === 'carat') setJewelryCarat(value)
+    else if (field === 'shape') setJewelryShape(value)
+    else if (field === 'studShape') setJewelryStudShape(value)
+    else if (field === 'studCarat') setJewelryStudCarat(value)
+    else if (field === 'topShape') setJewelryTopShape(value)
+    else if (field === 'topCarat') setJewelryTopCarat(value)
+    else if (field === 'bottomShape') setJewelryBottomShape(value)
+    else if (field === 'bottomCarat') setJewelryBottomCarat(value)
+
+    const prod = field === 'product' ? value : jewelryProduct
+    const isStuds = prod === 'Studs'
+    const isDrop = prod === 'Drop Earrings'
+
+    if (isStuds) {
+      const s = field === 'studShape' ? value : jewelryStudShape
+      const c = field === 'studCarat' ? value : jewelryStudCarat
+      fetchJewelryForScene(prod, s, c)
+    } else if (isDrop) {
+      const ts = field === 'topShape' ? value : jewelryTopShape
+      const tc = field === 'topCarat' ? value : jewelryTopCarat
+      const bs = field === 'bottomShape' ? value : jewelryBottomShape
+      const bc = field === 'bottomCarat' ? value : jewelryBottomCarat
+      fetchJewelryForScene(prod, ts, tc, bs, bc)
+    } else {
+      const s = field === 'shape' ? value : jewelryShape
+      const c = field === 'carat' ? value : jewelryCarat
+      fetchJewelryForScene(prod, s, c)
+    }
   }
 
   const handleMusic = (id: string) => {
@@ -233,8 +284,8 @@ export function SidebarMenu({ onNavigate }: { onNavigate?: () => void }) {
                 type="button"
                 onClick={() => toggle(section.id)}
                 className={cn(
-                  'w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                  isExpanded ? 'bg-brand-gold/15 text-brand-gold' : 'text-text-primary hover:bg-surface-elevated hover:text-brand-gold'
+                  'w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors border',
+                  isExpanded ? 'bg-brand-gold/15 text-brand-gold border-brand-gold/50' : 'text-text-primary border-surface-border hover:border-brand-gold hover:text-brand-gold hover:bg-surface-elevated'
                 )}
               >
                 <Icon className="h-4 w-4 shrink-0" />
@@ -267,10 +318,22 @@ export function SidebarMenu({ onNavigate }: { onNavigate?: () => void }) {
                       color={jewelryColor}
                       carat={jewelryCarat}
                       shape={jewelryShape}
+                      studShape={jewelryStudShape}
+                      studCarat={jewelryStudCarat}
+                      topShape={jewelryTopShape}
+                      topCarat={jewelryTopCarat}
+                      bottomShape={jewelryBottomShape}
+                      bottomCarat={jewelryBottomCarat}
                       onProductChange={(v) => handleJewelryChange('product', v)}
                       onColorChange={(v) => handleJewelryChange('color', v)}
                       onCaratChange={(v) => handleJewelryChange('carat', v)}
                       onShapeChange={(v) => handleJewelryChange('shape', v)}
+                      onStudShapeChange={(v) => handleJewelryChange('studShape', v)}
+                      onStudCaratChange={(v) => handleJewelryChange('studCarat', v)}
+                      onTopShapeChange={(v) => handleJewelryChange('topShape', v)}
+                      onTopCaratChange={(v) => handleJewelryChange('topCarat', v)}
+                      onBottomShapeChange={(v) => handleJewelryChange('bottomShape', v)}
+                      onBottomCaratChange={(v) => handleJewelryChange('bottomCarat', v)}
                     />
                   )}
                   {section.id === 'music' && (

@@ -74,8 +74,7 @@ export function ChatBox() {
 
   return (
     <div
-      className="flex flex-col border-t-2 border-brand-gold/30 flex-shrink-0 bg-surface-elevated"
-      style={{ minHeight: 160 }}
+      className="flex flex-col border-t-2 border-brand-gold flex-shrink-0 bg-surface-elevated min-h-[120px]"
     >
       <ScrollArea className="flex-1 min-h-[60px] max-h-32 px-3 py-2">
         <div className="space-y-3">
@@ -124,14 +123,14 @@ export function ChatBox() {
           }}
           placeholder="Tell the AI what you want to create..."
           rows={2}
-          className="flex-1 min-w-0 bg-surface-elevated border border-surface-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-muted resize-none focus:outline-none focus:ring-1 focus:ring-brand-gold/50"
+          className="flex-1 min-w-0 bg-black/30 border-2 border-surface-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-gray-400 resize-none focus:outline-none focus:border-brand-gold"
           disabled={loading}
         />
         <button
           type="button"
           onClick={handleSubmit}
           disabled={loading}
-          className="shrink-0 p-2.5 rounded-lg bg-brand-gold text-black hover:bg-brand-gold/90 transition-colors disabled:opacity-70"
+          className="shrink-0 p-2.5 rounded-lg bg-brand-gold text-black border-2 border-brand-gold/80 hover:bg-brand-gold/90 transition-colors disabled:opacity-70 font-medium"
           aria-label="Send"
         >
           {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
