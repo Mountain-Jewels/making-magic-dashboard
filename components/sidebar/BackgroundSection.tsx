@@ -39,7 +39,7 @@ export function BackgroundSection({
               'aspect-video rounded-lg border text-xs font-medium transition-colors flex items-center justify-center',
               selected === p.id
                 ? 'border-brand-gold bg-brand-gold/20 text-brand-gold'
-                : 'border-surface-border bg-surface-elevated text-text-secondary hover:text-text-primary'
+                : 'border-surface-border bg-surface-elevated text-text-primary hover:border-brand-gold/50 hover:text-brand-gold'
             )}
           >
             {p.label}

@@ -38,7 +38,7 @@ export function DestinationSection({
               'w-full text-left px-3 py-2 rounded-lg text-sm transition-colors',
               selected === opt.id
                 ? 'bg-brand-gold/20 text-brand-gold font-medium'
-                : 'text-text-secondary hover:bg-surface-elevated hover:text-text-primary'
+                : 'text-text-primary hover:bg-surface-elevated hover:text-brand-gold'
             )}
           >
             {opt.label}
@@ -54,7 +54,7 @@ export function DestinationSection({
                     'w-full text-left px-2 py-1.5 rounded text-xs transition-colors',
                     selectedSub === s
                       ? 'text-brand-gold font-medium'
-                      : 'text-text-muted hover:text-text-secondary'
+                      : 'text-text-primary hover:text-brand-gold'
                   )}
                 >
                   {s}

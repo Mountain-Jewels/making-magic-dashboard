@@ -5,22 +5,28 @@
 
 'use client'
 
+import { useRef } from 'react'
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Upload } from 'lucide-react'
 
 const ASSET_TABS = [
+  { id: 'avatars', label: 'Avatars' },
   { id: 'backgrounds', label: 'Backgrounds' },
-  { id: 'uploads', label: 'Uploads' },
-  { id: 'generated', label: 'Generated' },
-  { id: 'purchased', label: 'Purchased' },
+  { id: 'music', label: 'Music' },
+  { id: 'saved', label: 'Saved' },
 ]
 
 export function AssetsSection({
   activeTab,
   onTabChange,
+  onUpload,
 }: {
   activeTab: string
   onTabChange: (id: string) => void
+  onUpload?: (files: FileList) => void
 }) {
+  const inputRef = useRef<HTMLInputElement>(null)
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-1">
@@ -33,14 +39,35 @@ export function AssetsSection({
               'px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors',
               activeTab === t.id
                 ? 'bg-brand-gold/20 text-brand-gold'
-                : 'text-text-secondary hover:bg-surface-elevated hover:text-text-primary'
+                : 'text-text-primary hover:bg-surface-elevated hover:text-brand-gold'
             )}
           >
             {t.label}
           </button>
         ))}
       </div>
-      <p className="text-xs text-text-muted">Asset browser — {activeTab}</p>
+      <p className="text-xs text-text-muted">From past creations — {activeTab}</p>
+      <input
+        ref={inputRef}
+        type="file"
+        multiple
+        accept="image/*,audio/*,video/*"
+        className="hidden"
+        onChange={(e) => {
+          const files = e.target.files
+          if (files?.length && onUpload) onUpload(files)
+          e.target.value = ''
+        }}
+      />
+      <Button
+        variant="outline"
+        size="sm"
+        className="w-full border-brand-gold/50 text-brand-gold hover:bg-brand-gold/10"
+        onClick={() => inputRef.current?.click()}
+      >
+        <Upload className="h-4 w-4 mr-1.5" />
+        Upload
+      </Button>
     </div>
   )
 }

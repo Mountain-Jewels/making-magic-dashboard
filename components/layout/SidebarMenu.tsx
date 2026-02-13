@@ -72,7 +72,7 @@ export function SidebarMenu({ onNavigate }: { onNavigate?: () => void }) {
   const [destination, setDestination] = useState<string | null>(null)
   const [destinationSub, setDestinationSub] = useState<string | null>(null)
   const [events, setEvents] = useState<string | null>(null)
-  const [assetsTab, setAssetsTab] = useState('backgrounds')
+  const [assetsTab, setAssetsTab] = useState('avatars')
 
   const [bgGenerating, setBgGenerating] = useState(false)
   const [musicGenerating, setMusicGenerating] = useState(false)
@@ -234,7 +234,7 @@ export function SidebarMenu({ onNavigate }: { onNavigate?: () => void }) {
                 onClick={() => toggle(section.id)}
                 className={cn(
                   'w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                  isExpanded ? 'bg-brand-gold/15 text-brand-gold' : 'text-text-secondary hover:bg-surface-elevated hover:text-text-primary'
+                  isExpanded ? 'bg-brand-gold/15 text-brand-gold' : 'text-text-primary hover:bg-surface-elevated hover:text-brand-gold'
                 )}
               >
                 <Icon className="h-4 w-4 shrink-0" />
@@ -292,7 +292,13 @@ export function SidebarMenu({ onNavigate }: { onNavigate?: () => void }) {
                     <EventsSection selected={events} onSelect={handleEvents} />
                   )}
                   {section.id === 'assets' && (
-                    <AssetsSection activeTab={assetsTab} onTabChange={setAssetsTab} />
+                    <AssetsSection
+                      activeTab={assetsTab}
+                      onTabChange={setAssetsTab}
+                      onUpload={(files) => {
+                        // TODO: wire to assets API
+                      }}
+                    />
                   )}
                 </div>
               )}

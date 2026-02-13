@@ -6,7 +6,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Gem, ChevronLeft, ChevronRight, Undo2, Trash2, Send, Menu } from 'lucide-react'
+import { Gem, ChevronLeft, ChevronRight, Undo2, Trash2, Send, Menu, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useSceneStore } from '@/lib/stores/scene-store'
 
@@ -17,6 +17,7 @@ export function TopBar({
   onUndo,
   onDelete,
   onDeploy,
+  onAIDirector,
 }: {
   onMobileMenuToggle?: () => void
   onBack?: () => void
@@ -24,6 +25,7 @@ export function TopBar({
   onUndo?: () => void
   onDelete?: () => void
   onDeploy?: () => void
+  onAIDirector?: () => void
 }) {
   const { currentScene, scenes, updateScene } = useSceneStore()
   const [isEditing, setIsEditing] = useState(false)
@@ -144,6 +146,16 @@ export function TopBar({
         >
           <Trash2 className="h-4 w-4 sm:mr-0.5" />
           <span className="hidden sm:inline text-xs">Delete</span>
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-brand-gold hover:bg-brand-gold/20"
+          onClick={onAIDirector}
+          aria-label="AI Director"
+        >
+          <Sparkles className="h-4 w-4 sm:mr-0.5" />
+          <span className="hidden sm:inline text-xs">AI Director</span>
         </Button>
         <Button
           size="sm"

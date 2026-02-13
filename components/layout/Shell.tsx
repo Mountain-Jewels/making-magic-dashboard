@@ -6,7 +6,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu } from 'lucide-react'
 import { toast } from 'sonner'
@@ -38,6 +38,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [deployConfirmOpen, setDeployConfirmOpen] = useState(false)
   const [deploySubmitting, setDeploySubmitting] = useState(false)
+  const chatBoxRef = useRef<HTMLDivElement>(null)
   const { currentScene, scenes, updateScene } = useSceneStore()
   const scene = currentScene ?? scenes[0]
 
@@ -66,6 +67,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <TopBar
         onMobileMenuToggle={() => setMobileMenuOpen((o) => !o)}
         onDeploy={handleDeployClick}
+        onAIDirector={() => chatBoxRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })}
       />
       <Dialog open={deployConfirmOpen} onOpenChange={setDeployConfirmOpen}>
         <DialogContent className="bg-surface-panel border-surface-border">
@@ -118,7 +120,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
               </motion.div>
             </AnimatePresence>
           </main>
-          <ChatBox />
+          <div ref={chatBoxRef}>
+            <ChatBox />
+          </div>
         </div>
       </div>
     </div>

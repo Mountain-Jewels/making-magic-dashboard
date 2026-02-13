@@ -7,12 +7,14 @@
 
 import { cn } from '@/lib/utils'
 
-const MUSIC_PRESETS = [
+const GENRE_CATEGORIES = [
   { id: 'classical', label: 'Classical' },
-  { id: 'romantic', label: 'Romantic' },
-  { id: 'uplifting', label: 'Uplifting' },
-  { id: 'ambient', label: 'Ambient' },
+  { id: 'rock', label: 'Rock' },
+  { id: 'pop', label: 'Pop Hits' },
+  { id: 'country', label: 'Country' },
   { id: 'jazz', label: 'Jazz' },
+  { id: 'romantic', label: 'Romantic' },
+  { id: 'ambient', label: 'Ambient' },
 ]
 
 export function MusicSection({
@@ -25,8 +27,10 @@ export function MusicSection({
   generating?: boolean
 }) {
   return (
-    <div className="space-y-1.5">
-      {MUSIC_PRESETS.map((opt) => (
+    <div className="space-y-2">
+      <p className="text-xs font-medium text-text-muted uppercase tracking-wider">Genre</p>
+      <div className="space-y-1">
+      {GENRE_CATEGORIES.map((opt) => (
         <button
           key={opt.id}
           type="button"
@@ -36,12 +40,13 @@ export function MusicSection({
             'w-full text-left px-3 py-2 rounded-lg text-sm transition-colors',
             selected === opt.id
               ? 'bg-brand-gold/20 text-brand-gold font-medium'
-              : 'text-text-secondary hover:bg-surface-elevated hover:text-text-primary'
+              : 'text-text-primary hover:bg-surface-elevated hover:text-brand-gold'
           )}
         >
           {opt.label}
         </button>
       ))}
+      </div>
     </div>
   )
 }

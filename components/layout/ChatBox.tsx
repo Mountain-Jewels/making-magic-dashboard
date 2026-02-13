@@ -74,10 +74,10 @@ export function ChatBox() {
 
   return (
     <div
-      className="flex flex-col border-t border-surface-border flex-shrink-0"
-      style={{ backgroundColor: '#1A1A24', minHeight: 140, maxHeight: 240 }}
+      className="flex flex-col border-t-2 border-brand-gold/30 flex-shrink-0 bg-surface-elevated"
+      style={{ minHeight: 160 }}
     >
-      <ScrollArea className="flex-1 min-h-0 px-3 py-2">
+      <ScrollArea className="flex-1 min-h-[60px] max-h-32 px-3 py-2">
         <div className="space-y-3">
           {messages.map((m, i) => (
             <div
