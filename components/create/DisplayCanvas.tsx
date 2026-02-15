@@ -5,9 +5,21 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useSceneStore } from '@/lib/stores/scene-store'
+import type { InspectorObject } from '@/lib/stores/scene-store'
 import { cn } from '@/lib/utils'
+
+function makeInspectorObject(id: string, name: string): InspectorObject {
+  return {
+    id,
+    name,
+    position: { x: 0, y: 0, z: 0 },
+    scale: { x: 1, y: 1, z: 1 },
+    rotation: { x: 0, y: 0, z: 0 },
+    opacity: 1,
+  }
+}
 
 type PreviewTab = 'video' | 'image' | '3d'
 
@@ -20,7 +32,7 @@ export function DisplayCanvas({
   isEmpty = true,
   children,
 }: DisplayCanvasProps) {
-  const { currentScene } = useSceneStore()
+  const { currentScene, setSelectedObject } = useSceneStore()
   const backgroundImageUrl = currentScene?.backgroundImageUrl
   const videoUrl = currentScene?.videoUrl
   const threeDUrl = currentScene?.threeDUrl
@@ -37,11 +49,38 @@ export function DisplayCanvas({
   const show3D = has3D && (tabCount <= 1 || previewMode === '3d')
   const showPlaceholder = !showVideo && !showImage && !show3D
 
+  const handleSelectBackground = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      setSelectedObject(makeInspectorObject('background', 'Background'))
+    },
+    [setSelectedObject]
+  )
+  const handleSelectVideo = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      setSelectedObject(makeInspectorObject('video', 'Video'))
+    },
+    [setSelectedObject]
+  )
+  const handleSelect3D = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      setSelectedObject(makeInspectorObject('3d', '3D Model'))
+    },
+    [setSelectedObject]
+  )
+  const handleDeselect = useCallback(() => {
+    setSelectedObject(null)
+  }, [setSelectedObject])
+
   return (
     <div className="flex-1 flex flex-col min-h-0 p-3 sm:p-4 min-w-0">
       <div
-        className="flex-1 relative rounded-lg border border-gray-200 bg-white flex items-center justify-center min-h-[200px] overflow-hidden w-full max-w-full"
+        className="flex-1 relative rounded-lg border border-gray-200 bg-white flex items-center justify-center min-h-[200px] overflow-hidden w-full max-w-full cursor-pointer"
         style={{ aspectRatio: '1' }}
+        onClick={handleDeselect}
+        role="presentation"
       >
         {tabCount > 1 && (
           <div className="absolute top-2 left-2 z-10 flex gap-1 rounded-md bg-black/50 p-1">
@@ -89,7 +128,8 @@ export function DisplayCanvas({
             src={videoUrl}
             controls
             playsInline
-            className="w-full max-w-full h-full object-contain"
+            className="w-full max-w-full h-full object-contain cursor-pointer"
+            onClick={handleSelectVideo}
           >
             Your browser does not support the video tag.
           </video>
@@ -100,7 +140,8 @@ export function DisplayCanvas({
             src={threeDUrl}
             controls
             playsInline
-            className="w-full max-w-full h-full object-contain"
+            className="w-full max-w-full h-full object-contain cursor-pointer"
+            onClick={handleSelect3D}
           >
             Your browser does not support the video tag.
           </video>
@@ -108,10 +149,14 @@ export function DisplayCanvas({
 
         {showImage && !showVideo && !show3D && (
           <div
-            className="w-full h-full bg-cover bg-center"
+            className="w-full h-full bg-cover bg-center cursor-pointer"
             style={{
               backgroundImage: `url(${backgroundImageUrl})`,
             }}
+            onClick={handleSelectBackground}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && handleSelectBackground(e as unknown as React.MouseEvent)}
           />
         )}
 

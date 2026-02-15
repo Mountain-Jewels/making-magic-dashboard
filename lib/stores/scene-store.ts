@@ -6,10 +6,22 @@
 import { create } from 'zustand'
 import type { SceneConfig, BackgroundPreset, CameraAngle, LightingMood, JewelryPosition } from '@/lib/types/scene'
 
+/** Object properties shown in Inspector panel */
+export interface InspectorObject {
+  id: string
+  name: string
+  position: { x: number; y: number; z: number }
+  scale: { x: number; y: number; z: number }
+  rotation: { x: number; y: number; z: number }
+  opacity: number
+}
+
 interface SceneStore {
   scenes: SceneConfig[]
   currentScene: SceneConfig | null
+  selectedObject: InspectorObject | null
   setCurrentScene: (scene: SceneConfig | null) => void
+  setSelectedObject: (obj: InspectorObject | null) => void
   setScenes: (scenes: SceneConfig[]) => void
   addScene: (scene: SceneConfig) => void
   updateScene: (id: string, updates: Partial<SceneConfig>) => void
@@ -61,7 +73,9 @@ const MOCK_SCENES: SceneConfig[] = [
 export const useSceneStore = create<SceneStore>((set) => ({
   scenes: MOCK_SCENES,
   currentScene: null,
+  selectedObject: null,
   setCurrentScene: (scene) => set({ currentScene: scene }),
+  setSelectedObject: (obj) => set({ selectedObject: obj }),
   setScenes: (scenes) => set({ scenes }),
   addScene: (scene) => set((state) => ({ scenes: [...state.scenes, scene] })),
   updateScene: (id, updates) =>

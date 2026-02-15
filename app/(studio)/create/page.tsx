@@ -7,9 +7,12 @@
 
 import { useEffect, useCallback, useRef, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { toast } from 'sonner'
 import { DisplayCanvas } from '@/components/create/DisplayCanvas'
+import { ViewportSkeleton } from '@/components/create/ViewportSkeleton'
 import { saveScene, loadScene } from '@/lib/api/scenes'
 import { useSceneStore } from '@/lib/stores/scene-store'
+import { useStudioActionsStore } from '@/lib/stores/studio-actions-store'
 import type { SceneConfig } from '@/lib/types/scene'
 
 function sceneToState(scene: SceneConfig): Record<string, unknown> {
@@ -150,6 +153,16 @@ function CreatePageContent() {
   }, [currentScene?.id])
 
   const hasScene = !!currentScene || scenes.length > 0
+  const { setSaveHandler, setUndoHandler } = useStudioActionsStore()
+
+  useEffect(() => {
+    setSaveHandler(handleSave)
+    setUndoHandler(() => toast.info('Undo'))
+    return () => {
+      setSaveHandler(null)
+      setUndoHandler(null)
+    }
+  }, [handleSave, setSaveHandler, setUndoHandler])
 
   return (
     <div className="h-full w-full flex items-center justify-center min-h-0 min-w-0">
@@ -160,7 +173,7 @@ function CreatePageContent() {
 
 export default function CreatePage() {
   return (
-    <Suspense fallback={<div className="h-full w-full flex items-center justify-center text-gray-500">Loading...</div>}>
+    <Suspense fallback={<ViewportSkeleton />}>
       <CreatePageContent />
     </Suspense>
   )
