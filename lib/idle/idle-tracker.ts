@@ -10,8 +10,8 @@ export interface IdleTrackerOptions {
 export class IdleTracker {
   private readonly idleThresholdMs: number
   private readonly onSignal: IdleTrackerOptions['onSignal']
-  private idleTimer: ReturnType<typeof window.setTimeout> | null = null
-  private confirmTimer: ReturnType<typeof window.setTimeout> | null = null
+  private idleTimer: ReturnType<typeof setTimeout> | null = null
+  private confirmTimer: ReturnType<typeof setTimeout> | null = null
   private phase: IdlePhase = 'active'
 
   private readonly events: Array<keyof WindowEventMap> = [
@@ -50,10 +50,10 @@ export class IdleTracker {
 
   private resetTimers(): void {
     this.clearTimers()
-    this.idleTimer = window.setTimeout(() => {
+    this.idleTimer = setTimeout(() => {
       this.phase = 'idle_imminent'
       void this.emit('idle_imminent')
-      this.confirmTimer = window.setTimeout(() => {
+      this.confirmTimer = setTimeout(() => {
         this.phase = 'idle_confirmed'
         void this.emit('idle_confirmed')
       }, this.idleThresholdMs)
@@ -62,11 +62,11 @@ export class IdleTracker {
 
   private clearTimers(): void {
     if (this.idleTimer) {
-      window.clearTimeout(this.idleTimer)
+      clearTimeout(this.idleTimer)
       this.idleTimer = null
     }
     if (this.confirmTimer) {
-      window.clearTimeout(this.confirmTimer)
+      clearTimeout(this.confirmTimer)
       this.confirmTimer = null
     }
   }

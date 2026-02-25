@@ -23,7 +23,7 @@ interface StudioShellProps {
 export function StudioShell({ children }: StudioShellProps) {
   return (
     <div
-      className="h-screen flex flex-col overflow-hidden min-w-[1024px]"
+      className="h-full min-h-0 flex flex-col overflow-hidden min-w-[1024px]"
       style={{ backgroundColor: '#0A0A0F' }}
     >
       <StudioKeyboardShortcuts />

@@ -7,8 +7,13 @@
 
 'use client'
 
+import { LoginGate } from '@/components/auth/LoginGate'
 import { StudioShell } from './StudioShell'
 
 export function LayoutSwitcher({ children }: { children: React.ReactNode }) {
-  return <StudioShell>{children}</StudioShell>
+  return (
+    <LoginGate>
+      <StudioShell>{children}</StudioShell>
+    </LoginGate>
+  )
 }

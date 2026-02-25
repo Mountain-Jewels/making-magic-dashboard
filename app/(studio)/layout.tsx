@@ -4,5 +4,9 @@
  */
 
 export default function StudioLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+  return (
+    <div className="h-[100dvh] w-full overflow-hidden">
+      <div className="h-full w-full min-h-0 min-w-0">{children}</div>
+    </div>
+  )
 }

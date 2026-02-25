@@ -8,7 +8,9 @@
 
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import {
   Plus,
   Layers,
@@ -19,8 +21,10 @@ import {
   MoreHorizontal,
   PanelLeftClose,
   PanelLeft,
+  Shield,
 } from 'lucide-react'
 import { useSidebarStore, type SidebarPanelId } from '@/lib/stores/sidebar-store'
+import { useAuth } from '@/lib/auth/useAuth'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { cn } from '@/lib/utils'
 
@@ -37,10 +41,28 @@ const ITEMS: { id: SidebarPanelId; icon: typeof Plus; label: string }[] = [
 export function SidebarV2() {
   const { isExpanded, activePanel, toggleExpanded, setExpanded, setActivePanel } = useSidebarStore()
   const isNarrow = useMediaQuery('(max-width: 1023px)')
+  const { getRoles } = useAuth()
+  const pathname = usePathname()
+  const isActiveRoute = pathname === '/system'
+
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [roleResolved, setRoleResolved] = useState(false)
 
   useEffect(() => {
     if (isNarrow) setExpanded(false)
   }, [isNarrow, setExpanded])
+
+  useEffect(() => {
+    let cancelled = false
+    void getRoles().then((roles) => {
+      if (cancelled) return
+      setIsAdmin(roles.includes('admin'))
+      setRoleResolved(true)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [getRoles])
 
   return (
     <aside
@@ -95,6 +117,26 @@ export function SidebarV2() {
             </button>
           )
         })}
+        {roleResolved && isAdmin && (
+          <div className="w-full">
+            <Link
+              href="/system"
+              className={cn(
+                'w-full flex items-center gap-3 rounded transition-colors',
+                isExpanded ? 'px-3 py-2 justify-start' : 'p-2 justify-center',
+                isActiveRoute
+                  ? 'bg-[#D4AF37]/20 text-[#D4AF37]'
+                  : 'text-white/70 hover:text-white hover:bg-white/10'
+              )}
+              aria-label="System"
+            >
+              <Shield className="h-5 w-5 shrink-0" />
+              {isExpanded && (
+                <span className="text-sm truncate">System</span>
+              )}
+            </Link>
+          </div>
+        )}
       </div>
     </aside>
   )

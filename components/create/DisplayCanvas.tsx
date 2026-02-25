@@ -5,10 +5,11 @@
 
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useSceneStore } from '@/lib/stores/scene-store'
 import type { InspectorObject } from '@/lib/stores/scene-store'
 import { cn } from '@/lib/utils'
+import StreamingController from '@/components/streaming/StreamingController'
 
 function makeInspectorObject(id: string, name: string): InspectorObject {
   return {
@@ -26,11 +27,17 @@ type PreviewTab = 'video' | 'image' | '3d'
 interface DisplayCanvasProps {
   isEmpty?: boolean
   children?: React.ReactNode
+  activateStreaming?: boolean
+  downgradeToGltf?: boolean
+  streamingLock?: boolean
 }
 
 export function DisplayCanvas({
   isEmpty = true,
   children,
+  activateStreaming = false,
+  downgradeToGltf = false,
+  streamingLock = false,
 }: DisplayCanvasProps) {
   const { currentScene, setSelectedObject } = useSceneStore()
   const backgroundImageUrl = currentScene?.backgroundImageUrl
@@ -43,10 +50,21 @@ export function DisplayCanvas({
   const [previewMode, setPreviewMode] = useState<PreviewTab>(
     hasVideo ? 'video' : has3D ? '3d' : 'image'
   )
+  const [isStreaming, setIsStreaming] = useState(false)
 
-  const showVideo = hasVideo && (tabCount <= 1 || previewMode === 'video')
-  const showImage = hasImage && (tabCount <= 1 || previewMode === 'image')
-  const show3D = has3D && (tabCount <= 1 || previewMode === '3d')
+  useEffect(() => {
+    if (activateStreaming && !isStreaming) {
+      setIsStreaming(true)
+    }
+
+    if (downgradeToGltf && !streamingLock) {
+      setIsStreaming(false)
+    }
+  }, [activateStreaming, downgradeToGltf, streamingLock, isStreaming])
+
+  const showVideo = !isStreaming && hasVideo && (tabCount <= 1 || previewMode === 'video')
+  const showImage = !isStreaming && hasImage && (tabCount <= 1 || previewMode === 'image')
+  const show3D = !isStreaming && has3D && (tabCount <= 1 || previewMode === '3d')
   const showPlaceholder = !showVideo && !showImage && !show3D
 
   const handleSelectBackground = useCallback(
@@ -169,6 +187,12 @@ export function DisplayCanvas({
             {children}
           </div>
         )}
+
+        <StreamingController
+          activateStreaming={activateStreaming}
+          downgradeToGltf={downgradeToGltf}
+          streamingLock={streamingLock}
+        />
       </div>
     </div>
   )

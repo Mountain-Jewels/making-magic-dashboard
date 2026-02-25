@@ -8,11 +8,17 @@
 import { useEffect, useCallback, useRef, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
+import { Sparkles } from 'lucide-react'
 import { DisplayCanvas } from '@/components/create/DisplayCanvas'
 import { ViewportSkeleton } from '@/components/create/ViewportSkeleton'
+import { SceneRecipePanel } from '@/components/create/SceneRecipePanel'
+import { Button } from '@/components/ui/button'
 import { saveScene, loadScene } from '@/lib/api/scenes'
+import { postConciergeIdleSignal, type ConciergeIdleEvent } from '@/lib/api/concierge'
+import { IdleTracker } from '@/lib/idle/idle-tracker'
 import { useSceneStore } from '@/lib/stores/scene-store'
 import { useStudioActionsStore } from '@/lib/stores/studio-actions-store'
+import { useCandidateStore } from '@/lib/stores/candidate-store'
 import type { SceneConfig } from '@/lib/types/scene'
 
 function sceneToState(scene: SceneConfig): Record<string, unknown> {
@@ -31,6 +37,16 @@ const DEFAULT_SCENE: Omit<SceneConfig, 'id' | 'created_at'> = {
   jewelry_position: 'center_pedestal',
   duration_seconds: 15,
   status: 'draft',
+}
+
+const CONCIERGE_SESSION_KEY = 'mj.concierge.session_id'
+
+function getOrCreateConciergeSessionId(): string {
+  const existing = window.localStorage.getItem(CONCIERGE_SESSION_KEY)
+  if (existing) return existing
+  const sessionId = window.crypto.randomUUID()
+  window.localStorage.setItem(CONCIERGE_SESSION_KEY, sessionId)
+  return sessionId
 }
 
 function CreatePageContent() {
@@ -164,9 +180,70 @@ function CreatePageContent() {
     }
   }, [handleSave, setSaveHandler, setUndoHandler])
 
+  const { panelOpen, togglePanel } = useCandidateStore()
+  const conciergeResponse = useCandidateStore((s) => s.conciergeResponse)
+  const streamingLock = useCandidateStore((s) => s.streamingLock)
+  const setConciergeResponse = useCandidateStore((s) => s.setConciergeResponse)
+
+  useEffect(() => {
+    const sessionId = getOrCreateConciergeSessionId()
+    const idleTracker = new IdleTracker({
+      idleThresholdMs: 30000,
+      onSignal: async (event: ConciergeIdleEvent) => {
+        try {
+          const response = await postConciergeIdleSignal({
+            session_id: sessionId,
+            timestamp: new Date().toISOString(),
+            event,
+          })
+
+          const current = useCandidateStore.getState().conciergeResponse
+          if (response.next_action === 'downgrade_streaming') {
+            setConciergeResponse({
+              ...current,
+              activate_streaming: false,
+              downgrade_to_gltf: true,
+            })
+            return
+          }
+
+          if (event === 'active' || response.next_action === 'offer_resume') {
+            setConciergeResponse({
+              ...current,
+              downgrade_to_gltf: false,
+            })
+          }
+        } catch {
+          // Idle signaling should be non-blocking for core create flow.
+        }
+      },
+    })
+
+    idleTracker.start()
+    return () => idleTracker.stop()
+  }, [setConciergeResponse])
+
   return (
-    <div className="h-full w-full flex items-center justify-center min-h-0 min-w-0">
-      <DisplayCanvas isEmpty={!hasScene} />
+    <div className="h-full w-full flex min-h-0 min-w-0">
+      <div className="flex-1 flex items-center justify-center min-w-0 relative">
+        <DisplayCanvas
+          isEmpty={!hasScene}
+          activateStreaming={conciergeResponse.activate_streaming}
+          downgradeToGltf={conciergeResponse.downgrade_to_gltf}
+          streamingLock={streamingLock}
+        />
+        {!panelOpen && (
+          <Button
+            onClick={togglePanel}
+            className="absolute bottom-4 right-4 shadow-lg"
+            size="default"
+          >
+            <Sparkles className="h-4 w-4 mr-2" />
+            Scene Recipes
+          </Button>
+        )}
+      </div>
+      <SceneRecipePanel />
     </div>
   )
 }

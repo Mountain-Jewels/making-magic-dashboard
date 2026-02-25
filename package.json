@@ -19,6 +19,8 @@
   "author": "Making Magic Team",
   "license": "UNLICENSED",
   "dependencies": {
+    "@azure/msal-browser": "^4.29.0",
+    "@azure/msal-react": "^3.0.27",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-popover": "^1.1.15",
@@ -40,6 +42,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "framer-motion": "^12.33.0",
+    "jwt-decode": "^4.0.0",
     "lucide-react": "^0.563.0",
     "next": "^16.1.6",
     "postcss": "^8.5.6",

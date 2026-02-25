@@ -26,11 +26,20 @@ export class ApiError extends Error {
   }
 }
 
-function getHeaders(init?: HeadersInit): Headers {
+async function getHeaders(init?: HeadersInit): Promise<Headers> {
   const headers = new Headers(init)
   headers.set('Content-Type', 'application/json')
   if (API_KEY) {
     headers.set('x-api-key', API_KEY)
+  }
+  try {
+    const { getAccessToken } = await import('@/lib/auth/getToken')
+    const token = await getAccessToken()
+    if (token) {
+      headers.set('Authorization', `Bearer ${token}`)
+    }
+  } catch {
+    // Auth not available (SSR or not initialized)
   }
   return headers
 }
@@ -68,7 +77,7 @@ async function doFetch<T>(
   const controller = new AbortController()
   const res = await fetch(fullUrl, {
     ...init,
-    headers: init.headers instanceof Headers ? init.headers : getHeaders(init.headers),
+    headers: init.headers instanceof Headers ? init.headers : await getHeaders(init.headers),
     signal: controller.signal,
   } as RequestInit)
 
