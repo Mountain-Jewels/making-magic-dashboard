@@ -109,7 +109,7 @@ export interface AssetSearchResponse {
 
 export interface CreateRenderRequest {
   recipe_id: string
-  type: 'preview' | 'still' | 'loop'
+  type: 'preview' | 'still' | 'loop' | 'cinematic' | 'turntable'
 }
 
 export interface RenderJobResponse {

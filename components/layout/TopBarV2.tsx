@@ -50,16 +50,22 @@ export function TopBarV2() {
               <ChevronDown className="h-4 w-4 shrink-0" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="center" className="bg-[#111118] border-[#2A2A35]">
-            {scenes.map((s) => (
-              <DropdownMenuItem
-                key={s.id}
-                className="text-white hover:bg-white/10 focus:bg-white/10"
-                onSelect={() => setCurrentScene(s)}
-              >
-                {s.name}
+          <DropdownMenuContent align="center" className="bg-[#111118] border-[#2A2A35] z-50 min-w-[200px]">
+            {scenes.length === 0 ? (
+              <DropdownMenuItem className="text-white/60 italic" disabled>
+                No scenes yet
               </DropdownMenuItem>
-            ))}
+            ) : (
+              scenes.map((s) => (
+                <DropdownMenuItem
+                  key={s.id}
+                  className="text-white hover:bg-white/10 focus:bg-white/10"
+                  onSelect={() => setCurrentScene(s)}
+                >
+                  {s.name}
+                </DropdownMenuItem>
+              ))
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

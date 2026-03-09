@@ -159,7 +159,7 @@ export function GenerateCommandBarV2() {
 
   return (
     <div
-      className="h-14 flex-shrink-0 flex items-center gap-3 px-4 border-t border-[#2A2A35]"
+      className="h-16 flex-shrink-0 flex items-center gap-3 px-4 border-t border-[#2A2A35]"
       style={{ backgroundColor: '#111118' }}
     >
       <div className="flex items-center gap-2 shrink-0">
@@ -189,7 +189,7 @@ export function GenerateCommandBarV2() {
             handleGenerate()
           }
         }}
-        className="flex-1 min-w-0 h-9 px-3 rounded bg-[#0A0A0F] border border-[#2A2A35] text-white text-sm placeholder:text-white/40 focus:outline-none focus:border-[#D4AF37]/50"
+        className="flex-1 min-w-0 h-10 px-4 rounded-md bg-[#0A0A0F] border-2 border-[#2A2A35] text-white text-sm placeholder:text-white/40 focus:outline-none focus:border-[#D4AF37]/50"
       />
       <Button
         className="shrink-0 bg-[#D4AF37] text-black hover:bg-[#D4AF37]/90 font-medium"

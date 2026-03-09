@@ -22,6 +22,7 @@ import {
   PanelLeftClose,
   PanelLeft,
   Shield,
+  Search,
 } from 'lucide-react'
 import { useSidebarStore, type SidebarPanelId } from '@/lib/stores/sidebar-store'
 import { useAuth } from '@/lib/auth/useAuth'
@@ -44,6 +45,7 @@ export function SidebarV2() {
   const { getRoles } = useAuth()
   const pathname = usePathname()
   const isActiveRoute = pathname === '/system'
+  const isScraperRoute = pathname.startsWith('/scraper')
 
   const [isAdmin, setIsAdmin] = useState(false)
   const [roleResolved, setRoleResolved] = useState(false)
@@ -117,6 +119,24 @@ export function SidebarV2() {
             </button>
           )
         })}
+        <div className="w-full">
+          <Link
+            href="/scraper"
+            className={cn(
+              'w-full flex items-center gap-3 rounded transition-colors',
+              isExpanded ? 'px-3 py-2 justify-start' : 'p-2 justify-center',
+              isScraperRoute
+                ? 'bg-[#D4AF37]/20 text-[#D4AF37]'
+                : 'text-white/70 hover:text-white hover:bg-white/10'
+            )}
+            aria-label="Scraper"
+          >
+            <Search className="h-5 w-5 shrink-0" />
+            {isExpanded && (
+              <span className="text-sm truncate">Scraper</span>
+            )}
+          </Link>
+        </div>
         {roleResolved && isAdmin && (
           <div className="w-full">
             <Link

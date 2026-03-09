@@ -11,9 +11,16 @@ import { apiGet } from './client'
 import type { JewelryCategory, JewelryProduct } from './types'
 
 export async function getCategories(): Promise<JewelryCategory[]> {
-  const res = await apiGet<{ categories?: JewelryCategory[] }>('/jewelry/categories')
-  const arr = (res as { categories?: JewelryCategory[] })?.categories
-  return Array.isArray(arr) ? arr : []
+  console.log('[Jewelry API] Fetching categories...')
+  try {
+    const res = await apiGet<{ categories?: JewelryCategory[] }>('/jewelry/categories')
+    console.log('[Jewelry API] Categories response:', res)
+    const arr = (res as { categories?: JewelryCategory[] })?.categories
+    return Array.isArray(arr) ? arr : []
+  } catch (err) {
+    console.error('[Jewelry API] Categories error:', err)
+    throw err
+  }
 }
 
 export interface GetProductsResult {

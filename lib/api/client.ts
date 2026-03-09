@@ -8,7 +8,7 @@
  * Auth, errors, retries, upload progress
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? ''
+const API_URL = process.env.NEXT_PUBLIC_STUDIO_ENGINE_URL?.replace(/\/$/, '') ?? ''
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY ?? ''
 
 const MAX_RETRIES = 3
@@ -71,7 +71,7 @@ async function doFetch<T>(
   const fullUrl = url.startsWith('http') ? url : `${API_URL}${url}`
 
   if (!API_URL && !url.startsWith('http')) {
-    throw new ApiError('NEXT_PUBLIC_API_URL is not configured', 0)
+    throw new ApiError('NEXT_PUBLIC_STUDIO_ENGINE_URL is not configured', 0)
   }
 
   const controller = new AbortController()

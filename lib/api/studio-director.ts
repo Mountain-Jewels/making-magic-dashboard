@@ -4,7 +4,7 @@
  */
 
 const STUDIO_API_URL =
-  process.env.NEXT_PUBLIC_STUDIO_API_URL?.replace(/\/$/, "") || "http://localhost:8100";
+  process.env.NEXT_PUBLIC_STUDIO_ENGINE_URL?.replace(/\/$/, "") || "http://localhost:8100";
 
 export interface DirectorMessage {
   role: "director" | "user" | "system";
