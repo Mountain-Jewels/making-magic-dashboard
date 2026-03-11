@@ -159,18 +159,18 @@ export function GenerateCommandBarV2() {
 
   return (
     <div
-      className="h-16 flex-shrink-0 flex items-center gap-3 px-4 border-t border-[#2A2A35]"
+      className="flex-shrink-0 flex items-center gap-3 px-4 py-3 border-t border-[#2A2A35]"
       style={{ backgroundColor: '#111118' }}
     >
       <div className="flex items-center gap-2 shrink-0">
-        <span className="text-sm text-white/60">TYPE →</span>
+        <span className="text-xs font-semibold tracking-wider text-[#D4AF37]/80 uppercase">Type</span>
         <Select value={formatValue} onValueChange={(v) => setFormat(v as OutputFormat)}>
-          <SelectTrigger className="w-[120px] bg-[#0A0A0F] border-[#2A2A35] text-white">
+          <SelectTrigger className="w-[130px] h-11 bg-[#1A1A24] border-[#3A3A45] text-white text-sm font-medium">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="bg-[#111118] border-[#2A2A35]">
+          <SelectContent className="bg-[#1A1A24] border-[#3A3A45]">
             {FORMAT_OPTIONS.map((o) => (
-              <SelectItem key={o.value} value={o.value} className="text-white">
+              <SelectItem key={o.value} value={o.value} className="text-white/90 focus:bg-[#D4AF37]/15 focus:text-white">
                 {o.label}
               </SelectItem>
             ))}
@@ -189,10 +189,10 @@ export function GenerateCommandBarV2() {
             handleGenerate()
           }
         }}
-        className="flex-1 min-w-0 h-10 px-4 rounded-md bg-[#0A0A0F] border-2 border-[#2A2A35] text-white text-sm placeholder:text-white/40 focus:outline-none focus:border-[#D4AF37]/50"
+        className="flex-1 min-w-0 h-12 px-4 rounded-lg bg-[#1A1A24] border-2 border-[#3A3A45] text-white text-sm placeholder:text-white/40 focus:outline-none focus:border-[#D4AF37]/60 transition-colors"
       />
       <Button
-        className="shrink-0 bg-[#D4AF37] text-black hover:bg-[#D4AF37]/90 font-medium"
+        className="shrink-0 h-12 px-6 bg-[#D4AF37] text-black hover:bg-[#D4AF37]/90 font-semibold text-sm rounded-lg"
         onClick={handleGenerate}
         disabled={isSubmitting || !prompt.trim()}
       >
