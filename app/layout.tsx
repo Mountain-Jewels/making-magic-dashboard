@@ -8,6 +8,7 @@ import { Inter, JetBrains_Mono } from 'next/font/google'
 import { Toaster } from 'sonner'
 import './globals.css'
 import { AuthProvider } from '@/lib/auth/AuthProvider'
+import { QueryProvider } from '@/components/providers/QueryProvider'
 import { LayoutSwitcher } from '@/components/layout/LayoutSwitcher'
 
 const inter = Inter({
@@ -35,10 +36,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="h-full font-sans antialiased">
-        <AuthProvider>
-          <LayoutSwitcher>{children}</LayoutSwitcher>
-          <Toaster position="top-right" richColors closeButton />
-        </AuthProvider>
+        <QueryProvider>
+          <AuthProvider>
+            <LayoutSwitcher>{children}</LayoutSwitcher>
+            <Toaster position="top-right" richColors closeButton />
+          </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   )
