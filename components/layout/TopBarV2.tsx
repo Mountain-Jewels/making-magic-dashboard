@@ -42,7 +42,8 @@ export function TopBarV2() {
     return () => clearInterval(interval)
   }, [])
 
-  const sceneName = currentScene?.name ?? scenes[0]?.name ?? 'Untitled'
+  const rawName = currentScene?.name ?? scenes[0]?.name ?? 'Untitled'
+  const sceneName = typeof rawName === 'string' ? rawName : 'Untitled'
 
   return (
     <header
@@ -85,10 +86,10 @@ export function TopBarV2() {
               scenes.map((s) => (
                 <DropdownMenuItem
                   key={s.id}
-                  className="text-white hover:bg-white/10 focus:bg-white/10"
+                  className="text-white/90 hover:bg-[#D4AF37]/15 focus:bg-[#D4AF37]/15 focus:text-white cursor-pointer"
                   onSelect={() => setCurrentScene(s)}
                 >
-                  {s.name}
+                  {typeof s.name === 'string' ? s.name : 'Scene'}
                 </DropdownMenuItem>
               ))
             )}

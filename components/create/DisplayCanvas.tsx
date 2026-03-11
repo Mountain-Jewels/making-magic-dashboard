@@ -95,7 +95,7 @@ export function DisplayCanvas({
   return (
     <div className="flex-1 flex flex-col min-h-0 p-3 sm:p-4 min-w-0">
       <div
-        className="flex-1 relative rounded-lg border border-gray-200 bg-white flex items-center justify-center min-h-[200px] overflow-hidden w-full max-w-full cursor-pointer"
+        className="flex-1 relative rounded-lg border border-[#2A2A35] bg-[#0A0A0F] flex items-center justify-center min-h-[200px] overflow-hidden w-full max-w-full cursor-pointer"
         style={{ aspectRatio: '1' }}
         onClick={handleDeselect}
         role="presentation"
@@ -179,7 +179,7 @@ export function DisplayCanvas({
         )}
 
         {showPlaceholder && isEmpty && !children && (
-          <p className="text-sm text-gray-500">Your creation will appear here</p>
+          <p className="text-sm text-white/40">Your creation will appear here</p>
         )}
 
         {(!isEmpty || children) && showPlaceholder && (
