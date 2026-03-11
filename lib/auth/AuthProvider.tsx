@@ -2,23 +2,38 @@
 
 import { MsalProvider } from '@azure/msal-react'
 import { type PublicClientApplication } from '@azure/msal-browser'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 
 import { getMsalInstance } from './msalConfig'
+
+const AUTH_MODE = process.env.NEXT_PUBLIC_AUTH_MODE ?? 'dev'
+
+const DevAuthContext = createContext<boolean>(false)
+export function useIsDevAuth() {
+  return useContext(DevAuthContext)
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [instance, setInstance] = useState<PublicClientApplication | null>(null)
   const [error, setError] = useState<string | null>(null)
   const initializing = useRef(false)
 
+  const isDevMode = AUTH_MODE === 'dev' ||
+    !process.env.NEXT_PUBLIC_AZURE_AD_CLIENT_ID ||
+    !process.env.NEXT_PUBLIC_AZURE_AD_TENANT_ID
+
   useEffect(() => {
-    if (initializing.current) return
+    if (isDevMode || initializing.current) return
     initializing.current = true
 
     getMsalInstance()
       .then(setInstance)
       .catch((e) => setError(String(e)))
-  }, [])
+  }, [isDevMode])
+
+  if (isDevMode) {
+    return <DevAuthContext.Provider value={true}>{children}</DevAuthContext.Provider>
+  }
 
   if (error) {
     return (

@@ -3,8 +3,19 @@
 import { useIsAuthenticated, useMsal } from '@azure/msal-react'
 import { InteractionStatus } from '@azure/msal-browser'
 import { loginRequest } from '@/lib/auth/msalConfig'
+import { useIsDevAuth } from '@/lib/auth/AuthProvider'
 
 export function LoginGate({ children }: { children: React.ReactNode }) {
+  const isDevMode = useIsDevAuth()
+
+  if (isDevMode) {
+    return <>{children}</>
+  }
+
+  return <MsalLoginGate>{children}</MsalLoginGate>
+}
+
+function MsalLoginGate({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useIsAuthenticated()
   const { inProgress, instance } = useMsal()
 

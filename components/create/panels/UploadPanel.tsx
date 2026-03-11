@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Upload, Trash2, Volume2, Image } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -123,8 +124,8 @@ export function UploadPanel() {
         delete next[id]
         return next
       })
-    } catch {
-      // ignore
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete asset')
     } finally {
       setDeletingId(null)
     }

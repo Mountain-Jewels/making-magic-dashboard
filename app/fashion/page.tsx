@@ -122,35 +122,44 @@ export default function FashionPage() {
         candidates={candidates}
         onSearch={async ({ query, slots, colors }) => {
           if (!selectedModelId) return
-          const response = await searchFashion({
-            model_id: selectedModelId,
-            query,
-            slots,
-            colors,
-            sources: ['internal', 'fab', 'external'],
-            count: 12,
-          })
-          setCandidates(response.candidates ?? [])
+          try {
+            const response = await searchFashion({
+              model_id: selectedModelId,
+              query,
+              slots,
+              colors,
+              sources: ['internal', 'fab', 'external'],
+              count: 12,
+            })
+            setCandidates(response.candidates ?? [])
+          } catch (err) {
+            setError(err instanceof Error ? err.message : 'Fashion search failed')
+          }
         }}
         onApprove={async (candidate) => {
-          const response = await approveFashionCandidate({
-            model_id: selectedModelId,
-            candidate_id: candidate.candidate_id,
-            source_type: candidate.source_type,
-            outcome: 'approved',
-            slot: candidate.slot ?? undefined,
-            title: candidate.title,
-            occasion_tags: candidate.occasion_tags,
-            color_tags: candidate.color_tags,
-          })
+          try {
+            const response = await approveFashionCandidate({
+              model_id: selectedModelId,
+              candidate_id: candidate.candidate_id,
+              source_type: candidate.source_type,
+              outcome: 'approved',
+              slot: candidate.slot ?? undefined,
+              title: candidate.title,
+              occasion_tags: candidate.occasion_tags,
+              color_tags: candidate.color_tags,
+            })
 
-          const [needsResponse, inventoryResponse] = await Promise.all([
-            fetchFashionNeeds(selectedModelId),
-            fetchFashionInventory(selectedModelId),
-          ])
-          setNeeds(needsResponse.needs ?? [])
-          setInventory(inventoryResponse.items ?? [])
-          return response
+            const [needsResponse, inventoryResponse] = await Promise.all([
+              fetchFashionNeeds(selectedModelId),
+              fetchFashionInventory(selectedModelId),
+            ])
+            setNeeds(needsResponse.needs ?? [])
+            setInventory(inventoryResponse.items ?? [])
+            return response
+          } catch (err) {
+            setError(err instanceof Error ? err.message : 'Approval failed')
+            return undefined as never
+          }
         }}
       />
     </div>

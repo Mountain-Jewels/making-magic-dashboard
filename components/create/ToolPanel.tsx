@@ -13,7 +13,7 @@ import { BackgroundPicker } from './panels/BackgroundPicker'
 import { LightingPanel } from './panels/LightingPanel'
 import { AvatarGallery } from './panels/AvatarGallery'
 import { MusicBrowser } from './panels/MusicBrowser'
-import { JewelryGallery } from './panels/JewelryGallery'
+import { JewelryPanel } from './panels/JewelryPanel'
 import { DressingRoomPanel } from './panels/DressingRoomPanel'
 import { HairMakeupPanel } from './panels/HairMakeupPanel'
 import { DecorationsPanel } from './panels/DecorationsPanel'
@@ -30,7 +30,7 @@ const PANEL_MAP: Partial<Record<ToolId, React.ReactNode>> = {
   lighting: <LightingPanel />,
   avatars: <AvatarGallery />,
   music: <MusicBrowser />,
-  jewelry: <JewelryGallery />,
+  jewelry: <JewelryPanel />,
   dressing: <DressingRoomPanel />,
   hair: <HairMakeupPanel />,
   decorations: <DecorationsPanel />,

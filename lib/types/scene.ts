@@ -110,4 +110,14 @@ export interface SceneConfig {
   destination?: string
   /** Event theme (wedding, anniversary, etc.) */
   event?: string
+  /** Parametric product engine — configured category */
+  product_category?: string
+  /** Parametric product engine — metal type */
+  product_metal?: string
+  /** Parametric product engine — total carat weight */
+  product_carat?: number
+  /** Parametric product engine — computed retail price */
+  product_retail_price?: number
+  /** Parametric product engine — Unreal Engine commands for this product */
+  product_ue_commands?: Record<string, unknown>[]
 }

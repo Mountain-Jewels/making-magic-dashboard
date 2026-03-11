@@ -7,8 +7,8 @@
 
 'use client'
 
-import { useState } from 'react'
-import { Gem, Undo2, Send, Settings, ChevronDown } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Gem, Undo2, Send, Settings, ChevronDown, Wifi, WifiOff } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -24,6 +24,23 @@ export function TopBarV2() {
   const { currentScene, scenes, setCurrentScene } = useSceneStore()
   const { onSave, onUndo } = useStudioActionsStore()
   const [sceneSwitcherOpen, setSceneSwitcherOpen] = useState(false)
+  const [apiConnected, setApiConnected] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    const checkHealth = async () => {
+      try {
+        const url = process.env.NEXT_PUBLIC_STUDIO_ENGINE_URL?.replace(/\/$/, '')
+        if (!url) { setApiConnected(false); return }
+        const res = await fetch(`${url}/health`, { signal: AbortSignal.timeout(3000) })
+        setApiConnected(res.ok)
+      } catch {
+        setApiConnected(false)
+      }
+    }
+    checkHealth()
+    const interval = setInterval(checkHealth, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   const sceneName = currentScene?.name ?? scenes[0]?.name ?? 'Untitled'
 
@@ -32,10 +49,19 @@ export function TopBarV2() {
       className="h-12 flex-shrink-0 flex items-center justify-between px-4 border-b border-[#2A2A35]"
       style={{ backgroundColor: '#111118' }}
     >
-      {/* Left: Logo + Title */}
+      {/* Left: Logo + Title + API Status */}
       <div className="flex items-center gap-3">
         <Gem className="h-5 w-5 text-[#D4AF37]" aria-hidden />
         <span className="font-semibold text-white">The Studio</span>
+        {apiConnected === null ? null : apiConnected ? (
+          <span className="flex items-center gap-1 text-xs text-emerald-400" title="API Connected">
+            <Wifi className="h-3 w-3" />
+          </span>
+        ) : (
+          <span className="flex items-center gap-1 text-xs text-red-400" title="API Offline">
+            <WifiOff className="h-3 w-3" />
+          </span>
+        )}
       </div>
 
       {/* Center: Scene Switcher */}

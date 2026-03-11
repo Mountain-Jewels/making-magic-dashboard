@@ -135,15 +135,15 @@ export function JewelryGallery() {
   }
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <Gem className="h-5 w-5 text-brand-gold" />
-        <h3 className="text-sm font-semibold text-gray-900">Jewelry Selection</h3>
+        <Gem className="h-5 w-5 text-[#D4AF37]" />
+        <h3 className="text-sm font-semibold text-white">Jewelry Catalog</h3>
       </div>
 
       {/* Category */}
       <div>
-        <p className="text-xs text-gray-500 mb-2">Category</p>
+        <p className="text-xs text-white/50 mb-2">Category</p>
         <Select
           value={category}
           onValueChange={(v) => {
@@ -153,7 +153,7 @@ export function JewelryGallery() {
           }}
           disabled={categoriesLoading}
         >
-          <SelectTrigger className="w-full bg-white border-2 border-brand-gold/40 text-gray-900">
+          <SelectTrigger className="w-full bg-[#1A1A24] border-[#2A2A35] text-white text-sm">
             <SelectValue placeholder={categoriesLoading ? 'Loading...' : 'Select category'} />
           </SelectTrigger>
           <SelectContent>
@@ -165,16 +165,16 @@ export function JewelryGallery() {
           </SelectContent>
         </Select>
         {categoriesError && (
-          <p className="text-xs text-red-600 mt-1">{categoriesError}</p>
+          <p className="text-xs text-red-400 mt-1">{categoriesError}</p>
         )}
       </div>
 
       {/* Shape */}
       {shapes.length > 0 && (
         <div>
-          <p className="text-xs text-gray-500 mb-2">Diamond Shape</p>
+          <p className="text-xs text-white/50 mb-2">Diamond Shape</p>
           <Select value={shape} onValueChange={setShape}>
-            <SelectTrigger className="w-full bg-white border-2 border-brand-gold/40 text-gray-900">
+            <SelectTrigger className="w-full bg-[#1A1A24] border-[#2A2A35] text-white text-sm">
               <SelectValue placeholder="Any shape" />
             </SelectTrigger>
             <SelectContent>
@@ -192,9 +192,9 @@ export function JewelryGallery() {
       {/* Carat */}
       {carats.length > 0 && (
         <div>
-          <p className="text-xs text-gray-500 mb-2">Carat Weight</p>
+          <p className="text-xs text-white/50 mb-2">Carat Weight</p>
           <Select value={carat} onValueChange={setCarat}>
-            <SelectTrigger className="w-full bg-white border-2 border-brand-gold/40 text-gray-900">
+            <SelectTrigger className="w-full bg-[#1A1A24] border-[#2A2A35] text-white text-sm">
               <SelectValue placeholder="Any carat" />
             </SelectTrigger>
             <SelectContent>
@@ -211,17 +211,17 @@ export function JewelryGallery() {
 
       {/* Product grid */}
       <div>
-        <p className="text-xs text-gray-500 mb-2">
+        <p className="text-xs text-white/50 mb-2">
           {productsLoading ? 'Loading products...' : `${total} product${total !== 1 ? 's' : ''}`}
         </p>
         {productsError && (
-          <p className="text-xs text-red-600 mb-2">{productsError}</p>
+          <p className="text-xs text-red-400 mb-2">{productsError}</p>
         )}
         {!productsLoading && !productsError && products.length === 0 && (
-          <p className="text-xs text-gray-500 py-4 text-center">No products in this category</p>
+          <p className="text-xs text-white/30 py-4 text-center">No products in this category</p>
         )}
         {!productsLoading && products.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[280px] overflow-y-auto">
+          <div className="grid grid-cols-1 gap-2 max-h-[280px] overflow-y-auto">
             {products.map((p) => {
               const firstImage = p.images?.[0] ?? ''
               const firstVariant = p.variants?.[0]
@@ -229,9 +229,9 @@ export function JewelryGallery() {
               return (
                 <div
                   key={p.id}
-                  className="rounded-lg border-2 border-brand-gold/40 overflow-hidden bg-white"
+                  className="rounded-lg border border-[#2A2A35] overflow-hidden bg-[#1A1A24]"
                 >
-                  <div className="aspect-square bg-gray-100 flex items-center justify-center">
+                  <div className="aspect-video bg-[#0A0A0F] flex items-center justify-center">
                     {firstImage ? (
                       <img
                         src={firstImage}
@@ -239,19 +239,19 @@ export function JewelryGallery() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <p className="text-xs text-gray-400">No image</p>
+                      <p className="text-xs text-white/20">No image</p>
                     )}
                   </div>
                   <div className="p-2">
-                    <p className="text-xs font-medium text-gray-900 truncate" title={p.title}>
+                    <p className="text-xs font-medium text-white truncate" title={p.title}>
                       {p.title}
                     </p>
                     {price && (
-                      <p className="text-xs text-gray-600">${price}</p>
+                      <p className="text-xs text-white/50">${price}</p>
                     )}
                     <Button
                       size="sm"
-                      className="w-full mt-1 bg-brand-gold text-black hover:bg-brand-gold/90 text-xs py-1 h-7"
+                      className="w-full mt-1 bg-[#D4AF37] text-black hover:bg-[#D4AF37]/90 text-xs py-1 h-7"
                       onClick={() => handleAddToScene(p)}
                     >
                       Add to Scene
@@ -264,8 +264,8 @@ export function JewelryGallery() {
         )}
       </div>
 
-      <p className="text-xs text-gray-500 text-center">
-        All jewelry images are AI generated — powered by GPT-4o (Phase 7)
+      <p className="text-xs text-white/30 text-center">
+        Shopify catalog — AI imagery (Phase 7)
       </p>
     </div>
   )

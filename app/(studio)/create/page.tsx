@@ -95,8 +95,8 @@ function CreatePageContent() {
       const url = new URL(window.location.href)
       url.searchParams.set('scene', res.id)
       window.history.replaceState({}, '', url.toString())
-    } catch {
-      // Save failed — keep unsaved state
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Scene save failed — changes kept locally')
     }
   }, [ensureScene, loadSceneIntoStore, setCurrentScene])
 
@@ -114,6 +114,8 @@ function CreatePageContent() {
       const url = new URL(window.location.href)
       url.searchParams.set('scene', id)
       window.history.replaceState({}, '', url.toString())
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to load scene')
     } finally {
       isLoadingFromUrl.current = false
     }

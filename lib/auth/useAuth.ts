@@ -4,6 +4,7 @@ import { useMsal } from '@azure/msal-react'
 import { jwtDecode } from 'jwt-decode'
 import { useCallback } from 'react'
 
+import { useIsDevAuth } from './AuthProvider'
 import { loginRequest } from './msalConfig'
 
 interface TokenPayload {
@@ -14,6 +15,25 @@ interface TokenPayload {
 }
 
 export function useAuth() {
+  const isDevMode = useIsDevAuth()
+
+  if (isDevMode) {
+    return {
+      isAuthenticated: true,
+      accounts: [],
+      login: async () => {},
+      logout: async () => {},
+      getAccessToken: async () => null,
+      getRoles: async () => ['admin'] as string[],
+      isAdmin: async () => true,
+      userName: 'Dev User',
+    }
+  }
+
+  return useMsalAuth()
+}
+
+function useMsalAuth() {
   const { instance, accounts } = useMsal()
 
   const isAuthenticated = accounts.length > 0

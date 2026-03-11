@@ -6,6 +6,7 @@
 'use client'
 
 import { useState, useCallback, useRef } from 'react'
+import { toast } from 'sonner'
 import { useSceneStore } from '@/lib/stores/scene-store'
 import type { BackgroundPreset } from '@/lib/types/scene'
 import { generateImage, upscaleImage, removeBackground } from '@/lib/api/generate'
@@ -128,6 +129,8 @@ export function BackgroundPicker() {
         ])
         handleSelectGenerated(imageUrl)
       }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Background generation failed')
     } finally {
       setGenerating(false)
     }
@@ -147,6 +150,8 @@ export function BackgroundPicker() {
           updateScene(id, { backgroundImageUrl: outputUrl })
         }
       }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Upscale failed')
     } finally {
       setProcessing(null)
     }
@@ -166,6 +171,8 @@ export function BackgroundPicker() {
           updateScene(id, { backgroundImageUrl: outputUrl })
         }
       }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Background removal failed')
     } finally {
       setProcessing(null)
     }

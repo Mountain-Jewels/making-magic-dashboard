@@ -13,14 +13,14 @@ import { UploadPanel } from '@/components/create/panels/UploadPanel'
 import { AvatarGallery } from '@/components/create/panels/AvatarGallery'
 import { BackgroundPicker } from '@/components/create/panels/BackgroundPicker'
 import { MusicBrowser } from '@/components/create/panels/MusicBrowser'
-import { JewelryGallery } from '@/components/create/panels/JewelryGallery'
+import { JewelryPanel } from '@/components/create/panels/JewelryPanel'
 
 const PANEL_MAP: Record<string, React.ReactNode> = {
   assets: <UploadPanel />,
   avatar: <AvatarGallery />,
   background: <BackgroundPicker />,
   music: <MusicBrowser />,
-  jewelry: <JewelryGallery />,
+  jewelry: <JewelryPanel />,
 }
 
 export function SidebarPanel() {
