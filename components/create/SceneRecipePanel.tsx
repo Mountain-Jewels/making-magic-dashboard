@@ -83,7 +83,7 @@ export function SceneRecipePanel() {
     )
     if (candidate) {
       return (
-        <div className="w-[420px] border-l border-border bg-background flex flex-col h-full flex-shrink-0">
+        <div className="w-[420px] border-l border-[#2A2A35] flex flex-col h-full flex-shrink-0" style={{ backgroundColor: '#111118' }}>
           <EditPanel
             candidate={candidate}
             onClose={() => setEditingRecipeId(null)}
@@ -94,13 +94,13 @@ export function SceneRecipePanel() {
   }
 
   return (
-    <div className="w-[420px] border-l border-border bg-background flex flex-col h-full flex-shrink-0">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-        <h2 className="text-sm font-semibold">Scene Recipe Builder</h2>
+    <div className="w-[420px] border-l border-[#2A2A35] flex flex-col h-full flex-shrink-0" style={{ backgroundColor: '#111118' }}>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[#2A2A35]">
+        <h2 className="text-sm font-semibold text-white">Scene Recipe Builder</h2>
         <Button
           variant="ghost"
           size="icon"
-          className="h-7 w-7"
+          className="h-7 w-7 text-white/60 hover:text-white"
           onClick={() => setPanelOpen(false)}
         >
           <X className="h-4 w-4" />
@@ -111,7 +111,7 @@ export function SceneRecipePanel() {
         <div className="p-4 space-y-4">
           {/* Reference Image Upload */}
           <div className="space-y-2">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            <label className="text-xs font-medium text-white/50 uppercase tracking-wide">
               Reference Image
             </label>
             <input
@@ -126,12 +126,11 @@ export function SceneRecipePanel() {
                 <img
                   src={referenceImageUrl}
                   alt="Reference"
-                  className="w-full h-40 object-cover rounded-lg border border-border"
+                  className="w-full h-40 object-cover rounded-lg border border-[#2A2A35]"
                 />
                 <Button
-                  variant="secondary"
                   size="sm"
-                  className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-[#1A1A24] text-white border border-[#2A2A35]"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   Replace
@@ -140,17 +139,21 @@ export function SceneRecipePanel() {
             ) : (
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full h-32 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors"
+                className="w-full h-28 border-2 border-dashed border-[#2A2A35] rounded-lg flex flex-col items-center justify-center gap-2 text-white/30 hover:border-[#D4AF37]/40 hover:text-white/50 transition-colors"
                 disabled={loading}
               >
-                <Upload className="h-6 w-6" />
+                <Upload className="h-5 w-5" />
                 <span className="text-xs">Drop image or click to upload</span>
               </button>
             )}
           </div>
 
           {/* Generate Button */}
-          <Button className="w-full" onClick={handleGenerate} disabled={loading}>
+          <Button
+            className="w-full bg-[#D4AF37] text-black hover:bg-[#D4AF37]/90 font-medium"
+            onClick={handleGenerate}
+            disabled={loading}
+          >
             <Sparkles className="h-4 w-4 mr-2" />
             {loading ? 'Generating...' : 'Generate 3 Candidates'}
           </Button>
@@ -159,7 +162,7 @@ export function SceneRecipePanel() {
           {candidateSet && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                <label className="text-xs font-medium text-white/50 uppercase tracking-wide">
                   Candidates ({candidateSet.candidates.length})
                 </label>
                 <RegenerateLocksModal
@@ -186,13 +189,13 @@ export function SceneRecipePanel() {
           {/* Render Jobs */}
           {renderJobs.length > 0 && (
             <div className="space-y-2">
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              <label className="text-xs font-medium text-white/50 uppercase tracking-wide">
                 Render Jobs
               </label>
               {renderJobs.map((job) => (
                 <div
                   key={job.render_id}
-                  className="flex items-center justify-between px-3 py-2 rounded-md border border-border text-xs"
+                  className="flex items-center justify-between px-3 py-2 rounded-md border border-[#2A2A35] text-xs text-white/70"
                 >
                   <span className="font-mono truncate">
                     {job.render_id.slice(0, 8)}...

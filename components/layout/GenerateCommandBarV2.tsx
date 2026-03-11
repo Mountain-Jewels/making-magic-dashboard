@@ -159,44 +159,43 @@ export function GenerateCommandBarV2() {
 
   return (
     <div
-      className="flex-shrink-0 flex items-center gap-3 px-4 py-3 border-t border-[#2A2A35]"
+      className="flex-shrink-0 flex items-center gap-2 px-3 py-2.5 border-t border-[#2A2A35]"
       style={{ backgroundColor: '#111118' }}
     >
-      <div className="flex items-center gap-2 shrink-0">
-        <span className="text-xs font-semibold tracking-wider text-[#D4AF37]/80 uppercase">Type</span>
-        <Select value={formatValue} onValueChange={(v) => setFormat(v as OutputFormat)}>
-          <SelectTrigger className="w-[130px] h-11 bg-[#1A1A24] border-[#3A3A45] text-white text-sm font-medium">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="bg-[#1A1A24] border-[#3A3A45]">
-            {FORMAT_OPTIONS.map((o) => (
-              <SelectItem key={o.value} value={o.value} className="text-white/90 focus:bg-[#D4AF37]/15 focus:text-white">
-                {o.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <Select value={formatValue} onValueChange={(v) => setFormat(v as OutputFormat)}>
+        <SelectTrigger className="w-[100px] h-11 bg-[#1A1A24] border-[#3A3A45] text-white text-xs font-medium shrink-0">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="bg-[#1A1A24] border-[#3A3A45]">
+          {FORMAT_OPTIONS.map((o) => (
+            <SelectItem key={o.value} value={o.value} className="text-white/90 focus:bg-[#D4AF37]/15 focus:text-white">
+              {o.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <div className="flex-1 min-w-0 relative">
+        <input
+          type="text"
+          placeholder="Describe scene, mood, lighting, camera path..."
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              e.stopPropagation()
+              handleGenerate()
+            }
+          }}
+          className="w-full h-11 px-4 rounded-lg bg-[#1A1A24] border-2 border-[#3A3A45] text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-[#D4AF37]/60 transition-colors"
+        />
       </div>
-      <input
-        type="text"
-        placeholder="Describe scene, mood, lighting, camera path..."
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault()
-            e.stopPropagation()
-            handleGenerate()
-          }
-        }}
-        className="flex-1 min-w-0 h-12 px-4 rounded-lg bg-[#1A1A24] border-2 border-[#3A3A45] text-white text-sm placeholder:text-white/40 focus:outline-none focus:border-[#D4AF37]/60 transition-colors"
-      />
       <Button
-        className="shrink-0 h-12 px-6 bg-[#D4AF37] text-black hover:bg-[#D4AF37]/90 font-semibold text-sm rounded-lg"
+        className="shrink-0 h-11 px-5 bg-[#D4AF37] text-black hover:bg-[#D4AF37]/90 font-semibold text-sm rounded-lg"
         onClick={handleGenerate}
         disabled={isSubmitting || !prompt.trim()}
       >
-        {isSubmitting ? 'Generating...' : 'Generate'}
+        {isSubmitting ? 'Working...' : 'Generate'}
       </Button>
     </div>
   )

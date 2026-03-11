@@ -95,8 +95,8 @@ export function DisplayCanvas({
   return (
     <div className="flex-1 flex flex-col min-h-0 p-3 sm:p-4 min-w-0">
       <div
-        className="flex-1 relative rounded-lg border border-[#2A2A35] bg-[#0A0A0F] flex items-center justify-center min-h-[200px] overflow-hidden w-full max-w-full cursor-pointer"
-        style={{ aspectRatio: '1' }}
+        className="flex-1 relative rounded-lg border border-[#2A2A35] flex items-center justify-center min-h-[200px] overflow-hidden w-full max-w-full cursor-pointer"
+        style={{ aspectRatio: '16/9', background: 'linear-gradient(135deg, #0f1628 0%, #1a2342 30%, #243156 60%, #2d3a5e 80%, #1e2a4a 100%)' }}
         onClick={handleDeselect}
         role="presentation"
       >
