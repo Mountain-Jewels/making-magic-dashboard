@@ -24,6 +24,7 @@ import {
   Shield,
   Search,
   Box,
+  Monitor,
 } from 'lucide-react'
 import { useSidebarStore, type SidebarPanelId } from '@/lib/stores/sidebar-store'
 import { useAuth } from '@/lib/auth/useAuth'
@@ -47,6 +48,7 @@ export function SidebarV2() {
   const pathname = usePathname()
   const isActiveRoute = pathname === '/system'
   const isAssetsRoute = pathname === '/assets'
+  const isOperationsRoute = pathname === '/operations'
   const isScraperRoute = pathname.startsWith('/scraper')
 
   const [isAdmin, setIsAdmin] = useState(false)
@@ -155,6 +157,26 @@ export function SidebarV2() {
               <Shield className="h-5 w-5 shrink-0" />
               {isExpanded && (
                 <span className="text-sm truncate">System</span>
+              )}
+            </Link>
+          </div>
+        )}
+        {roleResolved && isAdmin && (
+          <div className="w-full">
+            <Link
+              href="/operations"
+              className={cn(
+                'w-full flex items-center gap-3 rounded transition-colors',
+                isExpanded ? 'px-3 py-2 justify-start' : 'p-2 justify-center',
+                isOperationsRoute
+                  ? 'bg-[#D4AF37]/20 text-[#D4AF37]'
+                  : 'text-white/70 hover:text-white hover:bg-white/10'
+              )}
+              aria-label="Operations"
+            >
+              <Monitor className="h-5 w-5 shrink-0" />
+              {isExpanded && (
+                <span className="text-sm truncate">Operations</span>
               )}
             </Link>
           </div>
