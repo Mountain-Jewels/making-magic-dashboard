@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 
 import { vmPowerAction } from '@/lib/api/vm-control'
 import type { VmNode, VmPowerAction } from '@/lib/types/vm-control'
-import { STATUS_COLORS, GPU_LABELS } from '@/lib/types/vm-control'
+import { STATUS_COLORS, POWER_STATE_COLORS, GPU_LABELS } from '@/lib/types/vm-control'
 
 interface Props {
   nodes: VmNode[]
@@ -45,11 +45,14 @@ export function VmCardSection({ nodes, onRefresh, onSelectNode, selectedNodeId }
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
       {nodes.map((node) => {
-        const statusColor = STATUS_COLORS[node.status] ?? STATUS_COLORS.unknown
+        const powerState = node.azure_power_state ?? 'unknown'
+        const agentStatus = node.status
+        const powerColor = POWER_STATE_COLORS[powerState] ?? POWER_STATE_COLORS.unknown
+        const agentColor = STATUS_COLORS[agentStatus] ?? STATUS_COLORS.unknown
         const isSelected = selectedNodeId === node.id
-        const isOnline = node.status === 'online'
-        const isOffline = node.status === 'offline'
-        const isBusy = ['starting', 'stopping', 'deallocating', 'restarting'].includes(node.status)
+        const vmRunning = powerState === 'running'
+        const vmOff = ['deallocated', 'stopped'].includes(powerState)
+        const vmTransitioning = ['starting', 'stopping', 'deallocating', 'restarting'].includes(powerState)
 
         return (
           <button
@@ -64,14 +67,19 @@ export function VmCardSection({ nodes, onRefresh, onSelectNode, selectedNodeId }
               <div className="flex items-center gap-2">
                 <div
                   className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: statusColor }}
+                  style={{ backgroundColor: powerColor }}
                 />
                 <span className="text-sm font-medium text-white">{node.name}</span>
               </div>
-              <span className="text-xs text-white/50 uppercase">{node.status}</span>
+              <span className="text-xs text-white/50 uppercase">{powerState}</span>
             </div>
 
             <div className="space-y-1 mb-4">
+              <div className="text-xs text-white/60">
+                VM: <span className="text-white/80 uppercase">{powerState}</span>
+                <span className="mx-1.5 text-white/30">|</span>
+                Agent: <span style={{ color: agentColor }} className="font-medium">{agentStatus}</span>
+              </div>
               <div className="text-xs text-white/60">
                 Role: <span className="text-white/80">{node.vm_role ?? '—'}</span>
               </div>
@@ -92,7 +100,7 @@ export function VmCardSection({ nodes, onRefresh, onSelectNode, selectedNodeId }
             <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
               <button
                 type="button"
-                disabled={isBusy || isOnline || !!loadingAction}
+                disabled={vmTransitioning || vmRunning || !!loadingAction}
                 onClick={() => handleAction(node.id, 'start')}
                 className="flex items-center gap-1 px-2.5 py-1.5 rounded text-xs bg-green-900/40 text-green-400 hover:bg-green-900/60 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 title="Start VM"
@@ -102,7 +110,7 @@ export function VmCardSection({ nodes, onRefresh, onSelectNode, selectedNodeId }
               </button>
               <button
                 type="button"
-                disabled={isBusy || isOffline || !!loadingAction}
+                disabled={vmTransitioning || vmOff || !!loadingAction}
                 onClick={() => handleAction(node.id, 'deallocate')}
                 className="flex items-center gap-1 px-2.5 py-1.5 rounded text-xs bg-orange-900/40 text-orange-400 hover:bg-orange-900/60 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 title="Deallocate VM"
@@ -112,7 +120,7 @@ export function VmCardSection({ nodes, onRefresh, onSelectNode, selectedNodeId }
               </button>
               <button
                 type="button"
-                disabled={isBusy || isOffline || !!loadingAction}
+                disabled={vmTransitioning || vmOff || !!loadingAction}
                 onClick={() => handleAction(node.id, 'restart')}
                 className="flex items-center gap-1 px-2.5 py-1.5 rounded text-xs bg-blue-900/40 text-blue-400 hover:bg-blue-900/60 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 title="Restart VM"
@@ -122,7 +130,7 @@ export function VmCardSection({ nodes, onRefresh, onSelectNode, selectedNodeId }
               </button>
               <button
                 type="button"
-                disabled={isBusy || isOffline || !!loadingAction}
+                disabled={vmTransitioning || vmOff || !!loadingAction}
                 onClick={() => handleAction(node.id, 'stop')}
                 className="flex items-center gap-1 px-2.5 py-1.5 rounded text-xs bg-red-900/40 text-red-400 hover:bg-red-900/60 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 title="Stop VM"

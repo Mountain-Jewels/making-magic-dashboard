@@ -192,8 +192,8 @@ export function BackgroundPicker() {
         ])
         handleSelectGenerated(url)
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Upload failed')
     } finally {
       setUploading(false)
       if (uploadInputRef.current) uploadInputRef.current.value = ''

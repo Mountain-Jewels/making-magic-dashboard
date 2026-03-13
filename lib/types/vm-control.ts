@@ -2,6 +2,7 @@ export interface VmNode {
   id: string
   name: string
   status: string
+  azure_power_state: string | null
   vm_role: string | null
   gpu_type: string | null
   ip_address: string | null
@@ -49,14 +50,24 @@ export const DAYS_OF_WEEK = [
 export type DayOfWeek = typeof DAYS_OF_WEEK[number]
 
 export const STATUS_COLORS: Record<string, string> = {
+  ready: '#22c55e',
   online: '#22c55e',
+  busy: '#3b82f6',
+  recovering: '#eab308',
+  offline: '#6b7280',
+  unknown: '#6b7280',
+  error: '#ef4444',
+}
+
+export const POWER_STATE_COLORS: Record<string, string> = {
+  running: '#22c55e',
   starting: '#eab308',
   stopping: '#f97316',
   deallocating: '#f97316',
   restarting: '#eab308',
-  offline: '#6b7280',
+  deallocated: '#6b7280',
+  stopped: '#ef4444',
   unknown: '#6b7280',
-  error: '#ef4444',
 }
 
 export const GPU_LABELS: Record<string, string> = {
