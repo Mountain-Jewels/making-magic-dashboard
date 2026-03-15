@@ -9,6 +9,7 @@ import { Toaster } from 'sonner'
 import './globals.css'
 import { AuthProvider } from '@/lib/auth/AuthProvider'
 import { QueryProvider } from '@/components/providers/QueryProvider'
+import { Shell } from '@/components/layout/Shell'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -37,7 +38,7 @@ export default function RootLayout({
       <body className="h-full font-sans antialiased">
         <QueryProvider>
           <AuthProvider>
-            {children}
+            <Shell>{children}</Shell>
             <Toaster position="top-right" richColors closeButton />
           </AuthProvider>
         </QueryProvider>
