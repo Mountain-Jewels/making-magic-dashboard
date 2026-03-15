@@ -20,7 +20,6 @@ import {
   Camera,
 } from 'lucide-react'
 import { useSceneStateStore } from '@/lib/stores/scene-state-store'
-import { useModeStore } from '@/lib/stores/mode-store'
 import { useSwitchoverStore } from '@/lib/stores/switchover-store'
 import { FEED_MODE_COLORS } from '@/lib/types/cinematic'
 import { loadScene, loadAvatar, addWardrobe, addJewelry, sendCommand } from '@/lib/api/scene-control'
@@ -34,7 +33,6 @@ export function LiveViewport() {
 
   const sceneState = useSceneStateStore()
   const { scene, avatar, lighting, camera, wardrobe, jewelry, edits, dirty, markPushed, clearEdits } = sceneState
-  const { setStudioView } = useModeStore()
   const { feedMode, captureSnapshot } = useSwitchoverStore()
   const [snapping, setSnapping] = useState(false)
 
@@ -77,7 +75,6 @@ export function LiveViewport() {
       }
       markPushed()
       toast.success(`${edits.length} changes pushed to staging`)
-      setStudioView('stage')
     } catch {
       toast.error('Push to staging failed')
     } finally {

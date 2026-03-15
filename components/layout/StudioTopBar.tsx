@@ -6,6 +6,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import {
   Gem,
   Circle,
@@ -13,16 +15,17 @@ import {
   Undo2,
   Rocket,
   Settings,
-  LayoutGrid,
   LogOut,
 } from 'lucide-react'
-import { useModeStore } from '@/lib/stores/mode-store'
 import { useAuth } from '@/lib/auth/useAuth'
+import { useSceneStateStore } from '@/lib/stores/scene-state-store'
+import { captureStoreState, getStateTimeline } from '@/lib/api/cinematic'
 
 export function StudioTopBar() {
-  const { mode, setMode, studioView } = useModeStore()
   const { isAuthenticated, userName, logout } = useAuth()
   const [healthy, setHealthy] = useState<boolean | null>(null)
+  const router = useRouter()
+  const { scene, avatar, dirty } = useSceneStateStore()
 
   useEffect(() => {
     const url = process.env.NEXT_PUBLIC_STUDIO_ENGINE_URL
@@ -36,76 +39,77 @@ export function StudioTopBar() {
     return () => clearInterval(id)
   }, [])
 
-  const viewLabel =
-    studioView === 'create'
-      ? 'Create'
-      : studioView === 'stage'
-        ? 'Stage'
-        : studioView === 'approve'
-          ? 'Approve'
-          : 'Deploy'
+  async function handleSave() {
+    try {
+      await captureStoreState(scene || 'default')
+      toast.success('Scene state saved')
+    } catch {
+      toast.error('Save failed')
+    }
+  }
+
+  async function handleUndo() {
+    try {
+      const timeline = await getStateTimeline(scene || 'default', 1)
+      if (timeline.length > 0) {
+        toast.success('Reverted to last saved state')
+      } else {
+        toast.info('No saved states to revert to')
+      }
+    } catch {
+      toast.error('Undo failed')
+    }
+  }
+
+  function handleDeploy() {
+    router.push('/export')
+  }
 
   return (
     <header className="flex h-12 items-center justify-between border-b border-surface-border bg-surface-panel px-4 shrink-0">
-      {/* Left: Logo + Title */}
       <div className="flex items-center gap-3">
         <Gem className="h-5 w-5 text-gold" />
         <span className="text-sm font-semibold text-white">The Studio</span>
         <span className="text-[10px] text-white/25 uppercase tracking-widest">
           Mountain Jewels
         </span>
-        {mode === 'studio' && (
-          <span className="ml-2 px-2 py-0.5 rounded bg-gold/10 text-gold text-[10px] font-semibold uppercase tracking-wide">
-            {viewLabel}
+        {scene && (
+          <span className="ml-2 px-2 py-0.5 rounded bg-gold/10 text-gold text-[10px] font-semibold">
+            {scene}
+          </span>
+        )}
+        {avatar && (
+          <span className="px-2 py-0.5 rounded bg-white/5 text-white/50 text-[10px]">
+            {avatar}
           </span>
         )}
       </div>
 
-      {/* Center: Actions (studio mode) */}
-      {mode === 'studio' && (
-        <div className="flex items-center gap-1">
-          <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-white/60 hover:text-white hover:bg-white/5 rounded transition-colors">
-            <Save className="h-3.5 w-3.5" />
-            Save
-          </button>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-white/60 hover:text-white hover:bg-white/5 rounded transition-colors">
-            <Undo2 className="h-3.5 w-3.5" />
-            Undo
-          </button>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-gold/10 text-gold hover:bg-gold/20 rounded transition-colors">
-            <Rocket className="h-3.5 w-3.5" />
-            Deploy
-          </button>
-        </div>
-      )}
+      <div className="flex items-center gap-1">
+        <button
+          onClick={handleSave}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-white/60 hover:text-white hover:bg-white/5 rounded transition-colors"
+        >
+          <Save className="h-3.5 w-3.5" />
+          Save
+        </button>
+        <button
+          onClick={handleUndo}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-white/60 hover:text-white hover:bg-white/5 rounded transition-colors"
+        >
+          <Undo2 className="h-3.5 w-3.5" />
+          Undo
+        </button>
+        <button
+          onClick={handleDeploy}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-gold/10 text-gold hover:bg-gold/20 rounded transition-colors"
+        >
+          <Rocket className="h-3.5 w-3.5" />
+          Deploy
+        </button>
+      </div>
 
-      {/* Right: Mode switch, health, user */}
       <div className="flex items-center gap-3">
-        {/* Mode Switcher */}
-        <div className="flex items-center bg-surface rounded-md border border-surface-border overflow-hidden">
-          <button
-            onClick={() => setMode('studio')}
-            className={`px-3 py-1 text-[11px] font-medium transition-colors ${
-              mode === 'studio'
-                ? 'bg-gold/15 text-gold'
-                : 'text-white/40 hover:text-white/70'
-            }`}
-          >
-            Studio
-          </button>
-          <button
-            onClick={() => setMode('command')}
-            className={`px-3 py-1 text-[11px] font-medium transition-colors ${
-              mode === 'command'
-                ? 'bg-gold/15 text-gold'
-                : 'text-white/40 hover:text-white/70'
-            }`}
-          >
-            Command
-          </button>
-        </div>
-
-        {/* API Health */}
         <div
           className="flex items-center gap-1.5"
           title={
@@ -128,12 +132,16 @@ export function StudioTopBar() {
           <span className="text-[10px] text-white/40">API</span>
         </div>
 
-        {/* Settings */}
+        {dirty && (
+          <span className="text-[9px] text-gold/60 bg-gold/10 px-1.5 py-0.5 rounded">
+            unsaved
+          </span>
+        )}
+
         <button className="p-1.5 rounded hover:bg-white/5 text-white/40 hover:text-white/70">
           <Settings className="h-3.5 w-3.5" />
         </button>
 
-        {/* User */}
         {isAuthenticated && (
           <div className="flex items-center gap-2">
             <span className="text-[10px] text-white/50">{userName}</span>

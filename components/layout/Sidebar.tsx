@@ -28,6 +28,8 @@ import {
   FolderOpen,
   ChevronLeft,
   ChevronRight,
+  PartyPopper,
+  LayoutDashboard,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -44,6 +46,12 @@ interface NavSection {
 
 const NAV: NavSection[] = [
   {
+    title: 'Hub',
+    items: [
+      { label: 'Studio Hub', href: '/', icon: LayoutDashboard },
+    ],
+  },
+  {
     title: 'Intelligence',
     items: [
       { label: 'Director', href: '/director', icon: Brain },
@@ -56,7 +64,10 @@ const NAV: NavSection[] = [
     items: [
       { label: 'Scenes', href: '/scenes', icon: Mountain },
       { label: 'Avatars', href: '/avatars', icon: Users },
+      { label: 'Jewelry', href: '/jewelry', icon: Gem },
       { label: 'Fashion', href: '/fashion', icon: Shirt },
+      { label: 'Cinematics', href: '/cinematics', icon: Clapperboard },
+      { label: 'Events', href: '/events', icon: PartyPopper },
       { label: 'Concierge', href: '/concierge', icon: MessageCircle },
       { label: 'Customers', href: '/customers', icon: UserCircle },
     ],
@@ -69,7 +80,6 @@ const NAV: NavSection[] = [
       { label: 'Renders', href: '/renders', icon: Film },
       { label: 'Scheduling', href: '/scheduling', icon: Calendar },
       { label: 'Lighting', href: '/lighting', icon: Sun },
-      { label: 'Cinematic', href: '/cinematic', icon: Clapperboard },
     ],
   },
   {
@@ -126,7 +136,7 @@ export function Sidebar() {
             )}
             <div className="space-y-0.5">
               {section.items.map((item) => {
-                const active = pathname === item.href || pathname.startsWith(item.href + '/')
+                const active = item.href === '/' ? pathname === '/' : (pathname === item.href || pathname.startsWith(item.href + '/'))
                 const Icon = item.icon
                 return (
                   <Link

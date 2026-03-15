@@ -5,369 +5,291 @@
 
 'use client'
 
-import {
-  loadScene,
-  loadAvatar,
-  sendCommand,
-  metahumanSpeak,
-  metahumanEmotion,
-  metahumanGesture,
-  addWardrobe,
-  addJewelry,
-} from '@/lib/api/scene-control'
+import { useState, useCallback, useEffect } from 'react'
 import { toast } from 'sonner'
-import { Card } from '@/components/shared/Card'
-import { useState, useCallback } from 'react'
+import {
+  Mountain,
+  Sun,
+  Camera,
+  Sparkles,
+  Play,
+  Globe,
+  RotateCcw,
+  Loader2,
+} from 'lucide-react'
+import { loadScene, sendCommand } from '@/lib/api/scene-control'
+import { getCurrentLighting } from '@/lib/api/lighting'
+import { useSceneStateStore } from '@/lib/stores/scene-state-store'
+import { LiveViewport } from '@/components/studio/LiveViewport'
+import { LightingAdvisor } from '@/components/studio/LightingAdvisor'
+import type { LightingState } from '@/lib/types/lighting-engine'
 
-const SCENE_OPTIONS = ['Landing Mountain', "Merlin's Cave"]
-const EMOTION_OPTIONS = ['Celebratory', 'Intimate', 'Grateful']
+interface Environment {
+  id: string
+  label: string
+  desc: string
+  gradient: string
+}
+
+const ENVIRONMENTS: Environment[] = [
+  { id: 'landing', label: 'Landing Mountain', desc: 'Hero mountain landscape with golden hour lighting', gradient: 'from-amber-900/40 via-stone-800/30 to-sky-900/40' },
+  { id: 'cave', label: "Merlin's Cave", desc: 'Intimate crystal cave with warm torch lighting', gradient: 'from-purple-900/40 via-indigo-900/30 to-amber-900/30' },
+  { id: 'studio', label: 'Photo Studio', desc: 'Clean studio backdrop for product photography', gradient: 'from-neutral-700/40 via-neutral-600/30 to-neutral-500/20' },
+  { id: 'yacht', label: 'Luxury Yacht', desc: 'Deck scene with ocean horizon and soft sunset', gradient: 'from-blue-900/40 via-cyan-800/30 to-orange-800/30' },
+  { id: 'garden', label: 'Secret Garden', desc: 'Lush greenery with natural dappled light', gradient: 'from-emerald-900/40 via-green-800/30 to-lime-900/30' },
+]
+
+const LIGHTING_PRESETS = [
+  { id: 'warm_intimate', label: 'Warm Intimate', desc: '3200K, soft, low ratio', tip: 'Best for couple scenes and emotional moments' },
+  { id: 'dramatic_high_contrast', label: 'Dramatic', desc: 'Hard key, 8:1 ratio', tip: 'Best for single product hero shots' },
+  { id: 'soft_beauty', label: 'Soft Beauty', desc: '4500K, diffused, 2:1', tip: 'Best for avatar portraits and jewelry on skin' },
+  { id: 'jewelry_showcase', label: 'Jewelry Showcase', desc: 'Point lights, IOR 2.42', tip: 'Diamonds need small intense lights for fire and brilliance' },
+  { id: 'golden_hour', label: 'Golden Hour', desc: '2800K, directional', tip: 'Natural warm light for outdoor scenes' },
+]
+
+const CAMERA_PRESETS = [
+  { id: 'slow_push_in', label: 'Slow Push In', desc: '50mm, subtle forward dolly' },
+  { id: 'orbit_product', label: 'Orbit Product', desc: '85mm, 360° product orbit' },
+  { id: 'dramatic_reveal', label: 'Dramatic Reveal', desc: '35mm, crane + push' },
+  { id: 'static_closeup', label: 'Static Close-Up', desc: '85mm, f/2.0, shallow DOF' },
+  { id: 'establishing_wide', label: 'Establishing Wide', desc: '24mm, full scene' },
+  { id: 'crane_down', label: 'Crane Down', desc: '50mm, overhead descend' },
+]
+
+const ENV_TO_VM_ROLE: Record<string, string> = {
+  landing: 'landing',
+  cave: 'cave',
+  studio: 'avatar',
+  yacht: 'landing',
+  garden: 'landing',
+}
 
 export default function ScenesPage() {
-  const [sceneName, setSceneName] = useState(SCENE_OPTIONS[0])
-  const [avatarId, setAvatarId] = useState('')
-  const [command, setCommand] = useState('')
-  const [commandArgs, setCommandArgs] = useState('{}')
+  const sceneStore = useSceneStateStore()
+  const [selectedEnv, setSelectedEnv] = useState<string | null>(sceneStore.scene)
+  const [selectedLighting, setSelectedLighting] = useState<string | null>(sceneStore.lighting)
+  const [selectedCamera, setSelectedCamera] = useState<string | null>(sceneStore.camera)
+  const [busy, setBusy] = useState(false)
+  const [sceneLighting, setSceneLighting] = useState<LightingState | null>(null)
 
-  const [speakAvatarId, setSpeakAvatarId] = useState('')
-  const [speakText, setSpeakText] = useState('')
-  const [speakEmotion, setSpeakEmotion] = useState('')
+  useEffect(() => {
+    if (!selectedEnv) { setSceneLighting(null); return }
+    const vmRole = ENV_TO_VM_ROLE[selectedEnv] || 'landing'
+    getCurrentLighting(vmRole).then(setSceneLighting).catch(() => setSceneLighting(null))
+  }, [selectedEnv])
 
-  const [emotionAvatarId, setEmotionAvatarId] = useState('')
-  const [emotionValue, setEmotionValue] = useState('')
-
-  const [gestureAvatarId, setGestureAvatarId] = useState('')
-  const [gestureValue, setGestureValue] = useState('')
-
-  const [wardrobeAvatarId, setWardrobeAvatarId] = useState('')
-  const [wardrobeItemType, setWardrobeItemType] = useState('')
-  const [wardrobeItemId, setWardrobeItemId] = useState('')
-
-  const [jewelryAvatarId, setJewelryAvatarId] = useState('')
-  const [jewelryType, setJewelryType] = useState('')
-  const [jewelryId, setJewelryId] = useState('')
-  const [jewelrySlot, setJewelrySlot] = useState('')
-
-  const [busy, setBusy] = useState<string | null>(null)
-
-  const runAction = useCallback(
-    async (
-      key: string,
-      fn: () => Promise<{ status: string } | { status: string; result?: unknown }>
-    ) => {
-      setBusy(key)
-      try {
-        const res = await fn()
-        toast.success(res.status || 'Done')
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : 'Request failed')
-      } finally {
-        setBusy(null)
-      }
-    },
-    []
-  )
-
-  const handleLoadScene = () => runAction('scene', () => loadScene(sceneName))
-
-  const handleLoadAvatar = () => runAction('avatar', () => loadAvatar(avatarId))
-
-  const handleSendCommand = () => {
-    let args: Record<string, unknown> | undefined
+  const handleLoadScene = useCallback(async () => {
+    if (!selectedEnv) return
+    setBusy(true)
     try {
-      args = commandArgs.trim() ? JSON.parse(commandArgs) : undefined
-    } catch {
-      toast.error('Invalid JSON in args')
-      return
-    }
-    runAction('command', () => sendCommand(command, args))
-  }
+      await loadScene(selectedEnv)
+      sceneStore.setScene(selectedEnv)
+      toast.success(`Scene "${selectedEnv}" loaded`)
+    } catch { toast.error('Failed to load scene') }
+    finally { setBusy(false) }
+  }, [selectedEnv, sceneStore])
 
-  const handleSpeak = () =>
-    runAction('speak', () =>
-      metahumanSpeak('', speakText, undefined, speakEmotion || undefined)
-    )
+  const handleApplyLighting = useCallback(async () => {
+    if (!selectedLighting) return
+    setBusy(true)
+    try {
+      await sendCommand('set_lighting', { preset: selectedLighting })
+      sceneStore.setLighting(selectedLighting)
+      toast.success(`Lighting "${selectedLighting}" applied`)
+    } catch { toast.error('Failed to apply lighting') }
+    finally { setBusy(false) }
+  }, [selectedLighting, sceneStore])
 
-  const handleSetEmotion = () =>
-    runAction('emotion', () =>
-      metahumanEmotion(emotionValue)
-    )
-
-  const handleTriggerGesture = () =>
-    runAction('gesture', () =>
-      metahumanGesture(gestureValue)
-    )
-
-  const handleAddWardrobe = () =>
-    runAction('wardrobe', () =>
-      addWardrobe(wardrobeItemId)
-    )
-
-  const handleAddJewelry = () =>
-    runAction('jewelry', () =>
-      addJewelry(jewelryId)
-    )
-
-  const inputClass =
-    'w-full px-3 py-2 bg-surface border border-surface-border rounded-md text-white text-sm placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-gold'
-  const buttonClass =
-    'px-4 py-2 bg-gold text-black font-medium text-sm rounded-md hover:bg-gold-hover disabled:opacity-50'
+  const handleApplyCamera = useCallback(async () => {
+    if (!selectedCamera) return
+    setBusy(true)
+    try {
+      await sendCommand('set_camera', { preset: selectedCamera })
+      sceneStore.setCamera(selectedCamera)
+      toast.success(`Camera "${selectedCamera}" applied`)
+    } catch { toast.error('Failed to apply camera') }
+    finally { setBusy(false) }
+  }, [selectedCamera, sceneStore])
 
   return (
-    <div className="min-h-screen bg-surface text-white p-6">
-      <div className="max-w-[1200px] mx-auto space-y-8">
-        <header>
-          <h1 className="text-2xl font-semibold text-white">
-            Scenes & Environments
-          </h1>
-          <p className="text-sm text-white/60 mt-1">
-            Load scenes, control avatars, manage recipes
-          </p>
-        </header>
-
-        <section>
-          <h2 className="text-lg font-medium text-gold mb-4">Scene Control</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card title="Load Scene">
-              <div className="flex gap-2">
-                <select
-                  value={sceneName}
-                  onChange={(e) => setSceneName(e.target.value)}
-                  className={`flex-1 ${inputClass}`}
-                >
-                  {SCENE_OPTIONS.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  onClick={handleLoadScene}
-                  disabled={busy === 'scene'}
-                  className={buttonClass}
-                >
-                  {busy === 'scene' ? 'Loading…' : 'Load'}
-                </button>
+    <div className="flex h-full min-h-0">
+      {/* LEFT — Environment selector */}
+      <div className="w-[280px] shrink-0 border-r border-surface-border overflow-y-auto p-4 space-y-5">
+        <div className="flex items-center gap-2">
+          <Mountain className="h-4 w-4 text-blue-400" />
+          <h2 className="text-xs font-semibold text-white/60 uppercase tracking-wide">Environments</h2>
+        </div>
+        <div className="space-y-2">
+          {ENVIRONMENTS.map((env) => (
+            <button
+              key={env.id}
+              onClick={() => setSelectedEnv(env.id)}
+              className={`flex flex-col items-start w-full p-3 rounded-lg border transition-colors text-left ${
+                selectedEnv === env.id
+                  ? 'border-blue-500 bg-blue-500/5'
+                  : 'border-surface-border hover:border-white/20 bg-surface-panel'
+              }`}
+            >
+              <div className={`h-14 w-full rounded mb-2 flex items-center justify-center bg-gradient-to-br ${env.gradient}`}>
+                <Mountain className="h-5 w-5 text-white/20" />
               </div>
-            </Card>
-
-            <Card title="Load Avatar">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={avatarId}
-                  onChange={(e) => setAvatarId(e.target.value)}
-                  placeholder="Avatar ID"
-                  className={`flex-1 ${inputClass}`}
-                />
-                <button
-                  onClick={handleLoadAvatar}
-                  disabled={busy === 'avatar'}
-                  className={buttonClass}
-                >
-                  {busy === 'avatar' ? 'Loading…' : 'Load'}
-                </button>
-              </div>
-            </Card>
-
-            <Card title="Generic Command">
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  value={command}
-                  onChange={(e) => setCommand(e.target.value)}
-                  placeholder="Command"
-                  className={inputClass}
-                />
-                <textarea
-                  value={commandArgs}
-                  onChange={(e) => setCommandArgs(e.target.value)}
-                  placeholder='{"key": "value"}'
-                  rows={2}
-                  className={`${inputClass} resize-none`}
-                />
-                <button
-                  onClick={handleSendCommand}
-                  disabled={busy === 'command'}
-                  className={`w-full ${buttonClass}`}
-                >
-                  {busy === 'command' ? 'Sending…' : 'Send'}
-                </button>
-              </div>
-            </Card>
+              <p className="text-[11px] font-medium text-white/70">{env.label}</p>
+              <p className="text-[9px] text-white/30 mt-0.5">{env.desc}</p>
+            </button>
+          ))}
+        </div>
+        {selectedEnv && (
+          <div className="flex gap-2">
+            <button
+              onClick={handleLoadScene}
+              disabled={busy}
+              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-600 text-white text-[11px] font-semibold rounded hover:bg-blue-500 disabled:opacity-40 transition-colors"
+            >
+              {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
+              Load Scene
+            </button>
+            <button
+              onClick={() => { setSelectedEnv(null); sceneStore.reset() }}
+              className="px-3 py-2 border border-surface-border text-white/40 text-[11px] rounded hover:bg-white/5 transition-colors"
+            >
+              <RotateCcw className="h-3 w-3" />
+            </button>
           </div>
+        )}
+      </div>
+
+      {/* CENTER — Viewport */}
+      <div className="flex-1 min-w-0 flex flex-col">
+        <LiveViewport />
+      </div>
+
+      {/* RIGHT — Lighting + Camera controls */}
+      <div className="w-[320px] shrink-0 border-l border-surface-border overflow-y-auto p-4 space-y-6">
+        {/* Scene Lighting Intelligence */}
+        {sceneLighting && selectedEnv && (
+          <section className="p-3 rounded-lg border border-surface-border bg-surface">
+            <div className="flex items-center gap-2 mb-2">
+              <Globe className="h-3.5 w-3.5 text-blue-400/60" />
+              <span className="text-[10px] font-semibold text-white/50 uppercase tracking-wide">
+                Live Lighting — {ENVIRONMENTS.find((e) => e.id === selectedEnv)?.label}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <p className="text-[9px] text-white/30">Sun Elevation</p>
+                <p className="text-[10px] text-white/60 font-mono">{sceneLighting.sun.elevation.toFixed(0)}°</p>
+              </div>
+              <div>
+                <p className="text-[9px] text-white/30">Color Temp</p>
+                <div className="flex items-center gap-1">
+                  <span className="h-3 w-3 rounded-full border border-white/10" style={{ backgroundColor: sceneLighting.sun.color }} />
+                  <p className="text-[10px] text-white/60 font-mono">
+                    {sceneLighting.sun.color_temperature_k ? `${sceneLighting.sun.color_temperature_k}K` : sceneLighting.sun.color}
+                  </p>
+                </div>
+              </div>
+              <div>
+                <p className="text-[9px] text-white/30">Fog Density</p>
+                <p className="text-[10px] text-white/60 font-mono">{sceneLighting.fog.density.toFixed(3)}</p>
+              </div>
+              <div>
+                <p className="text-[9px] text-white/30">Ambient</p>
+                <p className="text-[10px] text-white/60 font-mono">{sceneLighting.ambient.intensity.toFixed(3)}</p>
+              </div>
+            </div>
+            {sceneLighting.cave && (
+              <div className="mt-2 flex items-center gap-3">
+                <div className="flex items-center gap-1">
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: sceneLighting.cave.torch_color }} />
+                  <span className="text-[9px] text-white/30">Torch</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: sceneLighting.cave.crystal_color }} />
+                  <span className="text-[9px] text-white/30">Crystal</span>
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Lighting Presets */}
+        <section>
+          <div className="flex items-center gap-2 mb-3">
+            <Sun className="h-4 w-4 text-gold" />
+            <h3 className="text-xs font-semibold text-white/60 uppercase tracking-wide">Lighting</h3>
+          </div>
+          <div className="space-y-1.5">
+            {LIGHTING_PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                onClick={() => setSelectedLighting(preset.id)}
+                className={`flex items-start gap-3 w-full p-2.5 rounded-lg border text-left transition-colors ${
+                  selectedLighting === preset.id
+                    ? 'border-gold bg-gold/5'
+                    : 'border-surface-border hover:border-white/20 bg-surface-panel'
+                }`}
+              >
+                <Sun className="h-3.5 w-3.5 text-white/20 mt-0.5 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] font-medium text-white/70">{preset.label}</p>
+                  <p className="text-[9px] text-white/30">{preset.desc}</p>
+                  <p className="text-[9px] text-gold/40 mt-0.5 flex items-center gap-1">
+                    <Sparkles className="h-2.5 w-2.5" />
+                    {preset.tip}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
+          {selectedLighting && (
+            <button
+              onClick={handleApplyLighting}
+              disabled={busy}
+              className="mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-gold text-black text-[11px] font-semibold rounded hover:bg-gold-hover disabled:opacity-40 transition-colors"
+            >
+              <Sun className="h-3 w-3" />
+              Apply Lighting
+            </button>
+          )}
         </section>
 
+        {/* AI Lighting Advisor */}
+        <section className="rounded-lg border border-gold/10 bg-surface-panel">
+          <LightingAdvisor />
+        </section>
+
+        {/* Camera Presets */}
         <section>
-          <h2 className="text-lg font-medium text-gold mb-4">Avatar Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Card title="Speak">
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  value={speakAvatarId}
-                  onChange={(e) => setSpeakAvatarId(e.target.value)}
-                  placeholder="Avatar ID"
-                  className={inputClass}
-                />
-                <input
-                  type="text"
-                  value={speakText}
-                  onChange={(e) => setSpeakText(e.target.value)}
-                  placeholder="Text to speak"
-                  className={inputClass}
-                />
-                <select
-                  value={speakEmotion}
-                  onChange={(e) => setSpeakEmotion(e.target.value)}
-                  className={inputClass}
-                >
-                  <option value="">No emotion</option>
-                  {EMOTION_OPTIONS.map((e) => (
-                    <option key={e} value={e}>
-                      {e}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  onClick={handleSpeak}
-                  disabled={busy === 'speak'}
-                  className={`w-full ${buttonClass}`}
-                >
-                  {busy === 'speak' ? 'Speaking…' : 'Speak'}
-                </button>
-              </div>
-            </Card>
-
-            <Card title="Emotion">
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  value={emotionAvatarId}
-                  onChange={(e) => setEmotionAvatarId(e.target.value)}
-                  placeholder="Avatar ID"
-                  className={inputClass}
-                />
-                <select
-                  value={emotionValue}
-                  onChange={(e) => setEmotionValue(e.target.value)}
-                  className={inputClass}
-                >
-                  <option value="">Select emotion</option>
-                  {EMOTION_OPTIONS.map((e) => (
-                    <option key={e} value={e}>
-                      {e}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  onClick={handleSetEmotion}
-                  disabled={busy === 'emotion'}
-                  className={`w-full ${buttonClass}`}
-                >
-                  {busy === 'emotion' ? 'Setting…' : 'Set'}
-                </button>
-              </div>
-            </Card>
-
-            <Card title="Gesture">
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  value={gestureAvatarId}
-                  onChange={(e) => setGestureAvatarId(e.target.value)}
-                  placeholder="Avatar ID"
-                  className={inputClass}
-                />
-                <input
-                  type="text"
-                  value={gestureValue}
-                  onChange={(e) => setGestureValue(e.target.value)}
-                  placeholder="Gesture name"
-                  className={inputClass}
-                />
-                <button
-                  onClick={handleTriggerGesture}
-                  disabled={busy === 'gesture'}
-                  className={`w-full ${buttonClass}`}
-                >
-                  {busy === 'gesture' ? 'Triggering…' : 'Trigger'}
-                </button>
-              </div>
-            </Card>
-
-            <Card title="Wardrobe">
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  value={wardrobeAvatarId}
-                  onChange={(e) => setWardrobeAvatarId(e.target.value)}
-                  placeholder="Avatar ID"
-                  className={inputClass}
-                />
-                <input
-                  type="text"
-                  value={wardrobeItemType}
-                  onChange={(e) => setWardrobeItemType(e.target.value)}
-                  placeholder="Item type"
-                  className={inputClass}
-                />
-                <input
-                  type="text"
-                  value={wardrobeItemId}
-                  onChange={(e) => setWardrobeItemId(e.target.value)}
-                  placeholder="Item ID"
-                  className={inputClass}
-                />
-                <button
-                  onClick={handleAddWardrobe}
-                  disabled={busy === 'wardrobe'}
-                  className={`w-full ${buttonClass}`}
-                >
-                  {busy === 'wardrobe' ? 'Adding…' : 'Add'}
-                </button>
-              </div>
-            </Card>
-
-            <Card title="Jewelry">
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  value={jewelryAvatarId}
-                  onChange={(e) => setJewelryAvatarId(e.target.value)}
-                  placeholder="Avatar ID"
-                  className={inputClass}
-                />
-                <input
-                  type="text"
-                  value={jewelryType}
-                  onChange={(e) => setJewelryType(e.target.value)}
-                  placeholder="Jewelry type"
-                  className={inputClass}
-                />
-                <input
-                  type="text"
-                  value={jewelryId}
-                  onChange={(e) => setJewelryId(e.target.value)}
-                  placeholder="Jewelry ID"
-                  className={inputClass}
-                />
-                <input
-                  type="text"
-                  value={jewelrySlot}
-                  onChange={(e) => setJewelrySlot(e.target.value)}
-                  placeholder="Slot (optional)"
-                  className={inputClass}
-                />
-                <button
-                  onClick={handleAddJewelry}
-                  disabled={busy === 'jewelry'}
-                  className={`w-full ${buttonClass}`}
-                >
-                  {busy === 'jewelry' ? 'Adding…' : 'Add'}
-                </button>
-              </div>
-            </Card>
+          <div className="flex items-center gap-2 mb-3">
+            <Camera className="h-4 w-4 text-blue-400" />
+            <h3 className="text-xs font-semibold text-white/60 uppercase tracking-wide">Camera</h3>
           </div>
+          <div className="grid grid-cols-2 gap-1.5">
+            {CAMERA_PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                onClick={() => setSelectedCamera(preset.id)}
+                className={`flex flex-col items-start p-2.5 rounded-lg border text-left transition-colors ${
+                  selectedCamera === preset.id
+                    ? 'border-blue-500 bg-blue-500/5'
+                    : 'border-surface-border hover:border-white/20 bg-surface-panel'
+                }`}
+              >
+                <p className="text-[11px] font-medium text-white/70">{preset.label}</p>
+                <p className="text-[9px] text-white/30">{preset.desc}</p>
+              </button>
+            ))}
+          </div>
+          {selectedCamera && (
+            <button
+              onClick={handleApplyCamera}
+              disabled={busy}
+              className="mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-600 text-white text-[11px] font-semibold rounded hover:bg-blue-500 disabled:opacity-40 transition-colors"
+            >
+              <Camera className="h-3 w-3" />
+              Apply Camera
+            </button>
+          )}
         </section>
       </div>
     </div>
