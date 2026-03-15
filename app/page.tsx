@@ -6,17 +6,14 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useModeStore } from '@/lib/stores/mode-store'
 
 export default function HomePage() {
-  const router = useRouter()
-  useEffect(() => {
-    router.replace('/director')
-  }, [router])
+  const { setMode } = useModeStore()
 
-  return (
-    <div className="flex h-screen items-center justify-center bg-surface">
-      <p className="text-white/50 text-sm">Redirecting to Director...</p>
-    </div>
-  )
+  useEffect(() => {
+    setMode('studio')
+  }, [setMode])
+
+  return null
 }

@@ -34,7 +34,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'library', label: 'Asset Library' },
 ]
 
-const SOURCES: IngestSource[] = ['upload', 'url', 'meshy', 'mac_sync', 'metahuman_import']
+const SOURCES: IngestSource[] = ['upload', 'url', 'meshy', 'mac_sync', 'metahuman_import', 'fab', 'epic_marketplace', 'quixel_megascans', 'blockade_labs']
 const ASSET_TYPES: IngestAssetType[] = ['mesh', 'metahuman', 'prop', 'jewelry', 'material']
 const UPLOAD_TYPES: AssetType[] = ['avatar', 'music', 'background', 'generated', 'export']
 

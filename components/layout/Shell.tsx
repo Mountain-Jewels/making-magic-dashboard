@@ -6,17 +6,50 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { Sidebar } from './Sidebar'
-import { TopBar } from './TopBar'
+import { usePathname } from 'next/navigation'
+import { useModeStore } from '@/lib/stores/mode-store'
+import { StudioTopBar } from './StudioTopBar'
+import { StudioShell } from './StudioShell'
+import { CommandShell } from './CommandShell'
+
+const COMMAND_ROUTES = [
+  '/director',
+  '/agents',
+  '/concierge',
+  '/vms',
+  '/streaming',
+  '/renders',
+  '/scheduling',
+  '/lighting',
+  '/cinematic',
+  '/products',
+  '/export',
+  '/assets',
+  '/system',
+  '/scenes',
+  '/avatars',
+  '/fashion',
+  '/generate',
+]
 
 export function Shell({ children }: { children: ReactNode }) {
+  const { mode, setMode } = useModeStore()
+  const pathname = usePathname()
+
+  const isCommandRoute = COMMAND_ROUTES.some(
+    (r) => pathname === r || pathname.startsWith(r + '/')
+  )
+
+  const effectiveMode = isCommandRoute ? 'command' : mode
+
   return (
-    <div className="flex h-screen bg-surface">
-      <Sidebar />
-      <div className="flex flex-1 flex-col min-w-0">
-        <TopBar />
-        <main className="flex-1 overflow-y-auto">{children}</main>
-      </div>
+    <div className="flex h-screen flex-col bg-surface">
+      <StudioTopBar />
+      {effectiveMode === 'studio' ? (
+        <StudioShell />
+      ) : (
+        <CommandShell>{children}</CommandShell>
+      )}
     </div>
   )
 }

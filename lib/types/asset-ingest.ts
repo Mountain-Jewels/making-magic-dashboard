@@ -8,7 +8,7 @@
  * Used by the Assets admin tab and lib/api/asset-ingest.ts adapter.
  */
 
-export type IngestSource = 'upload' | 'url' | 'meshy' | 'mac_sync' | 'metahuman_import'
+export type IngestSource = 'upload' | 'url' | 'meshy' | 'mac_sync' | 'metahuman_import' | 'fab' | 'epic_marketplace' | 'quixel_megascans' | 'blockade_labs'
 
 export type IngestAssetType = 'mesh' | 'metahuman' | 'prop' | 'jewelry' | 'material'
 

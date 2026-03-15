@@ -10,6 +10,7 @@ import './globals.css'
 import { AuthProvider } from '@/lib/auth/AuthProvider'
 import { QueryProvider } from '@/components/providers/QueryProvider'
 import { Shell } from '@/components/layout/Shell'
+import { KeyboardShortcuts } from '@/components/layout/KeyboardShortcuts'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -24,8 +25,8 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'The Studio — Mountain Jewels',
-  description: 'Production Control Console',
+  title: 'Making Magic — Mountain Jewels Studio',
+  description: 'AI-Powered Creative Production Studio',
 }
 
 export default function RootLayout({
@@ -39,6 +40,7 @@ export default function RootLayout({
         <QueryProvider>
           <AuthProvider>
             <Shell>{children}</Shell>
+            <KeyboardShortcuts />
             <Toaster position="top-right" richColors closeButton />
           </AuthProvider>
         </QueryProvider>
