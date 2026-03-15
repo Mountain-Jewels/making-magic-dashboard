@@ -4,16 +4,19 @@
  */
 
 /**
- * Voice API — ElevenLabs voices, preview, clone
+ * Voice API — ElevenLabs voices, preview, clone.
+ * getVoices degrades to empty array since it's called in list contexts.
  */
 
 import { apiGet, apiPost } from './client'
 import type { Voice, VoicePreviewResponse, CloneVoiceRequest, CloneVoiceResponse } from './types'
 
 export async function getVoices(): Promise<Voice[]> {
-  const res = await apiGet<{ voices?: Voice[]; data?: Voice[] }>('/voices')
-  const arr = (res as { voices?: Voice[] })?.voices ?? (res as { data?: Voice[] })?.data
-  return Array.isArray(arr) ? arr : []
+  try {
+    const res = await apiGet<{ voices?: Voice[]; data?: Voice[] }>('/voices')
+    const arr = (res as { voices?: Voice[] })?.voices ?? (res as { data?: Voice[] })?.data
+    return Array.isArray(arr) ? arr : []
+  } catch { return [] }
 }
 
 export async function previewVoice(

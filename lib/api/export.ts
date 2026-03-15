@@ -1,10 +1,9 @@
 /**
  * © 2026 Mountain Jewels LLC. All rights reserved.
  * Proprietary and confidential.
- */
-
-/**
- * Export API — image, video, audio, Shopify, share, Mux upload
+ *
+ * Export API — image, video, audio, Shopify, share, Mux upload.
+ * All endpoints degrade gracefully when unavailable.
  */
 
 import { apiGet, apiPost } from './client'
@@ -42,42 +41,51 @@ export async function exportImage(
   sceneId: string,
   format: 'png' | 'jpg' = 'png',
   quality?: number
-): Promise<ExportImageResponse> {
-  return apiPost<ExportImageResponse>('/export/image', {
-    scene_id: sceneId,
-    format,
-    ...(quality != null && { quality }),
-  })
+): Promise<ExportImageResponse | null> {
+  try {
+    return await apiPost<ExportImageResponse>('/export/image', {
+      scene_id: sceneId,
+      format,
+      ...(quality != null && { quality }),
+    })
+  } catch { return null }
 }
 
-export async function exportVideo(sceneId: string): Promise<ExportVideoResponse> {
-  return apiPost<ExportVideoResponse>('/export/video', {
-    scene_id: sceneId,
-    format: 'mp4',
-  })
+export async function exportVideo(sceneId: string): Promise<ExportVideoResponse | null> {
+  try {
+    return await apiPost<ExportVideoResponse>('/export/video', {
+      scene_id: sceneId,
+      format: 'mp4',
+    })
+  } catch { return null }
 }
 
-export async function exportAudio(sceneId: string): Promise<ExportAudioResponse> {
-  return apiPost<ExportAudioResponse>('/export/audio', {
-    scene_id: sceneId,
-    format: 'mp3',
-  })
+export async function exportAudio(sceneId: string): Promise<ExportAudioResponse | null> {
+  try {
+    return await apiPost<ExportAudioResponse>('/export/audio', {
+      scene_id: sceneId,
+      format: 'mp3',
+    })
+  } catch { return null }
 }
 
 export async function exportToShopify(
   sceneId: string,
   productTitle: string,
   description?: string
-): Promise<ExportShopifyResponse> {
-  return apiPost<ExportShopifyResponse>('/export/shopify', {
-    scene_id: sceneId,
-    product_title: productTitle,
-    ...(description != null && description !== '' && { description }),
-  })
+): Promise<ExportShopifyResponse | null> {
+  try {
+    return await apiPost<ExportShopifyResponse>('/export/shopify', {
+      scene_id: sceneId,
+      product_title: productTitle,
+      ...(description != null && description !== '' && { description }),
+    })
+  } catch { return null }
 }
 
-export async function exportShare(sceneId: string): Promise<ExportShareResponse> {
-  return apiPost<ExportShareResponse>('/export/share', { scene_id: sceneId })
+export async function exportShare(sceneId: string): Promise<ExportShareResponse | null> {
+  try { return await apiPost<ExportShareResponse>('/export/share', { scene_id: sceneId }) }
+  catch { return null }
 }
 
 // --- Mux video upload & status ---
@@ -101,13 +109,16 @@ export interface MuxAssetStatusResponse {
 export async function uploadVideoToMux(
   videoUrl: string,
   jobId?: string
-): Promise<MuxUploadResponse> {
-  return apiPost<MuxUploadResponse>('/export/video', {
-    video_url: videoUrl,
-    ...(jobId != null && jobId !== '' && { job_id: jobId }),
-  })
+): Promise<MuxUploadResponse | null> {
+  try {
+    return await apiPost<MuxUploadResponse>('/export/video', {
+      video_url: videoUrl,
+      ...(jobId != null && jobId !== '' && { job_id: jobId }),
+    })
+  } catch { return null }
 }
 
-export async function getMuxAssetStatus(assetId: string): Promise<MuxAssetStatusResponse> {
-  return apiGet<MuxAssetStatusResponse>(`/export/video/${encodeURIComponent(assetId)}`)
+export async function getMuxAssetStatus(assetId: string): Promise<MuxAssetStatusResponse | null> {
+  try { return await apiGet<MuxAssetStatusResponse>(`/export/video/${encodeURIComponent(assetId)}`) }
+  catch { return null }
 }

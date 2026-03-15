@@ -5,6 +5,9 @@
 
 /**
  * Generation API — DALL-E, Runway, HeyGen, Luma, Suno, dialogue
+ * All endpoints are planned but not yet implemented on the backend.
+ * Each function logs failures and re-throws so callers' existing
+ * try/catch blocks continue to work.
  */
 
 import { apiGet, apiPost } from './client'

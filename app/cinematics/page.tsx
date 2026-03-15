@@ -34,14 +34,19 @@ import {
   getClips,
   getBehaviorScripts,
   createBehaviorScript,
+  deactivateScript,
   createScheduleSlot,
   deleteScheduleSlot,
   updateSwitchoverConfig,
   getSwitchoverConfig,
   getScheduleSlots,
 } from '@/lib/api/cinematic'
-import type { CinematicPlaylist, CinematicClip, FeedMode, SwitchoverConfig, ScheduleSlot } from '@/lib/types/cinematic'
+import { getEngagementLog } from '@/lib/api/lighting'
+import type { CinematicPlaylist, CinematicClip, FeedMode, SwitchoverConfig, ScheduleSlot, AvatarBehaviorScript } from '@/lib/types/cinematic'
 import { FEED_MODE_COLORS, FEED_MODE_LABELS, CLIP_STATUS_COLORS } from '@/lib/types/cinematic'
+import type { LightingEngagementRecord } from '@/lib/types/lighting-engine'
+import { classifyTimeOfDay, TIME_OF_DAY_LABELS, TIME_OF_DAY_COLORS } from '@/lib/types/lighting-engine'
+import { StatusBadge } from '@/components/shared/StatusBadge'
 import { vmPowerAction } from '@/lib/api/vm-control'
 import { useSwitchoverStore } from '@/lib/stores/switchover-store'
 import { useSceneStateStore } from '@/lib/stores/scene-state-store'
@@ -93,7 +98,7 @@ export default function CinematicsPage() {
   const [activePlaylist, setActivePlaylist] = useState<CinematicPlaylist | null>(null)
   const [clips, setClips] = useState<CinematicClip[]>([])
 
-  const [rightTab, setRightTab] = useState<'shots' | 'camera' | 'audio' | 'format' | 'schedule'>('shots')
+  const [rightTab, setRightTab] = useState<'shots' | 'camera' | 'audio' | 'format' | 'schedule' | 'scripts' | 'learning'>('shots')
 
   const [bgMusicUrl, setBgMusicUrl] = useState('')
   const [voiceoverUrl, setVoiceoverUrl] = useState('')
@@ -224,6 +229,8 @@ export default function CinematicsPage() {
               { id: 'audio' as const, label: 'Audio', icon: Music },
               { id: 'format' as const, label: 'Format', icon: Monitor },
               { id: 'schedule' as const, label: 'Schedule', icon: Film },
+              { id: 'scripts' as const, label: 'Scripts', icon: Sparkles },
+              { id: 'learning' as const, label: 'Learning', icon: Sparkles },
             ]).map((t) => (
               <button
                 key={t.id}
@@ -677,6 +684,51 @@ export default function CinematicsPage() {
                   </div>
                 </div>
 
+                {/* 24-Hour Visual Timeline */}
+                <div>
+                  <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wider mb-2">24-Hour Timeline</p>
+                  <div className="relative h-10 rounded-lg overflow-hidden bg-surface border border-surface-border">
+                    {Array.from({ length: 24 }).map((_, h) => {
+                      const ls = switchConfig?.live_hours_start ?? '08:00'
+                      const le = switchConfig?.live_hours_end ?? '22:00'
+                      const isLive = h >= parseInt(ls) && h < parseInt(le)
+                      return (
+                        <div
+                          key={h}
+                          className="absolute top-0 bottom-0 border-r border-surface-border/30"
+                          style={{
+                            left: `${(h / 24) * 100}%`,
+                            width: `${100 / 24}%`,
+                            backgroundColor: isLive ? `${FEED_MODE_COLORS.live}15` : `${FEED_MODE_COLORS.cinematic}15`,
+                          }}
+                        >
+                          <span className="absolute bottom-0.5 left-0.5 text-[6px] text-white/20 font-mono">{h.toString().padStart(2, '0')}</span>
+                        </div>
+                      )
+                    })}
+                    {scheduleSlots.map((slot) => {
+                      const start = new Date(slot.start_time)
+                      const end = new Date(slot.end_time)
+                      const startPct = ((start.getHours() + start.getMinutes() / 60) / 24) * 100
+                      const endPct = ((end.getHours() + end.getMinutes() / 60) / 24) * 100
+                      return (
+                        <div
+                          key={slot.id}
+                          className="absolute top-1 h-3 rounded-sm opacity-60"
+                          style={{ left: `${startPct}%`, width: `${Math.max(1, endPct - startPct)}%`, backgroundColor: FEED_MODE_COLORS[slot.mode] }}
+                          title={`${slot.label || slot.mode} ${slot.start_time} – ${slot.end_time}`}
+                        />
+                      )
+                    })}
+                    <div className="absolute top-0 bottom-0 w-0.5 bg-gold z-10" style={{ left: `${((new Date().getHours() + new Date().getMinutes() / 60) / 24) * 100}%` }} />
+                  </div>
+                  <div className="flex items-center gap-3 mt-1 text-[8px] text-white/30">
+                    <span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: FEED_MODE_COLORS.live }} /> Live</span>
+                    <span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: FEED_MODE_COLORS.cinematic }} /> Cinematic</span>
+                    <span className="flex items-center gap-1"><span className="h-1.5 w-0.5 bg-gold" /> Now</span>
+                  </div>
+                </div>
+
                 {/* Manual capture + VM controls */}
                 <div className="space-y-2">
                   <button
@@ -689,6 +741,9 @@ export default function CinematicsPage() {
                 </div>
               </div>
             )}
+
+            {rightTab === 'scripts' && <ScriptsPanel />}
+            {rightTab === 'learning' && <LearningPanel environment={environment} />}
           </div>
         </div>
       </div>
@@ -747,6 +802,179 @@ export default function CinematicsPage() {
                 </button>
               )
             })}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* ────────────────────── Behavior Scripts Panel ────────────────────── */
+
+const TRIGGER_TYPES = ['time', 'event', 'default'] as const
+const SCRIPT_ENVIRONMENTS = ['landing', 'cave', 'avatar'] as const
+
+function ScriptsPanel() {
+  const [scripts, setScripts] = useState<AvatarBehaviorScript[]>([])
+  const [loading, setLoading] = useState(true)
+  const [name, setName] = useState('')
+  const [triggerType, setTriggerType] = useState<string>('time')
+  const [timeline, setTimeline] = useState('')
+  const [envs, setEnvs] = useState<Set<string>>(new Set())
+  const [creating, setCreating] = useState(false)
+  const [deactivatingId, setDeactivatingId] = useState<string | null>(null)
+
+  const refresh = useCallback(async () => {
+    setLoading(true)
+    try { setScripts(await getBehaviorScripts(false)) }
+    catch { /* graceful */ }
+    finally { setLoading(false) }
+  }, [])
+
+  useEffect(() => { refresh() }, [refresh])
+
+  const handleCreate = async () => {
+    if (!name.trim() || !timeline.trim() || creating) return
+    let parsed: Record<string, unknown>[]
+    try { parsed = JSON.parse(timeline); if (!Array.isArray(parsed)) throw 0 }
+    catch { toast.error('Action timeline must be valid JSON array'); return }
+    setCreating(true)
+    try {
+      await createBehaviorScript(name.trim(), triggerType, parsed, envs.size > 0 ? Array.from(envs) : undefined)
+      toast.success('Script created')
+      setName(''); setTimeline(''); setEnvs(new Set())
+      refresh()
+    } catch (e) { toast.error(e instanceof Error ? e.message : 'Failed') }
+    finally { setCreating(false) }
+  }
+
+  const handleDeactivate = async (id: string) => {
+    if (deactivatingId) return
+    setDeactivatingId(id)
+    try { await deactivateScript(id); toast.success('Deactivated'); refresh() }
+    catch { toast.error('Failed') }
+    finally { setDeactivatingId(null) }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wider mb-2">Active Scripts</p>
+        {loading ? (
+          <p className="text-[9px] text-white/30 py-3 text-center">Loading…</p>
+        ) : scripts.length === 0 ? (
+          <p className="text-[9px] text-white/20 py-3 text-center">No behavior scripts</p>
+        ) : (
+          <div className="space-y-1.5">
+            {scripts.map((s) => (
+              <div key={s.id} className="p-2 rounded border border-surface-border bg-surface">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-medium text-white">{s.script_name}</span>
+                  <StatusBadge status={s.is_active ? 'active' : 'offline'} />
+                </div>
+                <p className="text-[8px] text-white/30">Trigger: {s.trigger_type} · Envs: {s.applicable_environments?.join(', ') ?? 'all'}</p>
+                {s.is_active && (
+                  <button onClick={() => handleDeactivate(s.id)} disabled={!!deactivatingId} className="mt-1 text-[8px] text-red-400/60 hover:text-red-400">Deactivate</button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div>
+        <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wider mb-2">Create Script</p>
+        <div className="p-3 rounded-lg border border-surface-border bg-surface space-y-2">
+          <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Script name"
+            className="w-full h-7 px-2 bg-surface border border-surface-border rounded text-[10px] text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-cyan-500" />
+          <select value={triggerType} onChange={(e) => setTriggerType(e.target.value)}
+            className="w-full h-7 px-2 bg-surface border border-surface-border rounded text-[10px] text-white focus:outline-none focus:ring-1 focus:ring-cyan-500">
+            {TRIGGER_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+          <textarea value={timeline} onChange={(e) => setTimeline(e.target.value)} rows={3}
+            placeholder='[{"type":"wave","duration":3}]'
+            className="w-full bg-surface border border-surface-border rounded text-[9px] text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-cyan-500 px-2 py-1.5 font-mono" />
+          <div className="flex gap-2">
+            {SCRIPT_ENVIRONMENTS.map((env) => (
+              <label key={env} className="flex items-center gap-1 text-[9px] text-white/40 cursor-pointer">
+                <input type="checkbox" checked={envs.has(env)} onChange={() => setEnvs((p) => { const n = new Set(p); n.has(env) ? n.delete(env) : n.add(env); return n })} className="h-3 w-3 rounded accent-cyan-500" />
+                {env}
+              </label>
+            ))}
+          </div>
+          <button onClick={handleCreate} disabled={creating || !name.trim() || !timeline.trim()}
+            className="w-full py-1.5 bg-cyan-600 text-white text-[10px] font-semibold rounded hover:bg-cyan-500 transition-colors disabled:opacity-50">
+            {creating ? 'Creating…' : 'Create Script'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ────────────────────── Engagement Learning Panel ────────────────────── */
+
+function LearningPanel({ environment }: { environment: string }) {
+  const [logs, setLogs] = useState<LightingEngagementRecord[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const refresh = useCallback(async () => {
+    setLoading(true)
+    try { setLogs(await getEngagementLog(environment)) }
+    catch { setLogs([]) }
+    finally { setLoading(false) }
+  }, [environment])
+
+  useEffect(() => { refresh() }, [refresh])
+
+  const avgConversion = logs.length > 0 ? logs.reduce((sum, l) => sum + (l.conversion_rate ?? 0), 0) / logs.length : 0
+  const avgDuration = logs.length > 0 ? logs.reduce((sum, l) => sum + (l.avg_session_duration_sec ?? 0), 0) / logs.length : 0
+  const avgBounce = logs.length > 0 ? logs.reduce((sum, l) => sum + (l.bounce_rate ?? 0), 0) / logs.length : 0
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wider mb-2">Engagement Metrics</p>
+        <p className="text-[8px] text-white/20 mb-2">
+          The lighting engine learns which time-of-day, lighting, and scene configs drive the best conversion. This feeds into live and cinematic content.
+        </p>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="p-2 rounded border border-surface-border bg-surface text-center">
+            <p className="text-[7px] text-white/25 uppercase">Conv.</p>
+            <p className="text-sm font-semibold text-gold">{(avgConversion * 100).toFixed(1)}%</p>
+          </div>
+          <div className="p-2 rounded border border-surface-border bg-surface text-center">
+            <p className="text-[7px] text-white/25 uppercase">Sess.</p>
+            <p className="text-sm font-semibold text-white/60">{avgDuration.toFixed(0)}s</p>
+          </div>
+          <div className="p-2 rounded border border-surface-border bg-surface text-center">
+            <p className="text-[7px] text-white/25 uppercase">Bounce</p>
+            <p className="text-sm font-semibold text-white/40">{(avgBounce * 100).toFixed(1)}%</p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wider mb-2">Engagement Log</p>
+        {loading ? (
+          <p className="text-[9px] text-white/30 py-3 text-center">Loading…</p>
+        ) : logs.length === 0 ? (
+          <p className="text-[9px] text-white/20 py-3 text-center">No engagement data yet — system learns as customers interact</p>
+        ) : (
+          <div className="space-y-1">
+            {logs.map((l) => (
+              <div key={l.id} className="p-2 rounded border border-surface-border bg-surface">
+                <div className="flex items-center justify-between">
+                  <span className="text-[8px] text-white/30 font-mono">{new Date(l.timestamp).toLocaleString()}</span>
+                  <span className="text-[8px] text-white/40">{l.vm_role}</span>
+                </div>
+                <div className="flex gap-3 mt-1 text-[8px]">
+                  <span className="text-white/50">Sess: {l.avg_session_duration_sec?.toFixed(0) ?? '—'}s</span>
+                  <span className="text-gold">Conv: {l.conversion_rate != null ? `${(l.conversion_rate * 100).toFixed(1)}%` : '—'}</span>
+                  <span className="text-white/30">Bounce: {l.bounce_rate != null ? `${(l.bounce_rate * 100).toFixed(1)}%` : '—'}</span>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>

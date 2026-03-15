@@ -72,6 +72,7 @@ function ImageExportSection() {
     setExporting(true)
     try {
       const res = await exportImage(sceneId.trim(), format, format === 'jpg' ? Number(quality) : undefined)
+      if (!res) { toast.error('Image export failed'); return }
       setResult(res)
       toast.success(`Image exported — ${res.format ?? format}`)
     } catch (err) {
@@ -136,6 +137,7 @@ function VideoUploadSection() {
     setUploading(true)
     try {
       const res = await uploadVideoToMux(videoUrl.trim(), jobId.trim() || undefined)
+      if (!res) { toast.error('Upload failed'); return }
       setResult(res)
       toast.success(`Uploaded — asset ${res.asset_id}`)
     } catch (err) {
@@ -186,6 +188,7 @@ function AssetStatusSection() {
     setChecking(true)
     try {
       const res = await getMuxAssetStatus(assetId.trim())
+      if (!res) { toast.error('Check failed'); return }
       setStatus(res)
       toast.success(`Status: ${res.status}`)
     } catch (err) {
@@ -275,6 +278,7 @@ function ShopifyPreviewSection() {
     setExporting(true)
     try {
       const res = await exportToShopify(sceneId.trim(), title.trim(), description.trim() || undefined)
+      if (!res) { toast.error('Shopify export failed'); return }
       toast.success(`Published — ${res.shopify_url}`)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Shopify export failed')

@@ -2,6 +2,7 @@
  * © 2026 Mountain Jewels LLC. All rights reserved.
  * Parametric Product Engine API client.
  * Replaces the old jewelry.ts mock catalog.
+ * List endpoints degrade to empty arrays; single-item endpoints throw.
  */
 
 import { apiGet, apiPost, apiDelete } from './client'
@@ -118,23 +119,31 @@ export interface ConfigureRequest {
 // -- Customer endpoints --
 
 export async function getCategories(): Promise<ProductCategory[]> {
-  const res = await apiGet<{ categories: ProductCategory[] }>('/products/categories')
-  return res.categories ?? []
+  try {
+    const res = await apiGet<{ categories: ProductCategory[] }>('/products/categories')
+    return res.categories ?? []
+  } catch { return [] }
 }
 
 export async function getShapes(): Promise<string[]> {
-  const res = await apiGet<{ shapes: string[] }>('/products/shapes')
-  return res.shapes ?? []
+  try {
+    const res = await apiGet<{ shapes: string[] }>('/products/shapes')
+    return res.shapes ?? []
+  } catch { return [] }
 }
 
 export async function getMetals(): Promise<MetalOption[]> {
-  const res = await apiGet<{ metals: MetalOption[] }>('/products/metals')
-  return res.metals ?? []
+  try {
+    const res = await apiGet<{ metals: MetalOption[] }>('/products/metals')
+    return res.metals ?? []
+  } catch { return [] }
 }
 
 export async function getRingSizes(): Promise<RingSizeEntry[]> {
-  const res = await apiGet<{ sizes: RingSizeEntry[] }>('/products/ring-sizes')
-  return res.sizes ?? []
+  try {
+    const res = await apiGet<{ sizes: RingSizeEntry[] }>('/products/ring-sizes')
+    return res.sizes ?? []
+  } catch { return [] }
 }
 
 export async function getDiamondSize(shape: string, carat: number): Promise<DiamondSize> {
@@ -153,7 +162,8 @@ export async function configureProduct(req: ConfigureRequest): Promise<Configure
 // -- Admin endpoints --
 
 export async function getPricingTiers(): Promise<{ source: string; tiers: PricingTier[] }> {
-  return apiGet<{ source: string; tiers: PricingTier[] }>('/products/admin/pricing-tiers')
+  try { return await apiGet<{ source: string; tiers: PricingTier[] }>('/products/admin/pricing-tiers') }
+  catch { return { source: '', tiers: [] } }
 }
 
 export async function setPricingTier(tier: {
@@ -174,5 +184,6 @@ export async function getGoldPrice(): Promise<{ gold_usd_per_oz: number; source:
 }
 
 export async function getMaterials(): Promise<{ diamond: Record<string, number>; metals: Record<string, unknown> }> {
-  return apiGet('/products/admin/materials')
+  try { return await apiGet('/products/admin/materials') }
+  catch { return { diamond: {}, metals: {} } }
 }

@@ -76,31 +76,30 @@ export async function getSession(sessionId: string): Promise<PixelStreamSession>
 // ─── Capacity & Experience ───
 
 export async function getCapacity(): Promise<CapacityResponse> {
-  const res = await apiGet<CapacityResponse & { max_sessions?: number }>('/v1/capacity')
-  return {
-    ...res,
-    max_sessions: res.max_sessions ?? res.total_nodes,
-  }
+  try {
+    const res = await apiGet<CapacityResponse & { max_sessions?: number }>('/v1/capacity')
+    return { ...res, max_sessions: res.max_sessions ?? res.total_nodes }
+  } catch { return { total_nodes: 0, available_nodes: 0, active_sessions: 0 } }
 }
 
 export async function listSessions(): Promise<PixelStreamSession[]> {
   try {
     const res = await apiGet<{ sessions?: PixelStreamSession[] }>('/v1/sessions')
     return res?.sessions ?? []
-  } catch {
-    return []
-  }
+  } catch { return [] }
 }
 
 export async function getExperience(productId: string): Promise<ExperienceResponse> {
-  const res = await apiGet<{
-    mode: 'streaming' | 'fallback_gltf'
-    stream_url?: string
-    model_url?: string
-  }>(`/v1/experience/${productId}`)
-  return {
-    mode: res.mode === 'fallback_gltf' ? 'fallback' : 'streaming',
-    stream_url: res.stream_url,
-    fallback_url: res.model_url,
-  }
+  try {
+    const res = await apiGet<{
+      mode: 'streaming' | 'fallback_gltf'
+      stream_url?: string
+      model_url?: string
+    }>(`/v1/experience/${productId}`)
+    return {
+      mode: res.mode === 'fallback_gltf' ? 'fallback' : 'streaming',
+      stream_url: res.stream_url,
+      fallback_url: res.model_url,
+    }
+  } catch { return { mode: 'fallback' } }
 }

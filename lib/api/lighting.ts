@@ -41,43 +41,53 @@ function locationQuery(loc?: LightingLocationParams): string {
 export async function getCurrentLighting(
   vmRole: string,
   location?: LightingLocationParams
-): Promise<LightingState> {
-  return apiGet<LightingState>(
-    `/v1/lighting/current?vm_role=${encodeURIComponent(vmRole)}${locationQuery(location)}`
-  )
+): Promise<LightingState | null> {
+  try {
+    return await apiGet<LightingState>(
+      `/v1/lighting/current?vm_role=${encodeURIComponent(vmRole)}${locationQuery(location)}`
+    )
+  } catch { return null }
 }
 
 export async function getLightingAtTime(
   vmRole: string,
   isoTime: string,
   location?: LightingLocationParams
-): Promise<LightingState> {
-  return apiGet<LightingState>(
-    `/v1/lighting/at-time?vm_role=${encodeURIComponent(vmRole)}&time=${encodeURIComponent(isoTime)}${locationQuery(location)}`
-  )
+): Promise<LightingState | null> {
+  try {
+    return await apiGet<LightingState>(
+      `/v1/lighting/at-time?vm_role=${encodeURIComponent(vmRole)}&time=${encodeURIComponent(isoTime)}${locationQuery(location)}`
+    )
+  } catch { return null }
 }
 
 export async function generateDailyProfiles(vmRole: string): Promise<LightingProfileRecord[]> {
-  return apiPost<LightingProfileRecord[]>('/v1/lighting/generate-daily', { vm_role: vmRole })
+  try { return await apiPost<LightingProfileRecord[]>('/v1/lighting/generate-daily', { vm_role: vmRole }) }
+  catch { return [] }
 }
 
 export async function getDailyProfiles(vmRole: string): Promise<LightingProfileRecord[]> {
-  return apiGet<LightingProfileRecord[]>(`/v1/lighting/profiles?vm_role=${encodeURIComponent(vmRole)}`)
+  try { return await apiGet<LightingProfileRecord[]>(`/v1/lighting/profiles?vm_role=${encodeURIComponent(vmRole)}`) }
+  catch { return [] }
 }
 
 export async function getEngagementLog(
   vmRole: string,
   limit = 50
 ): Promise<LightingEngagementRecord[]> {
-  return apiGet<LightingEngagementRecord[]>(
-    `/v1/lighting/engagement?vm_role=${encodeURIComponent(vmRole)}&limit=${limit}`
-  )
+  try {
+    return await apiGet<LightingEngagementRecord[]>(
+      `/v1/lighting/engagement?vm_role=${encodeURIComponent(vmRole)}&limit=${limit}`
+    )
+  } catch { return [] }
 }
 
 export async function getOverrides(vmRole: string): Promise<LightingOverrideRecord[]> {
-  return apiGet<LightingOverrideRecord[]>(
-    `/v1/lighting/overrides?vm_role=${encodeURIComponent(vmRole)}`
-  )
+  try {
+    return await apiGet<LightingOverrideRecord[]>(
+      `/v1/lighting/overrides?vm_role=${encodeURIComponent(vmRole)}`
+    )
+  } catch { return [] }
 }
 
 export async function createOverride(
@@ -87,13 +97,15 @@ export async function createOverride(
   endTime: string,
   reason?: string,
   parameters?: Record<string, unknown>
-): Promise<LightingOverrideRecord> {
-  return apiPost<LightingOverrideRecord>('/v1/lighting/overrides', {
-    vm_role: vmRole,
-    override_type: overrideType,
-    start_time: startTime,
-    end_time: endTime,
-    reason,
-    parameters_json: parameters,
-  })
+): Promise<LightingOverrideRecord | null> {
+  try {
+    return await apiPost<LightingOverrideRecord>('/v1/lighting/overrides', {
+      vm_role: vmRole,
+      override_type: overrideType,
+      start_time: startTime,
+      end_time: endTime,
+      reason,
+      parameters_json: parameters,
+    })
+  } catch { return null }
 }

@@ -1,10 +1,9 @@
 /**
  * © 2026 Mountain Jewels LLC. All rights reserved.
  * Proprietary and confidential.
- */
-
-/**
- * Asset API — upload, list, delete, get URL
+ *
+ * Asset API — upload, list, delete, get URL.
+ * List endpoints degrade to empty arrays.
  */
 
 import { apiDelete, apiGet, apiUpload } from './client'
@@ -17,7 +16,6 @@ export async function uploadAsset(
   type: AssetType,
   options?: { onProgress?: (loaded: number, total: number) => void }
 ): Promise<UploadAssetResponse> {
-  // type sent as query param; API routes to correct container
   return apiUpload<UploadAssetResponse>(`/assets/upload?type=${type}`, file, 'file', {
     onProgress: options?.onProgress,
   })
@@ -26,11 +24,13 @@ export async function uploadAsset(
 export async function listAssets(
   type?: AssetType
 ): Promise<Asset[]> {
-  const res = await apiGet<{ assets?: Asset[] }>(
-    type ? `/assets?type=${type}` : '/assets'
-  )
-  const arr = (res as { assets?: Asset[] })?.assets
-  return Array.isArray(arr) ? arr : []
+  try {
+    const res = await apiGet<{ assets?: Asset[] }>(
+      type ? `/assets?type=${type}` : '/assets'
+    )
+    const arr = (res as { assets?: Asset[] })?.assets
+    return Array.isArray(arr) ? arr : []
+  } catch { return [] }
 }
 
 export async function deleteAsset(id: string): Promise<void> {
