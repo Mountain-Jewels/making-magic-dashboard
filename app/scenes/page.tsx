@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { loadScene, sendCommand } from '@/lib/api/scene-control'
 import { getCurrentLighting } from '@/lib/api/lighting'
+import { apiGet } from '@/lib/api/client'
 import { useSceneStateStore } from '@/lib/stores/scene-state-store'
 import { LiveViewport } from '@/components/studio/LiveViewport'
 import { LightingAdvisor } from '@/components/studio/LightingAdvisor'
@@ -29,6 +30,13 @@ interface Environment {
   label: string
   desc: string
   gradient: string
+}
+
+interface SceneAsset {
+  asset_path: string
+  asset_type: string
+  tags: string[]
+  thumbnail_url: string | null
 }
 
 const ENVIRONMENTS: Environment[] = [
@@ -71,6 +79,13 @@ export default function ScenesPage() {
   const [selectedCamera, setSelectedCamera] = useState<string | null>(sceneStore.camera)
   const [busy, setBusy] = useState(false)
   const [sceneLighting, setSceneLighting] = useState<LightingState | null>(null)
+  const [sceneAssets, setSceneAssets] = useState<SceneAsset[]>([])
+
+  useEffect(() => {
+    apiGet<{ results: SceneAsset[]; count: number }>('/v1/assets/search?limit=50')
+      .then((d) => setSceneAssets(d.results))
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (!selectedEnv) { setSceneLighting(null); return }
@@ -155,6 +170,34 @@ export default function ScenesPage() {
               <RotateCcw className="h-3 w-3" />
             </button>
           </div>
+        )}
+
+        {sceneAssets.length > 0 && (
+          <>
+            <div className="flex items-center gap-2 pt-3 border-t border-surface-border">
+              <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
+              <h3 className="text-[10px] font-semibold text-white/50 uppercase tracking-wide">Scene Assets ({sceneAssets.length})</h3>
+            </div>
+            <div className="space-y-1">
+              {sceneAssets.map((a) => {
+                const name = a.asset_path.split('/').pop() || a.asset_path
+                return (
+                  <div
+                    key={a.asset_path}
+                    className="flex items-center gap-2 p-2 rounded border border-surface-border bg-surface-panel hover:border-white/20 transition-colors"
+                  >
+                    <div className="h-8 w-8 rounded bg-emerald-900/30 flex items-center justify-center shrink-0">
+                      <Mountain className="h-3.5 w-3.5 text-emerald-400/40" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] text-white/60 truncate">{name}</p>
+                      <p className="text-[8px] text-white/30">{a.asset_type} · {a.tags.slice(0, 3).join(', ')}</p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </>
         )}
       </div>
 

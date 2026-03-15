@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { toast } from 'sonner'
 import {
   Clapperboard,
@@ -21,6 +21,11 @@ import {
   Film,
   Sparkles,
   Trash2,
+  Upload,
+  Volume2,
+  Repeat,
+  Link,
+  Loader2,
 } from 'lucide-react'
 import {
   getActivePlaylist,
@@ -85,6 +90,18 @@ export default function CinematicsPage() {
   const [clips, setClips] = useState<CinematicClip[]>([])
 
   const [rightTab, setRightTab] = useState<'shots' | 'camera' | 'audio' | 'format'>('shots')
+
+  const [bgMusicUrl, setBgMusicUrl] = useState('')
+  const [voiceoverUrl, setVoiceoverUrl] = useState('')
+  const [bgVolume, setBgVolume] = useState(40)
+  const [voiceVolume, setVoiceVolume] = useState(80)
+  const [loopMusic, setLoopMusic] = useState(true)
+  const [fadeIn, setFadeIn] = useState(2)
+  const [fadeOut, setFadeOut] = useState(3)
+  const [spotifyLink, setSpotifyLink] = useState('')
+  const [audioUploading, setAudioUploading] = useState(false)
+  const musicFileRef = useRef<HTMLInputElement>(null)
+  const voiceFileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { refreshAll() }, [refreshAll])
 
@@ -310,11 +327,159 @@ export default function CinematicsPage() {
 
             {rightTab === 'audio' && (
               <div className="space-y-4">
-                <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">Music & Voice</p>
-                <div className="p-3 rounded-lg border border-surface-border bg-surface text-[11px] text-white/40">
-                  <Mic className="h-4 w-4 text-white/20 mb-2" />
-                  <p>Voice script and background music controls for cinematic sequences.</p>
-                  <p className="mt-2 text-white/25">Connect to voice generation and music library APIs.</p>
+                {/* Background Music */}
+                <div>
+                  <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wider mb-2">Background Music</p>
+                  <div className="p-3 rounded-lg border border-surface-border bg-surface space-y-3">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => musicFileRef.current?.click()}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gold/10 text-gold text-[10px] font-semibold rounded hover:bg-gold/20 transition-colors"
+                      >
+                        <Upload className="h-3 w-3" />
+                        Upload Track
+                      </button>
+                      <span className="text-[9px] text-white/30 truncate flex-1">
+                        {bgMusicUrl ? bgMusicUrl.split('/').pop() : 'No track selected'}
+                      </span>
+                    </div>
+                    <input
+                      ref={musicFileRef}
+                      type="file"
+                      accept=".mp3,.wav,.ogg,.flac"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) {
+                          setBgMusicUrl(file.name)
+                          toast.success(`Music loaded: ${file.name}`)
+                        }
+                      }}
+                    />
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[9px] text-white/30 flex items-center gap-1"><Volume2 className="h-2.5 w-2.5" /> Volume</label>
+                        <span className="text-[9px] text-white/50 font-mono">{bgVolume}%</span>
+                      </div>
+                      <input
+                        type="range" min={0} max={100} value={bgVolume}
+                        onChange={(e) => setBgVolume(Number(e.target.value))}
+                        className="w-full h-1 accent-gold cursor-pointer"
+                      />
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-1.5 text-[9px] text-white/40 cursor-pointer">
+                        <input
+                          type="checkbox" checked={loopMusic}
+                          onChange={(e) => setLoopMusic(e.target.checked)}
+                          className="h-3 w-3 rounded border-surface-border accent-gold"
+                        />
+                        <Repeat className="h-2.5 w-2.5" /> Loop
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <label className="text-[9px] text-white/30">Fade in</label>
+                        <input
+                          type="number" step="0.5" min="0" max="10" value={fadeIn}
+                          onChange={(e) => setFadeIn(Number(e.target.value))}
+                          className="w-12 h-6 px-1.5 bg-surface border border-surface-border rounded text-[10px] text-white text-center focus:outline-none focus:ring-1 focus:ring-gold"
+                        />
+                        <span className="text-[8px] text-white/20">s</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <label className="text-[9px] text-white/30">Fade out</label>
+                        <input
+                          type="number" step="0.5" min="0" max="10" value={fadeOut}
+                          onChange={(e) => setFadeOut(Number(e.target.value))}
+                          className="w-12 h-6 px-1.5 bg-surface border border-surface-border rounded text-[10px] text-white text-center focus:outline-none focus:ring-1 focus:ring-gold"
+                        />
+                        <span className="text-[8px] text-white/20">s</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Spotify Link */}
+                <div>
+                  <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wider mb-2">Spotify / External</p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="url"
+                      placeholder="Spotify track URL or embed link"
+                      value={spotifyLink}
+                      onChange={(e) => setSpotifyLink(e.target.value)}
+                      className="flex-1 h-7 px-2 bg-surface border border-surface-border rounded text-[10px] text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-green-500"
+                    />
+                    <button
+                      onClick={() => {
+                        if (spotifyLink.trim()) {
+                          setBgMusicUrl(spotifyLink)
+                          toast.success('Spotify track linked')
+                        }
+                      }}
+                      className="h-7 px-2.5 bg-green-600 text-white text-[9px] font-semibold rounded hover:bg-green-500 transition-colors flex items-center gap-1"
+                    >
+                      <Link className="h-3 w-3" />
+                      Link
+                    </button>
+                  </div>
+                </div>
+
+                {/* Voiceover */}
+                <div>
+                  <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wider mb-2">Voiceover</p>
+                  <div className="p-3 rounded-lg border border-surface-border bg-surface space-y-3">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => voiceFileRef.current?.click()}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 bg-purple-500/10 text-purple-400 text-[10px] font-semibold rounded hover:bg-purple-500/20 transition-colors"
+                      >
+                        <Mic className="h-3 w-3" />
+                        Upload Voice
+                      </button>
+                      <span className="text-[9px] text-white/30 truncate flex-1">
+                        {voiceoverUrl ? voiceoverUrl.split('/').pop() : 'No voiceover'}
+                      </span>
+                    </div>
+                    <input
+                      ref={voiceFileRef}
+                      type="file"
+                      accept=".mp3,.wav,.ogg"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) {
+                          setVoiceoverUrl(file.name)
+                          toast.success(`Voice loaded: ${file.name}`)
+                        }
+                      }}
+                    />
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[9px] text-white/30 flex items-center gap-1"><Mic className="h-2.5 w-2.5" /> Volume</label>
+                        <span className="text-[9px] text-white/50 font-mono">{voiceVolume}%</span>
+                      </div>
+                      <input
+                        type="range" min={0} max={100} value={voiceVolume}
+                        onChange={(e) => setVoiceVolume(Number(e.target.value))}
+                        className="w-full h-1 accent-purple-500 cursor-pointer"
+                      />
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (voiceoverUrl) {
+                          metahumanSpeak(voiceoverUrl, '', undefined, undefined)
+                            .then(() => toast.success('Voiceover sent to avatar'))
+                            .catch(() => toast.error('Voiceover failed'))
+                        } else {
+                          toast.error('Upload a voiceover first')
+                        }
+                      }}
+                      className="w-full flex items-center justify-center gap-1.5 py-1.5 border border-purple-500/30 text-purple-400 text-[10px] font-medium rounded hover:bg-purple-500/10 transition-colors"
+                    >
+                      <Play className="h-3 w-3" />
+                      Preview Voiceover
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

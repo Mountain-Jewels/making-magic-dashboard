@@ -15,6 +15,8 @@ import {
   Calculator,
   Sparkles,
   ShoppingBag,
+  ExternalLink,
+  Link2,
 } from 'lucide-react'
 import {
   getCategories,
@@ -59,6 +61,10 @@ export default function JewelryPage() {
 
   const [configResult, setConfigResult] = useState<ConfigureResult | null>(null)
   const [configuring, setConfiguring] = useState(false)
+
+  const [shopifySku, setShopifySku] = useState('')
+  const [shopifyUrl, setShopifyUrl] = useState('')
+  const [shopifyLinked, setShopifyLinked] = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -378,12 +384,71 @@ export default function JewelryPage() {
                       <Gem className="h-3.5 w-3.5" />
                       Add to Scene
                     </button>
-                    <button
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 border border-surface-border text-white/50 text-[11px] rounded hover:bg-white/5 transition-colors"
-                    >
-                      <ShoppingBag className="h-3.5 w-3.5" />
-                      Map to Shopify
-                    </button>
+                  </div>
+
+                  {/* Shopify Product Link */}
+                  <div className="p-3 rounded-lg border border-surface-border bg-surface space-y-3">
+                    <div className="flex items-center gap-2">
+                      <ShoppingBag className="h-3.5 w-3.5 text-emerald-400" />
+                      <span className="text-[10px] font-semibold text-white/50 uppercase tracking-wider">Shopify Product Link</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div>
+                        <label className="text-[9px] text-white/30 block mb-1">Product SKU</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. MJ-TB-15CT-YG"
+                          value={shopifySku}
+                          onChange={(e) => setShopifySku(e.target.value)}
+                          className="w-full h-7 px-2 bg-surface border border-surface-border rounded text-[10px] text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[9px] text-white/30 block mb-1">Shopify Product URL</label>
+                        <input
+                          type="url"
+                          placeholder="https://mountainjewels.com/products/..."
+                          value={shopifyUrl}
+                          onChange={(e) => setShopifyUrl(e.target.value)}
+                          className="w-full h-7 px-2 bg-surface border border-surface-border rounded text-[10px] text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          if (!shopifySku.trim() && !shopifyUrl.trim()) {
+                            toast.error('Enter a SKU or URL')
+                            return
+                          }
+                          setShopifyLinked(true)
+                          toast.success(`Linked to Shopify: ${shopifySku || shopifyUrl}`)
+                        }}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-1.5 bg-emerald-600 text-white text-[10px] font-semibold rounded hover:bg-emerald-500 transition-colors"
+                      >
+                        <Link2 className="h-3 w-3" />
+                        {shopifyLinked ? 'Update Link' : 'Link Product'}
+                      </button>
+                      {shopifyLinked && shopifyUrl && (
+                        <a
+                          href={shopifyUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-1.5 px-3 py-1.5 border border-emerald-500/30 text-emerald-400 text-[10px] font-medium rounded hover:bg-emerald-500/10 transition-colors"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          View on Shopify
+                        </a>
+                      )}
+                    </div>
+                    {shopifyLinked && (
+                      <div className="flex items-center gap-1.5 pt-1">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                        <span className="text-[9px] text-emerald-400/80">
+                          Linked: {shopifySku || 'via URL'}{configResult?.pricing ? ` · $${configResult.pricing.price.retail_price_usd.toLocaleString()}` : ''}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

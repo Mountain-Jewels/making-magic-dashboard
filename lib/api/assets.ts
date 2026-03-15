@@ -10,7 +10,7 @@
 import { apiDelete, apiGet, apiUpload } from './client'
 import type { Asset, UploadAssetResponse } from './types'
 
-export type AssetType = 'avatar' | 'music' | 'background' | 'generated' | 'export'
+export type AssetType = 'avatar' | 'music' | 'background' | 'generated' | 'export' | 'texture' | 'hdri' | 'animation' | 'voice' | 'mesh'
 
 export async function uploadAsset(
   file: File | Blob,
