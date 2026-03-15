@@ -35,6 +35,8 @@ import { LiveViewport } from '@/components/studio/LiveViewport'
 import { AvatarBrainPanel } from '@/components/studio/AvatarBrainPanel'
 import { CustomPieceDesigner } from '@/components/studio/CustomPieceDesigner'
 import { useAvatarBrainStore } from '@/lib/stores/avatar-brain-store'
+import { useMicrophone } from '@/lib/hooks/useMicrophone'
+import { MicOff } from 'lucide-react'
 
 interface StyleSection {
   id: string
@@ -73,6 +75,7 @@ export default function AvatarsPage() {
   const [emotion, setEmotion] = useState('neutral')
   const [gesture, setGesture] = useState('wave')
   const [busy, setBusy] = useState(false)
+  const mic = useMicrophone()
 
   const [rightTab, setRightTab] = useState<'voice' | 'brain' | 'jewelry'>('voice')
   const [showRegister, setShowRegister] = useState(false)
@@ -130,10 +133,16 @@ export default function AvatarsPage() {
   }
 
   async function handleSpeak() {
-    if (!speakText.trim()) return
+    let text = speakText.trim()
+    if (!text && mic.transcript.trim()) {
+      text = mic.transcript.trim()
+      mic.clearTranscript()
+    }
+    if (!text) return
+    if (mic.isListening) mic.stopListening()
     setBusy(true)
     try {
-      await metahumanSpeak('', speakText, undefined, emotion || undefined)
+      await metahumanSpeak('', text, undefined, emotion || undefined)
       toast.success('Avatar speaking')
       setSpeakText('')
     } catch { toast.error('Speak failed') }
@@ -413,16 +422,38 @@ export default function AvatarsPage() {
               <section>
                 <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wider mb-2">Speak</p>
                 <div className="flex items-center gap-2">
+                  {mic.isSupported && (
+                    <button
+                      onClick={() => {
+                        if (mic.isListening) {
+                          mic.stopListening()
+                          if (mic.transcript.trim()) setSpeakText(mic.transcript.trim())
+                        } else {
+                          mic.clearTranscript()
+                          mic.startListening()
+                        }
+                      }}
+                      className={`h-8 w-8 flex items-center justify-center rounded transition-colors ${
+                        mic.isListening
+                          ? 'bg-red-600 text-white animate-pulse'
+                          : 'bg-surface border border-surface-border text-white/40 hover:text-white hover:border-white/20'
+                      }`}
+                      title={mic.isListening ? 'Stop recording' : 'Voice input'}
+                    >
+                      {mic.isListening ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
+                    </button>
+                  )}
                   <input
-                    value={speakText}
+                    value={mic.isListening ? mic.transcript : speakText}
                     onChange={(e) => setSpeakText(e.target.value)}
-                    placeholder="Type dialogue..."
+                    placeholder={mic.isListening ? 'Listening...' : 'Type dialogue...'}
                     className="flex-1 h-8 px-3 bg-surface border border-surface-border rounded text-[11px] text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-purple-500"
                     onKeyDown={(e) => e.key === 'Enter' && handleSpeak()}
+                    readOnly={mic.isListening}
                   />
                   <button
                     onClick={handleSpeak}
-                    disabled={busy || !speakText.trim()}
+                    disabled={busy || (!speakText.trim() && !mic.transcript.trim())}
                     className="h-8 w-8 flex items-center justify-center bg-purple-600 text-white rounded hover:bg-purple-500 disabled:opacity-40 transition-colors"
                   >
                     <Send className="h-3.5 w-3.5" />
