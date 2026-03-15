@@ -16,7 +16,7 @@ import type {
 } from '@/lib/types/studio-v1'
 
 const STUDIO_ENGINE_URL =
-  process.env.NEXT_PUBLIC_STUDIO_ENGINE_URL?.replace(/\/$/, '') ?? 'http://localhost:8100'
+  process.env.NEXT_PUBLIC_STUDIO_ENGINE_URL?.replace(/\/$/, '') ?? ''
 
 class StudioApiError extends Error {
   constructor(
