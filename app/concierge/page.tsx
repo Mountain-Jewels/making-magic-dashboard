@@ -66,7 +66,31 @@ function SessionTab({ avatar }: { avatar: MetaHuman }) {
     checkHealth()
   }, [checkHealth])
 
+  const logEngagement = useCallback(async (msgCount: number) => {
+    if (msgCount === 0) return
+    try {
+      await apiPost('/v1/lighting/engagement', {
+        vm_role: 'avatar',
+        avg_session_duration_sec: msgCount * 15,
+        conversion_rate: null,
+        bounce_rate: msgCount < 2 ? 1.0 : 0.0,
+      })
+    } catch {
+      // engagement logging is best-effort
+    }
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      logEngagement(messages.length)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const startSession = async () => {
+    if (sessionId && messages.length > 0) {
+      logEngagement(messages.length)
+    }
     try {
       const res = await apiPost<{ session_id: string }>('/concierge/session', {
         avatar_id: avatar.id,

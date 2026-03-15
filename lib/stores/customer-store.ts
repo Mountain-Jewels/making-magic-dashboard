@@ -4,11 +4,17 @@
  *
  * Shared customer profile store.
  * Accessible by all avatars — customer name, preferences, and purchase history.
+ * Persists to backend via /v1/customers — falls back to local state on error.
  */
 
 import { create } from 'zustand'
 import type { Customer, PurchaseRecord, CustomerPreferences } from '@/lib/types/customer'
-import { listCustomers } from '@/lib/api/customers'
+import {
+  listCustomers,
+  createCustomer as apiCreateCustomer,
+  updateCustomer as apiUpdateCustomer,
+  addPurchaseRecord,
+} from '@/lib/api/customers'
 
 interface CustomerStoreState {
   customers: Customer[]
@@ -19,10 +25,10 @@ interface CustomerStoreState {
   getActiveCustomer: () => Customer | null
   setActiveCustomer: (id: string | null) => void
 
-  addCustomer: (name: string, email?: string, phone?: string) => Customer
-  updateCustomer: (id: string, updates: Partial<Customer>) => void
-  updatePreferences: (id: string, prefs: Partial<CustomerPreferences>) => void
-  addPurchase: (customerId: string, record: Omit<PurchaseRecord, 'id'>) => void
+  addCustomer: (name: string, email?: string, phone?: string) => Promise<Customer>
+  updateCustomer: (id: string, updates: Partial<Customer>) => Promise<void>
+  updatePreferences: (id: string, prefs: Partial<CustomerPreferences>) => Promise<void>
+  addPurchase: (customerId: string, record: Omit<PurchaseRecord, 'id'>) => Promise<void>
   removeCustomer: (id: string) => void
 }
 
@@ -48,7 +54,12 @@ export const useCustomerStore = create<CustomerStoreState>((set, get) => ({
 
   setActiveCustomer: (id) => set({ activeCustomerId: id }),
 
-  addCustomer: (name, email, phone) => {
+  addCustomer: async (name, email, phone) => {
+    const remote = await apiCreateCustomer({ name, email, phone, preferences: {}, notes: '' })
+    if (remote) {
+      set((s) => ({ customers: [...s.customers, remote] }))
+      return remote
+    }
     const now = new Date().toISOString()
     const customer: Customer = {
       id: crypto.randomUUID(),
@@ -66,41 +77,67 @@ export const useCustomerStore = create<CustomerStoreState>((set, get) => ({
     return customer
   },
 
-  updateCustomer: (id, updates) => {
-    set((s) => ({
-      customers: s.customers.map((c) =>
-        c.id === id ? { ...c, ...updates, last_visit: new Date().toISOString() } : c
-      ),
-    }))
-  },
-
-  updatePreferences: (id, prefs) => {
-    set((s) => ({
-      customers: s.customers.map((c) =>
-        c.id === id
-          ? { ...c, preferences: { ...c.preferences, ...prefs }, last_visit: new Date().toISOString() }
-          : c
-      ),
-    }))
-  },
-
-  addPurchase: (customerId, record) => {
-    const purchase: PurchaseRecord = {
-      ...record,
-      id: crypto.randomUUID(),
+  updateCustomer: async (id, updates) => {
+    const remote = await apiUpdateCustomer(id, updates)
+    if (remote) {
+      set((s) => ({ customers: s.customers.map((c) => (c.id === id ? remote : c)) }))
+    } else {
+      set((s) => ({
+        customers: s.customers.map((c) =>
+          c.id === id ? { ...c, ...updates, last_visit: new Date().toISOString() } : c
+        ),
+      }))
     }
-    set((s) => ({
-      customers: s.customers.map((c) =>
-        c.id === customerId
-          ? {
-              ...c,
-              purchase_history: [...c.purchase_history, purchase],
-              total_spent_usd: c.total_spent_usd + purchase.price_usd,
-              last_visit: new Date().toISOString(),
-            }
-          : c
-      ),
-    }))
+  },
+
+  updatePreferences: async (id, prefs) => {
+    const c = get().customers.find((c) => c.id === id)
+    if (!c) return
+    const merged = { ...c.preferences, ...prefs }
+    const remote = await apiUpdateCustomer(id, { preferences: merged } as Partial<Customer>)
+    if (remote) {
+      set((s) => ({ customers: s.customers.map((cu) => (cu.id === id ? remote : cu)) }))
+    } else {
+      set((s) => ({
+        customers: s.customers.map((cu) =>
+          cu.id === id
+            ? { ...cu, preferences: merged, last_visit: new Date().toISOString() }
+            : cu
+        ),
+      }))
+    }
+  },
+
+  addPurchase: async (customerId, record) => {
+    const remote = await addPurchaseRecord(customerId, record)
+    if (remote) {
+      set((s) => ({
+        customers: s.customers.map((c) =>
+          c.id === customerId
+            ? {
+                ...c,
+                purchase_history: [...c.purchase_history, remote],
+                total_spent_usd: c.total_spent_usd + remote.price_usd,
+                last_visit: new Date().toISOString(),
+              }
+            : c
+        ),
+      }))
+    } else {
+      const purchase: PurchaseRecord = { ...record, id: crypto.randomUUID() }
+      set((s) => ({
+        customers: s.customers.map((c) =>
+          c.id === customerId
+            ? {
+                ...c,
+                purchase_history: [...c.purchase_history, purchase],
+                total_spent_usd: c.total_spent_usd + purchase.price_usd,
+                last_visit: new Date().toISOString(),
+              }
+            : c
+        ),
+      }))
+    }
   },
 
   removeCustomer: (id) => {

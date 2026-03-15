@@ -23,7 +23,20 @@ import {
   Sun,
 } from 'lucide-react'
 import { useAvatarBrainStore } from '@/lib/stores/avatar-brain-store'
+import { apiGet } from '@/lib/api/client'
 import type { AvatarBrain, SkillProficiency, ImprovementItem } from '@/lib/types/avatar-brain'
+
+interface PersonalityScores {
+  metahuman_name: string
+  openness: number
+  conscientiousness: number
+  extraversion: number
+  agreeableness: number
+  neuroticism: number
+  session_count: number
+  avg_response_quality: number
+  avg_engagement: number
+}
 
 interface AvatarBrainPanelProps {
   metahumanId: string
@@ -32,7 +45,7 @@ interface AvatarBrainPanelProps {
 
 export function AvatarBrainPanel({ metahumanId, metahumanName }: AvatarBrainPanelProps) {
   const { loadBrain, brains } = useAvatarBrainStore()
-  const [activeTab, setActiveTab] = useState<'overview' | 'skills' | 'memory' | 'improvements'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'skills' | 'memory' | 'improvements' | 'personality'>('overview')
 
   useEffect(() => {
     loadBrain(metahumanId, metahumanName)
@@ -80,6 +93,10 @@ export function AvatarBrainPanel({ metahumanId, metahumanName }: AvatarBrainPane
             </span>
           )}
         </button>
+        <button onClick={() => setActiveTab('personality')} className={tabCls(activeTab === 'personality')}>
+          <Sparkles className="h-3 w-3 inline mr-0.5" />
+          Personality
+        </button>
       </div>
 
       {/* Content */}
@@ -88,6 +105,7 @@ export function AvatarBrainPanel({ metahumanId, metahumanName }: AvatarBrainPane
         {activeTab === 'skills' && <SkillsTab brain={brain} />}
         {activeTab === 'memory' && <MemoryTab brain={brain} />}
         {activeTab === 'improvements' && <ImprovementsTab brain={brain} />}
+        {activeTab === 'personality' && <PersonalityTab metahumanName={metahumanName} />}
       </div>
     </div>
   )
@@ -407,6 +425,52 @@ function ImprovementRow({ item }: { item: ImprovementItem }) {
       {item.attempts > 0 && (
         <p className="text-[8px] text-white/20 mt-0.5">{item.attempts} attempt{item.attempts !== 1 ? 's' : ''}</p>
       )}
+    </div>
+  )
+}
+
+function PersonalityTab({ metahumanName }: { metahumanName: string }) {
+  const [data, setData] = useState<PersonalityScores | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    setLoading(true)
+    setError(false)
+    apiGet<PersonalityScores>(`/v1/metahumans/${encodeURIComponent(metahumanName)}/personality`)
+      .then(setData)
+      .catch(() => setError(true))
+      .finally(() => setLoading(false))
+  }, [metahumanName])
+
+  if (loading) return <p className="text-[10px] text-white/20 text-center py-2">Loading personality…</p>
+  if (error || !data) return <p className="text-[10px] text-white/20 text-center py-2">No personality data yet — runs after sessions</p>
+
+  const traits: { label: string; value: number }[] = [
+    { label: 'Openness', value: data.openness },
+    { label: 'Conscientiousness', value: data.conscientiousness },
+    { label: 'Extraversion', value: data.extraversion },
+    { label: 'Agreeableness', value: data.agreeableness },
+    { label: 'Neuroticism', value: data.neuroticism },
+  ]
+
+  return (
+    <div className="space-y-3">
+      <p className="text-[9px] text-white/30 uppercase tracking-wide">Big Five Traits</p>
+      {traits.map((t) => (
+        <div key={t.label} className="flex items-center gap-2">
+          <span className="text-[10px] text-white/40 w-28">{t.label}</span>
+          <div className="flex-1 h-1.5 bg-surface rounded-full overflow-hidden">
+            <div className="h-full bg-gold/60 rounded-full" style={{ width: `${Math.min(100, t.value * 100)}%` }} />
+          </div>
+          <span className="text-[9px] text-white/30 w-8 text-right">{Math.round(t.value * 100)}%</span>
+        </div>
+      ))}
+      <div className="grid grid-cols-3 gap-2 mt-2">
+        <StatCard label="Sessions" value={String(data.session_count)} />
+        <StatCard label="Avg Quality" value={`${Math.round(data.avg_response_quality * 100)}%`} />
+        <StatCard label="Engagement" value={`${Math.round(data.avg_engagement * 100)}%`} />
+      </div>
     </div>
   )
 }

@@ -39,12 +39,12 @@ export default function CustomersPage() {
 
   const selected = customers.find((c) => c.id === activeCustomerId) ?? null
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!newName.trim()) {
       toast.error('Name is required')
       return
     }
-    const c = addCustomer(newName.trim(), newEmail.trim() || undefined, newPhone.trim() || undefined)
+    const c = await addCustomer(newName.trim(), newEmail.trim() || undefined, newPhone.trim() || undefined)
     setActiveCustomer(c.id)
     setNewName('')
     setNewEmail('')

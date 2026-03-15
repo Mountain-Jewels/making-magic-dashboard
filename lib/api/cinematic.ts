@@ -3,7 +3,7 @@
  * Proprietary and confidential.
  */
 
-import { apiDelete, apiGet, apiPost } from './client'
+import { apiDelete, apiGet, apiPost, apiPut } from './client'
 import type {
   AvatarBehaviorScript,
   CinematicClip,
@@ -77,7 +77,7 @@ export async function captureStoreState(
   cameraState?: Record<string, unknown>,
   sceneEvents?: unknown[]
 ): Promise<StoreStateSnapshot> {
-  return apiPost<StoreStateSnapshot>('/v1/cinematic/capture-state', {
+  return apiPost<StoreStateSnapshot>('/v1/cinematic/state/capture', {
     vm_role: vmRole,
     avatar_state: avatarState,
     featured_products: featuredProducts,
@@ -132,7 +132,7 @@ export async function getSwitchoverConfig(environment: string): Promise<Switchov
 }
 
 export async function updateSwitchoverConfig(config: Partial<SwitchoverConfig> & { environment: string }): Promise<SwitchoverConfig> {
-  return apiPost<SwitchoverConfig>('/v1/cinematic/switchover-config', config)
+  return apiPut<SwitchoverConfig>('/v1/cinematic/switchover-config', config)
 }
 
 export async function getCurrentFeedMode(environment: string): Promise<{ mode: FeedMode; playlist_id?: string; since?: string }> {

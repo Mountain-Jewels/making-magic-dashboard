@@ -5,6 +5,7 @@
  * Per-avatar brain state management.
  *
  * Each avatar's brain is loaded on demand and cached locally.
+ * Mutations are persisted to the backend via /v1/avatar-brain/*.
  * When the backend doesn't have data yet, the store seeds a
  * blank brain that accumulates knowledge from dashboard interactions.
  */
@@ -12,16 +13,15 @@
 import { create } from 'zustand'
 import type {
   AvatarBrain,
-  DomainMemory,
-  SkillProficiency,
-  SelfAssessment,
   ImprovementItem,
-  LightingMemory,
-  FashionMemory,
-  ConversationMemory,
-  SalesMemory,
 } from '@/lib/types/avatar-brain'
-import { getAvatarBrain } from '@/lib/api/avatar-brain'
+import {
+  getAvatarBrain,
+  recordInteraction as apiRecordInteraction,
+  recordLesson as apiRecordLesson,
+  updateSelfAssessment as apiUpdateSelfAssessment,
+  resolveImprovement as apiResolveImprovement,
+} from '@/lib/api/avatar-brain'
 
 const DOMAINS = ['lighting', 'fashion', 'conversation', 'sales', 'jewelry', 'camera', 'scene'] as const
 
@@ -155,6 +155,12 @@ export const useAvatarBrainStore = create<AvatarBrainStoreState>((set, get) => (
         },
       }
     })
+    apiRecordLesson(metahumanId, 'lighting', {
+      context: `Scene: ${scene}`,
+      action_taken: `Preset: ${preset}`,
+      outcome,
+      lesson_learned: `${preset} ${outcome === 'positive' ? 'works well' : 'needs adjustment'} for ${scene}`,
+    })
   },
 
   recordFashionChoice: (metahumanId, style, approved) => {
@@ -171,6 +177,12 @@ export const useAvatarBrainStore = create<AvatarBrainStoreState>((set, get) => (
           [metahumanId]: { ...brain, fashion_memory: fm },
         },
       }
+    })
+    apiRecordLesson(metahumanId, 'fashion', {
+      context: `Style: ${style}`,
+      action_taken: approved ? 'approved' : 'rejected',
+      outcome: approved ? 'positive' : 'negative',
+      lesson_learned: `${style} was ${approved ? 'approved' : 'rejected'}`,
     })
   },
 
@@ -213,6 +225,14 @@ export const useAvatarBrainStore = create<AvatarBrainStoreState>((set, get) => (
           },
         },
       }
+    })
+    apiRecordInteraction(metahumanId, {
+      customer_intent: '',
+      avatar_response_quality: 0.5,
+      conversion: false,
+      duration_sec: 0,
+      domains_activated: [],
+      lessons: [],
     })
   },
 
@@ -273,6 +293,14 @@ export const useAvatarBrainStore = create<AvatarBrainStoreState>((set, get) => (
           },
         },
       }
+    })
+    apiRecordInteraction(metahumanId, {
+      customer_intent: `Custom ${design.category} — ${design.carat}ct ${design.shape} in ${design.metal}`,
+      avatar_response_quality: 1,
+      conversion: false,
+      duration_sec: 0,
+      domains_activated: ['fashion', 'jewelry'],
+      lessons: [`Designed custom ${design.category}`],
     })
   },
 }))
