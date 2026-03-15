@@ -38,6 +38,10 @@ export async function updateNodeSchedule(
   })
 }
 
+export async function seedNodes(): Promise<{ created: string[]; skipped: string[] }> {
+  return apiPost<{ created: string[]; skipped: string[] }>('/v1/vm-control/nodes/seed')
+}
+
 export async function getOperationsLog(
   nodeId: string,
   limit = 50

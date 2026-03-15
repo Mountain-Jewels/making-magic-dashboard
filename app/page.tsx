@@ -26,7 +26,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useSceneStateStore } from '@/lib/stores/scene-state-store'
-import { getNodes, vmPowerAction } from '@/lib/api/vm-control'
+import { getNodes, vmPowerAction, seedNodes } from '@/lib/api/vm-control'
 import { POWER_STATE_COLORS, GPU_LABELS } from '@/lib/types/vm-control'
 import type { VmPowerAction } from '@/lib/types/vm-control'
 import { listJobs } from '@/lib/api/renders'
@@ -175,8 +175,21 @@ export default function StudioHub() {
           </button>
         </div>
         {nodes.length === 0 ? (
-          <div className="rounded-lg border border-surface-border bg-surface-panel p-6 text-center text-sm text-white/30">
-            No VMs registered — check the Infrastructure page
+          <div className="rounded-lg border border-surface-border bg-surface-panel p-6 flex flex-col items-center gap-3">
+            <p className="text-sm text-white/30">No VMs registered</p>
+            <button
+              onClick={async () => {
+                try {
+                  const res = await seedNodes()
+                  toast.success(`Registered ${res.created.length} VMs`)
+                  refreshNodes()
+                } catch { toast.error('Failed to seed VMs') }
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white text-xs font-semibold rounded-lg hover:bg-cyan-500 transition-colors"
+            >
+              <Server className="h-3.5 w-3.5" />
+              Register Azure VMs
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
