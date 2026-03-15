@@ -12,6 +12,13 @@ import { listMetahumans, seedMetahumans, syncMetahumans } from '@/lib/api/metahu
 import type { MetaHuman } from '@/lib/api/metahumans'
 import { getWardrobeInventory, getWardrobeNeeds, searchWardrobeCandidates, approveWardrobeCandidate } from '@/lib/api/fashion'
 import type { WardrobeItem, WardrobeCandidate } from '@/lib/api/fashion'
+import { useSceneStateStore } from '@/lib/stores/scene-state-store'
+import { useAssetRegistryStore } from '@/lib/stores/asset-registry-store'
+import { loadAvatar } from '@/lib/api/scene-control'
+import { LightingAdvisor } from '@/components/studio/LightingAdvisor'
+import { AvatarBrainPanel } from '@/components/studio/AvatarBrainPanel'
+import { CustomPieceDesigner } from '@/components/studio/CustomPieceDesigner'
+import { useAvatarBrainStore } from '@/lib/stores/avatar-brain-store'
 
 interface StyleSection {
   id: string
@@ -29,6 +36,9 @@ const STYLE_SECTIONS: StyleSection[] = [
 ]
 
 export function AvatarStudio() {
+  const sceneStore = useSceneStateStore()
+  const { getAvatarThumbnail, getWardrobeThumbnail } = useAssetRegistryStore()
+  const { loadBrain, recordFashionChoice, setActiveAvatar } = useAvatarBrainStore()
   const [avatars, setAvatars] = useState<MetaHuman[]>([])
   const [selected, setSelected] = useState<MetaHuman | null>(null)
   const [loading, setLoading] = useState(true)
@@ -91,6 +101,8 @@ export function AvatarStudio() {
     if (!selected) return
     try {
       await approveWardrobeCandidate(selected.id, candidateId)
+      sceneStore.addWardrobe(candidateId)
+      recordFashionChoice(selected.id, candidateId, true)
       toast.success('Item approved and added')
       setCandidates((prev) => prev.filter((c) => c.id !== candidateId))
       const inv = await getWardrobeInventory(selected.id)
@@ -131,15 +143,25 @@ export function AvatarStudio() {
               {avatars.map((a) => (
                 <button
                   key={a.id}
-                  onClick={() => setSelected(a)}
+                  onClick={() => {
+                    setSelected(a)
+                    sceneStore.setAvatar(a.name)
+                    loadAvatar(a.name).catch(() => {})
+                    setActiveAvatar(a.id)
+                    loadBrain(a.id, a.name)
+                  }}
                   className={`flex flex-col items-center p-2 rounded-lg border transition-colors ${
                     selected?.id === a.id
                       ? 'border-gold bg-gold/5'
                       : 'border-surface-border hover:border-white/20 bg-surface'
                   }`}
                 >
-                  <div className="h-10 w-10 rounded-full bg-surface-panel flex items-center justify-center mb-1">
-                    <User className="h-5 w-5 text-white/20" />
+                  <div className="h-10 w-10 rounded-full bg-surface-panel flex items-center justify-center mb-1 overflow-hidden">
+                    {getAvatarThumbnail(a) ? (
+                      <img src={getAvatarThumbnail(a)!} alt={a.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <User className="h-5 w-5 text-white/20" />
+                    )}
                   </div>
                   <span className="text-[10px] text-white/60 truncate w-full text-center">
                     {a.name}
@@ -156,13 +178,20 @@ export function AvatarStudio() {
           {selected ? (
             <>
               <div className="flex items-center gap-2 mb-3">
-                <div className="h-8 w-8 rounded-full bg-gold/10 flex items-center justify-center">
-                  <User className="h-4 w-4 text-gold" />
+                <div className="h-8 w-8 rounded-full bg-gold/10 flex items-center justify-center overflow-hidden">
+                  {getAvatarThumbnail(selected) ? (
+                    <img src={getAvatarThumbnail(selected)!} alt={selected.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <User className="h-4 w-4 text-gold" />
+                  )}
                 </div>
                 <div>
                   <p className="text-sm font-medium text-white">{selected.name}</p>
                   <p className="text-[10px] text-white/30">
                     {selected.gender} · {selected.brand_archetype || 'No archetype'} · {selected.skeleton_type}
+                    {selected.lighting_profile?.skin_tone && (
+                      <> · {selected.lighting_profile.skin_tone} skin</>
+                    )}
                   </p>
                 </div>
               </div>
@@ -189,8 +218,12 @@ export function AvatarStudio() {
                           <div className="grid grid-cols-3 gap-1.5 mb-3">
                             {items.map((it, idx) => (
                               <div key={idx} className="p-2 bg-surface rounded border border-surface-border">
-                                <div className="h-12 bg-surface-panel rounded flex items-center justify-center mb-1">
-                                  <Icon className="h-5 w-5 text-white/10" />
+                                <div className="h-12 bg-surface-panel rounded flex items-center justify-center mb-1 overflow-hidden">
+                                  {getWardrobeThumbnail(it) ? (
+                                    <img src={getWardrobeThumbnail(it)!} alt={it.name || ''} className="h-full w-full object-cover rounded" />
+                                  ) : (
+                                    <Icon className="h-5 w-5 text-white/10" />
+                                  )}
                                 </div>
                                 <p className="text-[9px] text-white/40 truncate">{it.name || `Item ${idx + 1}`}</p>
                               </div>
@@ -223,9 +256,16 @@ export function AvatarStudio() {
                         {candidates.length > 0 && (
                           <div className="mt-2 space-y-1">
                             {candidates.map((c) => (
-                              <div key={c.id} className="flex items-center justify-between p-2 bg-surface rounded border border-surface-border">
-                                <div>
-                                  <p className="text-[11px] text-white/60">{c.name}</p>
+                              <div key={c.id} className="flex items-center justify-between p-2 bg-surface rounded border border-surface-border gap-2">
+                                <div className="h-8 w-8 rounded bg-surface-panel shrink-0 overflow-hidden flex items-center justify-center">
+                                  {c.thumbnail_url ? (
+                                    <img src={c.thumbnail_url} alt={c.name} className="h-full w-full object-cover" />
+                                  ) : (
+                                    <Icon className="h-4 w-4 text-white/10" />
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-[11px] text-white/60 truncate">{c.name}</p>
                                   <p className="text-[9px] text-white/25">{c.source} · score {((c.score || 0) * 100).toFixed(0)}%</p>
                                 </div>
                                 <button
@@ -243,6 +283,21 @@ export function AvatarStudio() {
                   </div>
                 )
               })}
+
+              {/* Per-avatar custom piece designer */}
+              <div className="mt-3 p-3 bg-surface-panel rounded-lg border border-surface-border">
+                <CustomPieceDesigner avatarId={selected.id} avatarName={selected.name} />
+              </div>
+
+              {/* Per-avatar lighting intelligence */}
+              <div className="mt-3 bg-surface-panel rounded-lg border border-gold/10">
+                <LightingAdvisor />
+              </div>
+
+              {/* Avatar Brain — per-avatar autonomous intelligence */}
+              <div className="mt-3 bg-surface-panel rounded-lg border border-surface-border">
+                <AvatarBrainPanel metahumanId={selected.id} metahumanName={selected.name} />
+              </div>
             </>
           ) : (
             <div className="flex items-center justify-center h-full text-xs text-white/20">

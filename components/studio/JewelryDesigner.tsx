@@ -10,6 +10,7 @@ import { toast } from 'sonner'
 import { Gem, Sparkles } from 'lucide-react'
 import { getCategories, getShapes, getMetals, getRingSizes, configureProduct } from '@/lib/api/products'
 import { addJewelry } from '@/lib/api/scene-control'
+import { useSceneStateStore } from '@/lib/stores/scene-state-store'
 
 interface OptionItem {
   id: string
@@ -59,11 +60,14 @@ export function JewelryDesigner() {
     finally { setBusy(false) }
   }
 
+  const sceneStore = useSceneStateStore()
+
   async function handleAddToScene() {
     if (!result) return
     try {
       const sku = String((result as Record<string, unknown>).sku || 'configured-jewelry')
-      await addJewelry('default', category, sku)
+      await addJewelry(sku)
+      sceneStore.addJewelry(sku)
       toast.success('Jewelry added to scene')
     } catch { toast.error('Failed to add to scene') }
   }

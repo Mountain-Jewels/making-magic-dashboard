@@ -24,6 +24,9 @@ import type {
   ExperienceResponse,
   PixelStreamSession,
 } from '@/lib/api/streaming'
+import { useSwitchoverStore } from '@/lib/stores/switchover-store'
+import { useSceneStateStore } from '@/lib/stores/scene-state-store'
+import { FEED_MODE_COLORS, FEED_MODE_LABELS } from '@/lib/types/cinematic'
 
 const ENVIRONMENTS = ['landing', 'cave', 'avatar'] as const
 
@@ -143,6 +146,9 @@ export default function StreamingPage() {
             Session management, capacity, dual-mode preview
           </p>
         </div>
+
+        {/* Switchover Status */}
+        <StreamSwitchoverBar />
 
         {/* Capacity Cards */}
         <section>
@@ -295,6 +301,60 @@ export default function StreamingPage() {
             </div>
           )}
         </Card>
+      </div>
+    </div>
+  )
+}
+
+/* ────────────────────── Switchover Status Bar ────────────────────── */
+
+function StreamSwitchoverBar() {
+  const { feedMode, feedSince, environment, refreshFeedMode, captureSnapshot, lightingState, refreshLighting } = useSwitchoverStore()
+  const sceneState = useSceneStateStore()
+  const [capturing, setCapturing] = useState(false)
+
+  useEffect(() => {
+    refreshFeedMode()
+    refreshLighting()
+    const interval = setInterval(() => { refreshFeedMode(); refreshLighting() }, 30_000)
+    return () => clearInterval(interval)
+  }, [refreshFeedMode, refreshLighting])
+
+  const handleSnapshot = async () => {
+    setCapturing(true)
+    const snap = await captureSnapshot(
+      { avatar: sceneState.avatar, emotion: sceneState.emotion },
+      [],
+      { camera: sceneState.camera, lighting: sceneState.lighting }
+    )
+    setCapturing(false)
+    if (snap) toast.success(`Snapshot: ${snap.id.slice(0, 8)}`)
+    else toast.error('Snapshot failed')
+  }
+
+  return (
+    <div className="flex items-center gap-4 px-4 py-3 rounded-lg border border-surface-border bg-surface">
+      <div className="flex items-center gap-2">
+        <span className="h-3 w-3 rounded-full animate-pulse" style={{ backgroundColor: FEED_MODE_COLORS[feedMode] }} />
+        <span className="text-sm font-medium" style={{ color: FEED_MODE_COLORS[feedMode] }}>
+          {FEED_MODE_LABELS[feedMode]}
+        </span>
+        {feedSince && <span className="text-[10px] text-white/25">since {new Date(feedSince).toLocaleTimeString()}</span>}
+      </div>
+      <div className="h-5 w-px bg-surface-border" />
+      <span className="text-xs text-white/40 capitalize">{environment}</span>
+      {lightingState && (
+        <>
+          <div className="h-5 w-px bg-surface-border" />
+          <span className="text-xs text-white/30">
+            Sun {lightingState.sun.elevation.toFixed(0)}° · {lightingState.is_golden_hour ? 'Golden Hour' : lightingState.is_night ? 'Night' : 'Day'}
+          </span>
+        </>
+      )}
+      <div className="ml-auto">
+        <button onClick={handleSnapshot} disabled={capturing} className="px-3 py-1.5 bg-gold/10 text-gold text-xs rounded hover:bg-gold/20 transition-colors disabled:opacity-40">
+          {capturing ? 'Capturing…' : 'Capture Snapshot'}
+        </button>
       </div>
     </div>
   )

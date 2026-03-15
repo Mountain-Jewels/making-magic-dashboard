@@ -20,15 +20,17 @@ import {
 } from 'lucide-react'
 import { uploadVideoToMux, getMuxAssetStatus, exportToShopify } from '@/lib/api/export'
 import { PLATFORM_PRESETS } from '@/lib/platform-presets'
+import { useSceneStateStore } from '@/lib/stores/scene-state-store'
 
 type DeployTab = 'shopify' | 'social' | 'embed' | 'email'
 
 export function DeployView() {
+  const sceneState = useSceneStateStore()
   const [tab, setTab] = useState<DeployTab>('shopify')
 
   const [videoUrl, setVideoUrl] = useState('')
-  const [sceneId, setSceneId] = useState('')
-  const [title, setTitle] = useState('')
+  const [sceneId, setSceneId] = useState(sceneState.scene || '')
+  const [title, setTitle] = useState(sceneState.scene ? `Mountain Jewels — ${sceneState.scene}` : '')
   const [description, setDescription] = useState('')
   const [muxAssetId, setMuxAssetId] = useState('')
   const [muxPlaybackId, setMuxPlaybackId] = useState('')

@@ -120,8 +120,8 @@ export function AssetBrowser() {
                   key={a.id}
                   className="flex flex-col p-2 bg-surface-panel rounded-lg border border-surface-border hover:border-white/20 transition-colors cursor-pointer"
                 >
-                  <div className="aspect-square bg-surface rounded flex items-center justify-center mb-2">
-                    {a.url && (a.type === 'background' || a.type === 'generated') ? (
+                  <div className="aspect-square bg-surface rounded flex items-center justify-center mb-2 overflow-hidden">
+                    {a.url ? (
                       <img src={a.url} alt={a.key} className="w-full h-full object-cover rounded" />
                     ) : (
                       <Icon className="h-8 w-8 text-white/10" />

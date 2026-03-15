@@ -12,7 +12,6 @@
     "@azure/msal-browser": "^4.12.0",
     "@azure/msal-react": "^3.0.0",
     "@tanstack/react-query": "^5.80.7",
-    "framer-motion": "^12.15.0",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.511.0",
     "next": "^16.1.6",

@@ -17,8 +17,18 @@ import {
   getSimilarJobs,
 } from '@/lib/api/director'
 import type { DirectorMessage, PendingQuestion } from '@/lib/api/director'
+import { listMetahumans } from '@/lib/api/metahumans'
+import type { MetaHuman } from '@/lib/api/metahumans'
+import { useAvatarBrainStore } from '@/lib/stores/avatar-brain-store'
+import { useSceneStateStore } from '@/lib/stores/scene-state-store'
+import { AvatarBrainPanel } from '@/components/studio/AvatarBrainPanel'
+import { useGuardrailsStore } from '@/lib/stores/guardrails-store'
+import type { GuardrailCategory } from '@/lib/types/guardrails'
+import { GUARDRAIL_CATEGORY_LABELS, GUARDRAIL_CATEGORY_DESCRIPTIONS, DIAMOND_SHAPES } from '@/lib/types/guardrails'
+import { lookupDiamondSizeSync } from '@/lib/services/diamond-reference'
 import { TabSwitcher } from '@/components/shared/TabSwitcher'
 import { Card } from '@/components/shared/Card'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { EmptyState } from '@/components/shared/EmptyState'
 
 type DirectorTab =
@@ -52,18 +62,6 @@ const STATE_COLORS: Record<string, string> = {
   awaiting_approval: 'bg-yellow-400',
   error: 'bg-red-500',
 }
-
-const AVATARS = [
-  'Rebecca',
-  'Amelia',
-  'Bryan',
-  'Jesse',
-  'Lexi',
-  'Omar',
-  'Pia',
-  'Vivian',
-  'Yuri',
-]
 
 const KNOWLEDGE_CATEGORIES = [
   'Product',
@@ -99,7 +97,13 @@ function ChatTab() {
   const [latestPlan, setLatestPlan] = useState<
     Record<string, unknown> | undefined
   >()
+  const [similarJobs, setSimilarJobs] = useState<Array<{ job_id: string; distance?: number }>>([])
+  const [confirmReset, setConfirmReset] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  const { userName } = useAuth()
+  const { getActiveBrain, incrementInteraction } = useAvatarBrainStore()
+  const { avatar, scene } = useSceneStateStore()
 
   const scrollToBottom = useCallback(() => {
     requestAnimationFrame(() => {
@@ -131,6 +135,13 @@ function ChatTab() {
     return () => clearInterval(id)
   }, [refreshState])
 
+  useEffect(() => {
+    if (!currentJobId) { setSimilarJobs([]); return }
+    getSimilarJobs(currentJobId)
+      .then(setSimilarJobs)
+      .catch(() => setSimilarJobs([]))
+  }, [currentJobId])
+
   const handleSend = async () => {
     const text = input.trim()
     if (!text) return
@@ -138,8 +149,17 @@ function ChatTab() {
     setMessages((p) => [...p, { role: 'user', content: text }])
     scrollToBottom()
     setSending(true)
+
+    const brain = getActiveBrain()
+    const contextPrefix = [
+      avatar ? `[avatar:${avatar}]` : '',
+      scene ? `[scene:${scene}]` : '',
+      brain ? `[interactions:${brain.total_interactions}]` : '',
+    ].filter(Boolean).join(' ')
+    const fullMessage = contextPrefix ? `${contextPrefix} ${text}` : text
+
     try {
-      const res = await chatWithDirector(text, sessionId)
+      const res = await chatWithDirector(fullMessage, sessionId)
       setSessionId(res.session_id || sessionId)
       setDirectorState(res.state)
       if (res.messages) setMessages(res.messages)
@@ -151,6 +171,7 @@ function ChatTab() {
       setPendingQuestions(res.questions ?? [])
       setLatestIntent(res.intent)
       setLatestPlan(res.plan)
+      if (brain) incrementInteraction(brain.metahuman_id)
       scrollToBottom()
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Chat failed')
@@ -202,7 +223,6 @@ function ChatTab() {
   }
 
   const handleReset = async () => {
-    if (!window.confirm('Reset the Director? This clears the session.')) return
     try {
       await resetDirector()
       setMessages([])
@@ -211,6 +231,7 @@ function ChatTab() {
       setPendingQuestions([])
       setLatestIntent(undefined)
       setLatestPlan(undefined)
+      setSimilarJobs([])
       toast.success('Director reset')
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Reset failed')
@@ -241,19 +262,46 @@ function ChatTab() {
               {pendingQuestions.length > 1 ? 's' : ''}
             </span>
           )}
+          {userName && (
+            <span className="text-xs text-white/30">
+              Operator: <span className="text-white/60">{userName}</span>
+            </span>
+          )}
           <div className="ml-auto flex gap-2">
             <button onClick={refreshState} className={BTN_OUTLINE}>
               Refresh State
             </button>
             <button
-              onClick={handleReset}
+              onClick={() => setConfirmReset(true)}
               className="border border-red-500/40 text-red-400 text-sm font-medium rounded-md px-4 py-2 hover:bg-red-500/10 transition-colors"
             >
               Reset Director
             </button>
           </div>
         </div>
+        {similarJobs.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-surface-border">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2">Similar Past Jobs</p>
+            <div className="flex flex-wrap gap-2">
+              {similarJobs.map((j) => (
+                <span key={j.job_id} className="rounded bg-surface px-2 py-1 text-xs text-white/60 border border-surface-border">
+                  {j.job_id.slice(0, 8)}…
+                  {j.distance != null && <span className="ml-1 text-white/30">({(1 - j.distance).toFixed(0)}% match)</span>}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </Card>
+      <ConfirmDialog
+        open={confirmReset}
+        title="Reset Director"
+        message="This will clear the entire session — messages, intent, and plan. Are you sure?"
+        confirmLabel="Reset"
+        destructive
+        onConfirm={() => { setConfirmReset(false); handleReset() }}
+        onCancel={() => setConfirmReset(false)}
+      />
 
       {/* Messages */}
       <Card className="flex flex-col" title="Conversation">
@@ -501,81 +549,54 @@ function KnowledgeTab() {
 /* ────────────────────── Avatar Intelligence Tab ────────────────────── */
 
 function IntelligenceTab() {
-  const [selectedAvatar, setSelectedAvatar] = useState(AVATARS[0])
-  const [knowledgeSets, setKnowledgeSets] = useState<Record<string, boolean>>({
-    Product: true,
-    Brand: true,
-    Gemology: false,
-    Occasions: true,
-    Care: false,
-  })
-  const [specialization, setSpecialization] = useState('')
+  const [avatars, setAvatars] = useState<MetaHuman[]>([])
+  const [selectedAvatar, setSelectedAvatar] = useState<MetaHuman | null>(null)
 
-  const soon = () => toast.info('Coming soon — backend endpoint needed')
+  useEffect(() => {
+    listMetahumans().then((list) => {
+      setAvatars(list)
+      if (list.length > 0) setSelectedAvatar(list[0])
+    }).catch(() => {})
+  }, [])
 
   return (
     <div className="grid grid-cols-[240px_1fr] gap-4">
-      {/* Avatar list */}
       <Card title="Avatars">
         <div className="flex flex-col gap-1">
-          {AVATARS.map((a) => (
+          {avatars.length === 0 && (
+            <p className="text-xs text-white/30 px-3 py-2">Loading avatars...</p>
+          )}
+          {avatars.map((a) => (
             <button
-              key={a}
+              key={a.id}
               onClick={() => setSelectedAvatar(a)}
               className={`text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                selectedAvatar === a
+                selectedAvatar?.id === a.id
                   ? 'bg-gold/10 text-gold'
                   : 'text-white/60 hover:text-white hover:bg-surface/50'
               }`}
             >
-              {a}
+              {a.name}
             </button>
           ))}
         </div>
       </Card>
 
-      {/* Config panel */}
-      <Card title={`${selectedAvatar} — Knowledge Config`}>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-xs text-white/50 mb-2">
-              Knowledge Sets
-            </label>
-            <div className="flex flex-col gap-2">
-              {KNOWLEDGE_CATEGORIES.map((cat) => (
-                <label
-                  key={cat}
-                  className="flex items-center gap-2 text-sm text-white/70 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={knowledgeSets[cat] ?? false}
-                    onChange={() =>
-                      setKnowledgeSets((p) => ({ ...p, [cat]: !p[cat] }))
-                    }
-                    className="rounded border-surface-border bg-surface text-gold focus:ring-gold"
-                  />
-                  {cat}
-                </label>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs text-white/50 mb-1">
-              Specialization Area
-            </label>
-            <input
-              className={INPUT}
-              placeholder="e.g. Engagement rings, luxury gifting…"
-              value={specialization}
-              onChange={(e) => setSpecialization(e.target.value)}
+      <div>
+        {selectedAvatar ? (
+          <Card title={`${selectedAvatar.name} — Per-Avatar Brain`}>
+            <AvatarBrainPanel
+              metahumanId={selectedAvatar.id}
+              metahumanName={selectedAvatar.name}
             />
-          </div>
-          <button onClick={soon} className={BTN_GOLD}>
-            Save
-          </button>
-        </div>
-      </Card>
+          </Card>
+        ) : (
+          <EmptyState
+            title="Select an avatar"
+            description="Choose a MetaHuman from the list to view their individual brain — skills, memory, and self-improvement."
+          />
+        )}
+      </div>
     </div>
   )
 }
@@ -583,8 +604,13 @@ function IntelligenceTab() {
 /* ────────────────────── Training Tab ────────────────────── */
 
 function TrainingTab() {
+  const [avatars, setAvatars] = useState<MetaHuman[]>([])
   const [filterAvatar, setFilterAvatar] = useState('all')
   const [flaggedOnly, setFlaggedOnly] = useState(false)
+
+  useEffect(() => {
+    listMetahumans().then(setAvatars).catch(() => {})
+  }, [])
 
   const logs = [
     {
@@ -645,9 +671,9 @@ function TrainingTab() {
               onChange={(e) => setFilterAvatar(e.target.value)}
             >
               <option value="all">All Avatars</option>
-              {AVATARS.map((a) => (
-                <option key={a} value={a}>
-                  {a}
+              {avatars.map((a) => (
+                <option key={a.id} value={a.name}>
+                  {a.name}
                 </option>
               ))}
             </select>
@@ -732,13 +758,38 @@ function TrainingTab() {
 /* ────────────────────── Prompts Tab ────────────────────── */
 
 function PromptsTab() {
-  const [selectedAvatar, setSelectedAvatar] = useState(AVATARS[0])
-  const [systemPrompt, setSystemPrompt] = useState(
-    'You are a luxury jewelry concierge for Mountain Jewels. Be warm, knowledgeable, and guide customers toward their perfect piece.'
-  )
-  const [personality, setPersonality] = useState(
-    'Friendly and professional. Uses gemological terminology naturally. Always suggests complementary pieces.'
-  )
+  const [avatars, setAvatars] = useState<MetaHuman[]>([])
+  const [selectedAvatar, setSelectedAvatar] = useState<MetaHuman | null>(null)
+  const { brains, loadBrain } = useAvatarBrainStore()
+  const [systemPrompt, setSystemPrompt] = useState('')
+  const [personality, setPersonality] = useState('')
+
+  useEffect(() => {
+    listMetahumans().then((list) => {
+      setAvatars(list)
+      if (list.length > 0) setSelectedAvatar(list[0])
+    }).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    if (!selectedAvatar) return
+    loadBrain(selectedAvatar.id, selectedAvatar.name).then((brain) => {
+      const strengths = brain.self_assessment.strengths.join(', ') || 'general luxury assistance'
+      const topSkill = [...brain.skills].sort((a, b) => b.score - a.score)[0]
+      setSystemPrompt(
+        `You are ${selectedAvatar.name}, a luxury jewelry concierge for Mountain Jewels. ` +
+        `Your strengths: ${strengths}. ` +
+        `You have ${brain.total_interactions} interactions of experience. ` +
+        `Confidence: ${Math.round(brain.self_assessment.confidence_overall * 100)}%.`
+      )
+      setPersonality(
+        topSkill
+          ? `Best skill: ${topSkill.skill} (${Math.round(topSkill.score * 100)}%, ${topSkill.trend}). ` +
+            `Guide customers warmly while leveraging your learned expertise.`
+          : 'Warm, knowledgeable, and attentive. Uses gemological terminology naturally.'
+      )
+    })
+  }, [selectedAvatar, loadBrain])
 
   const soon = () => toast.info('Coming soon — backend endpoint needed')
 
@@ -746,31 +797,34 @@ function PromptsTab() {
     <div className="grid grid-cols-[240px_1fr] gap-4">
       <Card title="Avatar">
         <div className="flex flex-col gap-1">
-          {AVATARS.map((a) => (
+          {avatars.map((a) => (
             <button
-              key={a}
+              key={a.id}
               onClick={() => setSelectedAvatar(a)}
               className={`text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                selectedAvatar === a
+                selectedAvatar?.id === a.id
                   ? 'bg-gold/10 text-gold'
                   : 'text-white/60 hover:text-white hover:bg-surface/50'
               }`}
             >
-              {a}
+              {a.name}
             </button>
           ))}
         </div>
       </Card>
 
       <div className="flex flex-col gap-4">
-        <Card title={`${selectedAvatar} — System Prompt`}>
+        <Card title={`${selectedAvatar?.name ?? 'Avatar'} — System Prompt (from Brain)`}>
           <textarea
             className={`${INPUT} font-mono min-h-[160px] resize-y`}
             value={systemPrompt}
             onChange={(e) => setSystemPrompt(e.target.value)}
           />
+          <p className="mt-2 text-[10px] text-white/25">
+            Auto-generated from {selectedAvatar?.name ?? 'avatar'}&apos;s brain data. Edits will be saved per-avatar.
+          </p>
         </Card>
-        <Card title="Personality Instructions">
+        <Card title="Personality Instructions (from Brain)">
           <textarea
             className={`${INPUT} min-h-[100px] resize-y`}
             value={personality}
@@ -873,176 +927,219 @@ function SyncTab() {
   )
 }
 
-/* ────────────────────── Context Rules Tab ────────────────────── */
+/* ────────────────────── Rules, Boundaries & Guidelines Tab ────────────────────── */
 
 function RulesTab() {
-  const [rules] = useState([
-    {
-      name: 'Holiday Season',
-      type: 'Season',
-      active: true,
-      envs: ['Landing', 'Avatar'],
-      date: '2026-01-05',
-    },
-    {
-      name: "Valentine's Day",
-      type: 'Event',
-      active: false,
-      envs: ['Landing', 'Cave', 'Avatar'],
-      date: '2026-02-01',
-    },
-    {
-      name: 'Default Welcome',
-      type: 'Default',
-      active: true,
-      envs: ['Landing'],
-      date: '2025-12-15',
-    },
-  ])
-
+  const { guardrails, addGuardrail, toggleGuardrail, removeGuardrail } = useGuardrailsStore()
+  const [activeCategory, setActiveCategory] = useState<GuardrailCategory | 'diamond'>('boundary')
+  const [showAdd, setShowAdd] = useState(false)
   const [newName, setNewName] = useState('')
-  const [newType, setNewType] = useState('Default')
+  const [newCategory, setNewCategory] = useState<GuardrailCategory>('boundary')
   const [newDesc, setNewDesc] = useState('')
-  const [newEnvs, setNewEnvs] = useState<string[]>([])
-  const [newActive, setNewActive] = useState(true)
+  const [newEnvs, setNewEnvs] = useState<string[]>(['Avatar'])
+  const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null)
+  const pendingGuardrail = pendingRemoveId ? guardrails.find((g) => g.id === pendingRemoveId) : null
+
+  const [diamondShape, setDiamondShape] = useState('round')
+  const [diamondCarat, setDiamondCarat] = useState('1.0')
 
   const envOptions = ['Landing', 'Cave', 'Avatar']
-  const soon = () => toast.info('Coming soon — backend endpoint needed')
 
-  const toggleEnv = (env: string) =>
-    setNewEnvs((p) =>
-      p.includes(env) ? p.filter((e) => e !== env) : [...p, env]
-    )
+  const categories: (GuardrailCategory | 'diamond')[] = ['boundary', 'guideline', 'policy', 'context_rule', 'diamond']
+  const filtered = activeCategory === 'diamond' ? [] : guardrails.filter((g) => g.category === activeCategory)
+
+  const handleAdd = () => {
+    if (!newName.trim() || !newDesc.trim()) {
+      toast.error('Name and description are required')
+      return
+    }
+    addGuardrail({ category: newCategory, name: newName.trim(), description: newDesc.trim(), active: true, environments: newEnvs })
+    setNewName('')
+    setNewDesc('')
+    setShowAdd(false)
+    toast.success('Guardrail added — all avatars will see it')
+  }
+
+  const dims = lookupDiamondSizeSync(diamondShape, Number(diamondCarat) || 1)
 
   return (
     <div className="flex flex-col gap-4">
-      <Card title="Context Rules">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-white/40 border-b border-surface-border">
-                <th className="pb-2 font-medium">Name</th>
-                <th className="pb-2 font-medium">Type</th>
-                <th className="pb-2 font-medium">Active</th>
-                <th className="pb-2 font-medium">Environments</th>
-                <th className="pb-2 font-medium">Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rules.map((r, i) => (
-                <tr
-                  key={i}
-                  className="border-b border-surface-border/50 text-white/70"
-                >
-                  <td className="py-2.5">{r.name}</td>
-                  <td className="py-2.5">
-                    <span className="rounded bg-surface px-2 py-0.5 text-xs">
-                      {r.type}
-                    </span>
-                  </td>
-                  <td className="py-2.5">
-                    <button
-                      onClick={soon}
-                      className={`h-5 w-9 rounded-full transition-colors ${r.active ? 'bg-gold' : 'bg-surface-border'}`}
-                    >
-                      <span
-                        className={`block h-4 w-4 rounded-full bg-white transition-transform ${r.active ? 'translate-x-4' : 'translate-x-0.5'}`}
-                      />
-                    </button>
-                  </td>
-                  <td className="py-2.5">
-                    <div className="flex gap-1">
-                      {r.envs.map((e) => (
-                        <span
-                          key={e}
-                          className="rounded bg-surface px-1.5 py-0.5 text-xs text-white/50"
-                        >
-                          {e}
-                        </span>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="py-2.5 text-white/40">{r.date}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <Card>
+        <p className="text-xs text-white/40 mb-3">
+          Shared rules enforced across all avatars. Boundaries are hard limits, guidelines are best practices.
+        </p>
+        <div className="flex gap-1 flex-wrap">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                activeCategory === cat ? 'bg-gold/10 text-gold' : 'text-white/40 hover:text-white/70 hover:bg-white/5'
+              }`}
+            >
+              {cat === 'diamond' ? 'Diamond Reference' : GUARDRAIL_CATEGORY_LABELS[cat]}
+            </button>
+          ))}
         </div>
       </Card>
 
-      <Card title="Add Rule">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs text-white/50 mb-1">Name</label>
-            <input
-              className={INPUT}
-              placeholder="Rule name"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-white/50 mb-1">Type</label>
-            <select
-              className={INPUT}
-              value={newType}
-              onChange={(e) => setNewType(e.target.value)}
-            >
-              <option value="Season">Season</option>
-              <option value="Event">Event</option>
-              <option value="Default">Default</option>
-            </select>
-          </div>
-          <div className="col-span-2">
-            <label className="block text-xs text-white/50 mb-1">
-              Description
-            </label>
-            <textarea
-              className={`${INPUT} min-h-[80px] resize-y`}
-              placeholder="Rule description…"
-              value={newDesc}
-              onChange={(e) => setNewDesc(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-white/50 mb-2">
-              Environments
-            </label>
-            <div className="flex gap-3">
-              {envOptions.map((env) => (
-                <label
-                  key={env}
-                  className="flex items-center gap-1.5 text-sm text-white/70 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={newEnvs.includes(env)}
-                    onChange={() => toggleEnv(env)}
-                    className="rounded border-surface-border bg-surface text-gold focus:ring-gold"
-                  />
-                  {env}
-                </label>
-              ))}
+      {activeCategory === 'diamond' ? (
+        <Card title="Diamond Size Calculator">
+          <p className="text-xs text-white/40 mb-4">
+            Shared reference — all avatars use this for carat-to-mm conversions when helping customers.
+          </p>
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            <div>
+              <label className="block text-xs text-white/50 mb-1">Shape</label>
+              <select className={INPUT} value={diamondShape} onChange={(e) => setDiamondShape(e.target.value)}>
+                {DIAMOND_SHAPES.map((s) => (
+                  <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-white/50 mb-1">Carat Weight</label>
+              <input className={INPUT} type="number" step="0.05" min="0.1" max="10" value={diamondCarat} onChange={(e) => setDiamondCarat(e.target.value)} />
+            </div>
+            <div className="flex items-end">
+              <div className="p-3 rounded-lg bg-surface border border-surface-border w-full text-center">
+                <p className="text-[10px] text-white/30 uppercase">Dimensions</p>
+                <p className="text-sm text-gold font-mono mt-1">
+                  {dims.length_mm > 0 ? `${dims.length_mm} x ${dims.width_mm} x ${dims.depth_mm} mm` : 'No data'}
+                </p>
+                <p className="text-[9px] text-white/20 mt-0.5">Source: {dims.source}</p>
+              </div>
             </div>
           </div>
-          <div>
-            <label className="flex items-center gap-2 text-sm text-white/70 cursor-pointer mt-5">
-              <input
-                type="checkbox"
-                checked={newActive}
-                onChange={() => setNewActive(!newActive)}
-                className="rounded border-surface-border bg-surface text-gold focus:ring-gold"
-              />
-              Active
-            </label>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-white/40 border-b border-surface-border">
+                  <th className="pb-2 font-medium">Carat</th>
+                  <th className="pb-2 font-medium">Length (mm)</th>
+                  <th className="pb-2 font-medium">Width (mm)</th>
+                  <th className="pb-2 font-medium">Depth (mm)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 5.0].map((ct) => {
+                  const d = lookupDiamondSizeSync(diamondShape, ct)
+                  return (
+                    <tr key={ct} className="border-b border-surface-border/50 text-white/70">
+                      <td className="py-2 font-mono text-gold">{ct} ct</td>
+                      <td className="py-2 font-mono">{d.length_mm}</td>
+                      <td className="py-2 font-mono">{d.width_mm}</td>
+                      <td className="py-2 font-mono">{d.depth_mm}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
-        </div>
-        <div className="mt-4">
-          <button onClick={soon} className={BTN_GOLD}>
-            Save Rule
-          </button>
-        </div>
-      </Card>
+        </Card>
+      ) : (
+        <>
+          <Card title={GUARDRAIL_CATEGORY_LABELS[activeCategory]}>
+            <p className="text-xs text-white/40 mb-3">
+              {GUARDRAIL_CATEGORY_DESCRIPTIONS[activeCategory]}
+            </p>
+            {filtered.length === 0 ? (
+              <p className="text-xs text-white/25 text-center py-4">No {GUARDRAIL_CATEGORY_LABELS[activeCategory].toLowerCase()} defined</p>
+            ) : (
+              <div className="space-y-2">
+                {filtered.map((g) => (
+                  <div key={g.id} className="flex items-start gap-3 p-3 rounded-lg bg-surface border border-surface-border">
+                    <button
+                      onClick={() => toggleGuardrail(g.id)}
+                      className={`mt-0.5 h-5 w-9 rounded-full transition-colors shrink-0 ${g.active ? 'bg-gold' : 'bg-surface-border'}`}
+                    >
+                      <span className={`block h-4 w-4 rounded-full bg-white transition-transform ${g.active ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                    </button>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-white/80">{g.name}</span>
+                        <div className="flex gap-1">
+                          {g.environments.map((e) => (
+                            <span key={e} className="rounded bg-surface-panel px-1.5 py-0.5 text-[9px] text-white/30">{e}</span>
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-xs text-white/40 mt-1">{g.description}</p>
+                    </div>
+                    <button onClick={() => setPendingRemoveId(g.id)} className="text-[10px] text-red-400/50 hover:text-red-400 shrink-0">
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+
+          {showAdd ? (
+            <Card title="Add Guardrail">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-white/50 mb-1">Name</label>
+                  <input className={INPUT} placeholder="Guardrail name" value={newName} onChange={(e) => setNewName(e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-xs text-white/50 mb-1">Category</label>
+                  <select className={INPUT} value={newCategory} onChange={(e) => setNewCategory(e.target.value as GuardrailCategory)}>
+                    <option value="boundary">Boundary</option>
+                    <option value="guideline">Guideline</option>
+                    <option value="policy">Policy</option>
+                    <option value="context_rule">Context Rule</option>
+                  </select>
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs text-white/50 mb-1">Description</label>
+                  <textarea className={`${INPUT} min-h-[80px] resize-y`} placeholder="What this guardrail enforces…" value={newDesc} onChange={(e) => setNewDesc(e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-xs text-white/50 mb-2">Environments</label>
+                  <div className="flex gap-3">
+                    {envOptions.map((env) => (
+                      <label key={env} className="flex items-center gap-1.5 text-sm text-white/70 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={newEnvs.includes(env)}
+                          onChange={() => setNewEnvs((p) => p.includes(env) ? p.filter((e) => e !== env) : [...p, env])}
+                          className="rounded border-surface-border bg-surface text-gold focus:ring-gold"
+                        />
+                        {env}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 flex gap-2">
+                <button onClick={handleAdd} className={BTN_GOLD}>Save Guardrail</button>
+                <button onClick={() => setShowAdd(false)} className={BTN_OUTLINE}>Cancel</button>
+              </div>
+            </Card>
+          ) : (
+            <button onClick={() => setShowAdd(true)} className={BTN_OUTLINE}>
+              + Add {GUARDRAIL_CATEGORY_LABELS[activeCategory].slice(0, -1)}
+            </button>
+          )}
+        </>
+      )}
+
+      <ConfirmDialog
+        open={!!pendingRemoveId}
+        title="Remove Guardrail"
+        message={`Remove "${pendingGuardrail?.name ?? ''}"? This rule will no longer apply to any avatar.`}
+        confirmLabel="Remove"
+        destructive
+        onConfirm={() => {
+          if (pendingRemoveId) {
+            removeGuardrail(pendingRemoveId)
+            toast.success('Guardrail removed')
+          }
+          setPendingRemoveId(null)
+        }}
+        onCancel={() => setPendingRemoveId(null)}
+      />
     </div>
   )
 }
@@ -1149,6 +1246,12 @@ function SalesTab() {
 /* ────────────────────── A/B Testing Tab ────────────────────── */
 
 function TestingTab() {
+  const [avatars, setAvatars] = useState<MetaHuman[]>([])
+
+  useEffect(() => {
+    listMetahumans().then(setAvatars).catch(() => {})
+  }, [])
+
   const [tests] = useState([
     {
       name: 'Greeting Style Test',
@@ -1169,7 +1272,7 @@ function TestingTab() {
   ])
 
   const [newName, setNewName] = useState('')
-  const [newAvatar, setNewAvatar] = useState(AVATARS[0])
+  const [newAvatar, setNewAvatar] = useState('')
   const [newVarA, setNewVarA] = useState('')
   const [newVarB, setNewVarB] = useState('')
 
@@ -1243,9 +1346,10 @@ function TestingTab() {
               value={newAvatar}
               onChange={(e) => setNewAvatar(e.target.value)}
             >
-              {AVATARS.map((a) => (
-                <option key={a} value={a}>
-                  {a}
+              <option value="">Select avatar</option>
+              {avatars.map((a) => (
+                <option key={a.id} value={a.name}>
+                  {a.name}
                 </option>
               ))}
             </select>
@@ -1296,7 +1400,7 @@ export default function DirectorPage() {
       <div>
         <h1 className="text-2xl font-semibold text-white">AI Director</h1>
         <p className="text-sm text-white/50 mt-1">
-          The Brain — Production intelligence hub
+          Per-avatar production intelligence — each avatar learns independently
         </p>
       </div>
 

@@ -17,6 +17,7 @@ import type { MetaHuman, PersonaProfile } from '@/lib/api/metahumans'
 import { toast } from 'sonner'
 import { Card } from '@/components/shared/Card'
 import { StatusBadge } from '@/components/shared/StatusBadge'
+import { AvatarBrainPanel } from '@/components/studio/AvatarBrainPanel'
 import { useState, useEffect, useCallback } from 'react'
 
 const inputCls =
@@ -176,35 +177,44 @@ export default function AvatarsPage() {
 
       {/* Section 3 - Selected MetaHuman detail */}
       {selected && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card title="Info" subtitle="Blueprint, mesh, skeleton">
-            <dl className="space-y-2 text-sm">
-              <div>
-                <dt className="text-white/50">Blueprint path</dt>
-                <dd className="text-white font-mono text-xs break-all">{selected.unreal_blueprint_path}</dd>
-              </div>
-              <div>
-                <dt className="text-white/50">Mesh path</dt>
-                <dd className="text-white font-mono text-xs break-all">{selected.skeletal_mesh_path}</dd>
-              </div>
-              <div>
-                <dt className="text-white/50">Skeleton type</dt>
-                <dd className="text-white">{selected.skeleton_type}</dd>
-              </div>
-            </dl>
-          </Card>
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card title="Info" subtitle="Blueprint, mesh, skeleton">
+              <dl className="space-y-2 text-sm">
+                <div>
+                  <dt className="text-white/50">Blueprint path</dt>
+                  <dd className="text-white font-mono text-xs break-all">{selected.unreal_blueprint_path}</dd>
+                </div>
+                <div>
+                  <dt className="text-white/50">Mesh path</dt>
+                  <dd className="text-white font-mono text-xs break-all">{selected.skeletal_mesh_path}</dd>
+                </div>
+                <div>
+                  <dt className="text-white/50">Skeleton type</dt>
+                  <dd className="text-white">{selected.skeleton_type}</dd>
+                </div>
+              </dl>
+            </Card>
 
-          <PersonaCard
-            metahumanId={selected.id}
-            persona={persona}
-            personaLoading={personaLoading}
-            onSaved={() => {
-              if (selected) {
-                getMetahumanPersona(selected.id).then(setPersona)
-              }
-            }}
-          />
-        </div>
+            <PersonaCard
+              metahumanId={selected.id}
+              persona={persona}
+              personaLoading={personaLoading}
+              onSaved={() => {
+                if (selected) {
+                  getMetahumanPersona(selected.id).then(setPersona)
+                }
+              }}
+            />
+          </div>
+
+          {/* Avatar Brain — per-avatar autonomous intelligence */}
+          <Card title={`${selected.name}'s Brain`} subtitle="Per-avatar autonomous intelligence — skills, memory, self-improvement">
+            <div className="bg-surface rounded-lg border border-surface-border">
+              <AvatarBrainPanel metahumanId={selected.id} metahumanName={selected.name} />
+            </div>
+          </Card>
+        </>
       )}
 
       {/* Section 4 - Register New MetaHuman (collapsible) */}

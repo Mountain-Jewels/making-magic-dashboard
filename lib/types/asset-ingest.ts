@@ -43,6 +43,9 @@ export type AssetRecord = {
   current_version: number
   active: boolean
   tags?: string[]
+  thumbnail_url?: string
+  preview_url?: string
+  mesh_path?: string
   updated_at: string
 }
 

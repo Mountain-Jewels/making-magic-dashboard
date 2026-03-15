@@ -60,3 +60,48 @@ export const PLAYLIST_STATUS_COLORS: Record<string, string> = {
   playing: '#3b82f6',
   archived: '#6b7280',
 }
+
+/* ────────────────────── Switchover & Snapshot Types ────────────────────── */
+
+export type FeedMode = 'live' | 'cinematic'
+
+export interface StoreStateSnapshot {
+  id: string
+  timestamp: string
+  vm_role: string
+  lighting_profile_id: string | null
+  avatar_state_json: Record<string, unknown> | null
+  featured_products_json: unknown[] | null
+  camera_state_json: Record<string, unknown> | null
+  scene_events_json: unknown[] | null
+}
+
+export interface ScheduleSlot {
+  id: string
+  environment: string
+  start_time: string
+  end_time: string
+  mode: FeedMode
+  playlist_id: string | null
+  label: string
+  created_at: string
+}
+
+export interface SwitchoverConfig {
+  environment: string
+  live_hours_start: string
+  live_hours_end: string
+  auto_switchover: boolean
+  pre_generate_hours: number
+  snapshot_on_switchover: boolean
+}
+
+export const FEED_MODE_COLORS: Record<FeedMode, string> = {
+  live: '#22c55e',
+  cinematic: '#8b5cf6',
+}
+
+export const FEED_MODE_LABELS: Record<FeedMode, string> = {
+  live: 'Live Streaming',
+  cinematic: 'Cinematic (AI Generated)',
+}

@@ -84,32 +84,27 @@ export default function ScenesPage() {
 
   const handleSpeak = () =>
     runAction('speak', () =>
-      metahumanSpeak(speakAvatarId, speakText, speakEmotion || undefined)
+      metahumanSpeak('', speakText, undefined, speakEmotion || undefined)
     )
 
   const handleSetEmotion = () =>
     runAction('emotion', () =>
-      metahumanEmotion(emotionAvatarId, emotionValue)
+      metahumanEmotion(emotionValue)
     )
 
   const handleTriggerGesture = () =>
     runAction('gesture', () =>
-      metahumanGesture(gestureAvatarId, gestureValue)
+      metahumanGesture(gestureValue)
     )
 
   const handleAddWardrobe = () =>
     runAction('wardrobe', () =>
-      addWardrobe(wardrobeAvatarId, wardrobeItemType, wardrobeItemId)
+      addWardrobe(wardrobeItemId)
     )
 
   const handleAddJewelry = () =>
     runAction('jewelry', () =>
-      addJewelry(
-        jewelryAvatarId,
-        jewelryType,
-        jewelryId,
-        jewelrySlot || undefined
-      )
+      addJewelry(jewelryId)
     )
 
   const inputClass =

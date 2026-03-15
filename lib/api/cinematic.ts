@@ -8,6 +8,10 @@ import type {
   AvatarBehaviorScript,
   CinematicClip,
   CinematicPlaylist,
+  StoreStateSnapshot,
+  ScheduleSlot,
+  SwitchoverConfig,
+  FeedMode,
 } from '@/lib/types/cinematic'
 
 export async function getActivePlaylist(environment: string): Promise<CinematicPlaylist | { status: string }> {
@@ -62,4 +66,77 @@ export async function createBehaviorScript(
 
 export async function deactivateScript(scriptId: string): Promise<{ status: string }> {
   return apiDelete<{ status: string }>(`/v1/cinematic/scripts/${scriptId}`)
+}
+
+/* ────────────────────── Store State Snapshots ────────────────────── */
+
+export async function captureStoreState(
+  vmRole: string,
+  avatarState?: Record<string, unknown>,
+  featuredProducts?: unknown[],
+  cameraState?: Record<string, unknown>,
+  sceneEvents?: unknown[]
+): Promise<StoreStateSnapshot> {
+  return apiPost<StoreStateSnapshot>('/v1/cinematic/capture-state', {
+    vm_role: vmRole,
+    avatar_state: avatarState,
+    featured_products: featuredProducts,
+    camera_state: cameraState,
+    scene_events: sceneEvents,
+  })
+}
+
+export async function getStateTimeline(
+  vmRole: string,
+  limit = 20
+): Promise<StoreStateSnapshot[]> {
+  return apiGet<StoreStateSnapshot[]>(
+    `/v1/cinematic/state-timeline?vm_role=${encodeURIComponent(vmRole)}&limit=${limit}`
+  )
+}
+
+/* ────────────────────── Switchover Schedule ────────────────────── */
+
+export async function getScheduleSlots(environment: string): Promise<ScheduleSlot[]> {
+  return apiGet<ScheduleSlot[]>(
+    `/v1/cinematic/schedule?environment=${encodeURIComponent(environment)}`
+  )
+}
+
+export async function createScheduleSlot(
+  environment: string,
+  startTime: string,
+  endTime: string,
+  mode: FeedMode,
+  playlistId?: string,
+  label?: string
+): Promise<ScheduleSlot> {
+  return apiPost<ScheduleSlot>('/v1/cinematic/schedule', {
+    environment,
+    start_time: startTime,
+    end_time: endTime,
+    mode,
+    playlist_id: playlistId,
+    label,
+  })
+}
+
+export async function deleteScheduleSlot(slotId: string): Promise<{ status: string }> {
+  return apiDelete<{ status: string }>(`/v1/cinematic/schedule/${slotId}`)
+}
+
+export async function getSwitchoverConfig(environment: string): Promise<SwitchoverConfig> {
+  return apiGet<SwitchoverConfig>(
+    `/v1/cinematic/switchover-config?environment=${encodeURIComponent(environment)}`
+  )
+}
+
+export async function updateSwitchoverConfig(config: Partial<SwitchoverConfig> & { environment: string }): Promise<SwitchoverConfig> {
+  return apiPost<SwitchoverConfig>('/v1/cinematic/switchover-config', config)
+}
+
+export async function getCurrentFeedMode(environment: string): Promise<{ mode: FeedMode; playlist_id?: string; since?: string }> {
+  return apiGet<{ mode: FeedMode; playlist_id?: string; since?: string }>(
+    `/v1/cinematic/feed-mode?environment=${encodeURIComponent(environment)}`
+  )
 }

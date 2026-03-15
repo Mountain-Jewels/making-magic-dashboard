@@ -44,13 +44,82 @@ export default function ExportPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ImageExportSection />
         <VideoUploadSection />
-        <AssetStatusSection />
       </div>
 
-      <EmbedCodeSection />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <AssetStatusSection />
+        <EmbedCodeSection />
+      </div>
+
       <ShopifyPreviewSection />
     </div>
+  )
+}
+
+/* ─── Image Export ────────────────────────────────────────────────── */
+
+function ImageExportSection() {
+  const [sceneId, setSceneId] = useState('')
+  const [format, setFormat] = useState<'png' | 'jpg'>('png')
+  const [quality, setQuality] = useState('90')
+  const [exporting, setExporting] = useState(false)
+  const [result, setResult] = useState<{ url?: string; format?: string } | null>(null)
+
+  const handleExport = useCallback(async () => {
+    if (!sceneId.trim()) return
+    setExporting(true)
+    try {
+      const res = await exportImage(sceneId.trim(), format, format === 'jpg' ? Number(quality) : undefined)
+      setResult(res)
+      toast.success(`Image exported — ${res.format ?? format}`)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Image export failed')
+    } finally {
+      setExporting(false)
+    }
+  }, [sceneId, format, quality])
+
+  return (
+    <Card title="Image Export">
+      <div className="space-y-3">
+        <input
+          className={inputCls}
+          placeholder="Scene ID"
+          value={sceneId}
+          onChange={(e) => setSceneId(e.target.value)}
+        />
+        <div className="grid grid-cols-2 gap-3">
+          <select className={inputCls} value={format} onChange={(e) => setFormat(e.target.value as 'png' | 'jpg')}>
+            <option value="png">PNG (lossless)</option>
+            <option value="jpg">JPEG (compressed)</option>
+          </select>
+          {format === 'jpg' && (
+            <input
+              className={inputCls}
+              type="number"
+              min={10}
+              max={100}
+              placeholder="Quality (1-100)"
+              value={quality}
+              onChange={(e) => setQuality(e.target.value)}
+            />
+          )}
+        </div>
+        <button className={btnCls} disabled={exporting || !sceneId.trim()} onClick={handleExport}>
+          {exporting ? 'Exporting…' : 'Export Still Image'}
+        </button>
+        {result?.url && (
+          <div className="mt-3 rounded-md bg-black/30 p-3">
+            <p className="text-xs text-white/40 mb-2">Exported Image</p>
+            <a href={result.url} target="_blank" rel="noopener noreferrer" className="text-xs text-gold hover:underline break-all">
+              {result.url}
+            </a>
+          </div>
+        )}
+      </div>
+    </Card>
   )
 }
 

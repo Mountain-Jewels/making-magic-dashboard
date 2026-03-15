@@ -8,6 +8,9 @@
 import { Sparkles } from 'lucide-react'
 import { useStudioStore } from '@/lib/stores/studio-store'
 import { chatWithDirector } from '@/lib/api/director'
+import { useAvatarBrainStore } from '@/lib/stores/avatar-brain-store'
+import { useSceneStateStore } from '@/lib/stores/scene-state-store'
+import { useCustomerStore } from '@/lib/stores/customer-store'
 import { toast } from 'sonner'
 
 const TYPES = [
@@ -31,16 +34,31 @@ export function GenerateBar() {
 
   const busy = aiStatus === 'generating'
 
+  const { getActiveBrain, incrementInteraction } = useAvatarBrainStore()
+  const { avatar, scene } = useSceneStateStore()
+  const activeCustomer = useCustomerStore((s) => s.getActiveCustomer())
+
   async function handleGenerate() {
     if (!generatePrompt.trim() || busy) return
     setAIStatus('generating', 'Sending to AI Director...')
     setAIProgress(10)
+
+    const brain = getActiveBrain()
+    const contextPrefix = [
+      `[${generateType}]`,
+      avatar ? `[avatar:${avatar}]` : '',
+      scene ? `[scene:${scene}]` : '',
+      brain ? `[interactions:${brain.total_interactions}]` : '',
+      activeCustomer ? `[customer:${activeCustomer.name}]` : '',
+    ].filter(Boolean).join(' ')
+
     try {
       const res = await chatWithDirector(
-        `[${generateType}] ${generatePrompt}`
+        `${contextPrefix} ${generatePrompt}`
       )
       setAIProgress(100)
       setAIStatus('complete', res.response || 'Generation complete')
+      if (brain) incrementInteraction(brain.metahuman_id)
       toast.success('AI Director responded')
     } catch (err) {
       setAIStatus('error', String(err))

@@ -68,12 +68,10 @@ export type JewelryPosition =
   | 'flat_lay'
   | 'gift_box'
 
-/** Capability state at current version — single source of truth for 2D/3D. */
-export type SceneCapabilityState = {
-  two_d: 'available' | 'not_available'
-  three_d: 'available' | 'not_available'
-  interactive: 'available' | 'not_available'
-}
+import type { CapabilityState } from './version'
+
+/** Capability state at current version — alias for shared CapabilityState. */
+export type SceneCapabilityState = CapabilityState
 
 export interface SceneConfig {
   id: string

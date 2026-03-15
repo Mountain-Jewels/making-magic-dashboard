@@ -5,6 +5,17 @@
 
 import { apiGet, apiPost, apiPut } from './client'
 
+export interface AvatarLightingProfile {
+  skin_tone?: 'fair' | 'light' | 'medium' | 'olive' | 'brown' | 'dark'
+  skin_reflectance?: number
+  recommended_key_ratio?: string
+  recommended_color_temp?: number
+  jewelry_specular_boost?: number
+  rim_light_intensity?: number
+  preferred_presets?: string[]
+  notes?: string
+}
+
 export interface MetaHuman {
   id: string
   name: string
@@ -14,6 +25,9 @@ export interface MetaHuman {
   gender?: string
   age_range?: string
   brand_archetype?: string
+  thumbnail_url?: string
+  preview_image_url?: string
+  lighting_profile?: AvatarLightingProfile
   extra_data?: Record<string, unknown>
 }
 

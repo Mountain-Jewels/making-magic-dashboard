@@ -15,6 +15,7 @@ import {
   Users,
   Shirt,
   MessageCircle,
+  UserCircle,
   Server,
   Radio,
   Film,
@@ -57,6 +58,7 @@ const NAV: NavSection[] = [
       { label: 'Avatars', href: '/avatars', icon: Users },
       { label: 'Fashion', href: '/fashion', icon: Shirt },
       { label: 'Concierge', href: '/concierge', icon: MessageCircle },
+      { label: 'Customers', href: '/customers', icon: UserCircle },
     ],
   },
   {

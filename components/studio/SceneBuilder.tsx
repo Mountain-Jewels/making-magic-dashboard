@@ -5,31 +5,36 @@
 
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { toast } from 'sonner'
 import {
   Mountain,
   Sun,
   Camera,
-  Layers,
   Sparkles,
   Play,
-  RefreshCw,
+  Globe,
 } from 'lucide-react'
-import { loadScene, loadAvatar, sendCommand } from '@/lib/api/scene-control'
+import { loadScene, sendCommand } from '@/lib/api/scene-control'
+import { useSceneStateStore } from '@/lib/stores/scene-state-store'
+import { LightingAdvisor } from '@/components/studio/LightingAdvisor'
+import { getCurrentLighting } from '@/lib/api/lighting'
+import type { LightingState } from '@/lib/types/lighting-engine'
 
 interface Environment {
   id: string
   label: string
   desc: string
+  gradient: string
+  preview_url?: string
 }
 
 const ENVIRONMENTS: Environment[] = [
-  { id: 'landing', label: 'Landing Mountain', desc: 'Hero mountain landscape with golden hour lighting' },
-  { id: 'cave', label: "Merlin's Cave", desc: 'Intimate crystal cave with warm torch lighting' },
-  { id: 'studio', label: 'Photo Studio', desc: 'Clean studio backdrop for product photography' },
-  { id: 'yacht', label: 'Luxury Yacht', desc: 'Deck scene with ocean horizon and soft sunset' },
-  { id: 'garden', label: 'Secret Garden', desc: 'Lush greenery with natural dappled light' },
+  { id: 'landing', label: 'Landing Mountain', desc: 'Hero mountain landscape with golden hour lighting', gradient: 'from-amber-900/40 via-stone-800/30 to-sky-900/40' },
+  { id: 'cave', label: "Merlin's Cave", desc: 'Intimate crystal cave with warm torch lighting', gradient: 'from-purple-900/40 via-indigo-900/30 to-amber-900/30' },
+  { id: 'studio', label: 'Photo Studio', desc: 'Clean studio backdrop for product photography', gradient: 'from-neutral-700/40 via-neutral-600/30 to-neutral-500/20' },
+  { id: 'yacht', label: 'Luxury Yacht', desc: 'Deck scene with ocean horizon and soft sunset', gradient: 'from-blue-900/40 via-cyan-800/30 to-orange-800/30' },
+  { id: 'garden', label: 'Secret Garden', desc: 'Lush greenery with natural dappled light', gradient: 'from-emerald-900/40 via-green-800/30 to-lime-900/30' },
 ]
 
 const LIGHTING_PRESETS = [
@@ -49,41 +54,62 @@ const CAMERA_PRESETS = [
   { id: 'crane_down', label: 'Crane Down', desc: '50mm, overhead descend' },
 ]
 
+const ENV_TO_VM_ROLE: Record<string, string> = {
+  landing: 'landing',
+  cave: 'cave',
+  studio: 'avatar',
+  yacht: 'landing',
+  garden: 'landing',
+}
+
 export function SceneBuilder() {
+  const sceneStore = useSceneStateStore()
   const [selectedEnv, setSelectedEnv] = useState<string | null>(null)
   const [selectedLighting, setSelectedLighting] = useState<string | null>(null)
   const [selectedCamera, setSelectedCamera] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [sceneLighting, setSceneLighting] = useState<LightingState | null>(null)
+
+  useEffect(() => {
+    if (!selectedEnv) { setSceneLighting(null); return }
+    const vmRole = ENV_TO_VM_ROLE[selectedEnv] || 'landing'
+    getCurrentLighting(vmRole)
+      .then(setSceneLighting)
+      .catch(() => setSceneLighting(null))
+  }, [selectedEnv])
 
   const handleLoadScene = useCallback(async () => {
     if (!selectedEnv) return
     setBusy(true)
     try {
       await loadScene(selectedEnv)
+      sceneStore.setScene(selectedEnv)
       toast.success(`Scene "${selectedEnv}" loaded`)
     } catch { toast.error('Failed to load scene') }
     finally { setBusy(false) }
-  }, [selectedEnv])
+  }, [selectedEnv, sceneStore])
 
   const handleApplyLighting = useCallback(async () => {
     if (!selectedLighting) return
     setBusy(true)
     try {
       await sendCommand('set_lighting', { preset: selectedLighting })
+      sceneStore.setLighting(selectedLighting)
       toast.success(`Lighting "${selectedLighting}" applied`)
     } catch { toast.error('Failed to apply lighting') }
     finally { setBusy(false) }
-  }, [selectedLighting])
+  }, [selectedLighting, sceneStore])
 
   const handleApplyCamera = useCallback(async () => {
     if (!selectedCamera) return
     setBusy(true)
     try {
       await sendCommand('set_camera', { preset: selectedCamera })
+      sceneStore.setCamera(selectedCamera)
       toast.success(`Camera "${selectedCamera}" applied`)
     } catch { toast.error('Failed to apply camera') }
     finally { setBusy(false) }
-  }, [selectedCamera])
+  }, [selectedCamera, sceneStore])
 
   return (
     <div className="h-full overflow-y-auto p-4 space-y-6">
@@ -109,8 +135,12 @@ export function SceneBuilder() {
                   : 'border-surface-border hover:border-white/20 bg-surface-panel'
               }`}
             >
-              <div className="h-16 w-full bg-surface rounded mb-2 flex items-center justify-center">
-                <Mountain className="h-6 w-6 text-white/10" />
+              <div className={`h-16 w-full rounded mb-2 flex items-center justify-center bg-gradient-to-br ${env.gradient} overflow-hidden`}>
+                {env.preview_url ? (
+                  <img src={env.preview_url} alt={env.label} className="h-full w-full object-cover" />
+                ) : (
+                  <Mountain className="h-6 w-6 text-white/20" />
+                )}
               </div>
               <p className="text-[11px] font-medium text-white/70">{env.label}</p>
               <p className="text-[9px] text-white/25 mt-0.5">{env.desc}</p>
@@ -128,6 +158,59 @@ export function SceneBuilder() {
           </button>
         )}
       </section>
+
+      {/* Scene Lighting Intelligence */}
+      {sceneLighting && selectedEnv && (
+        <section className="p-3 rounded-lg border border-surface-border bg-surface">
+          <div className="flex items-center gap-2 mb-2">
+            <Globe className="h-3.5 w-3.5 text-gold/60" />
+            <span className="text-[10px] font-semibold text-white/50 uppercase tracking-wide">
+              Scene Lighting — {selectedEnv}
+            </span>
+            <span className="text-[9px] text-white/25 ml-auto">
+              {sceneLighting.is_golden_hour ? 'Golden Hour' : sceneLighting.is_night ? 'Night' : 'Daylight'}
+            </span>
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            <div>
+              <p className="text-[9px] text-white/30">Sun</p>
+              <p className="text-[10px] text-white/60 font-mono">
+                {sceneLighting.sun.elevation.toFixed(0)}° {sceneLighting.sun.intensity.toFixed(2)}
+              </p>
+            </div>
+            <div>
+              <p className="text-[9px] text-white/30">Color</p>
+              <div className="flex items-center gap-1">
+                <span className="h-3 w-3 rounded-full border border-white/10" style={{ backgroundColor: sceneLighting.sun.color }} />
+                <p className="text-[10px] text-white/60 font-mono">
+                  {sceneLighting.sun.color_temperature_k ? `${sceneLighting.sun.color_temperature_k}K` : sceneLighting.sun.color}
+                </p>
+              </div>
+            </div>
+            <div>
+              <p className="text-[9px] text-white/30">Fog</p>
+              <p className="text-[10px] text-white/60 font-mono">{sceneLighting.fog.density.toFixed(3)}</p>
+            </div>
+            <div>
+              <p className="text-[9px] text-white/30">Ambient</p>
+              <p className="text-[10px] text-white/60 font-mono">{sceneLighting.ambient.intensity.toFixed(3)}</p>
+            </div>
+          </div>
+          {sceneLighting.cave && (
+            <div className="mt-2 flex items-center gap-3">
+              <div className="flex items-center gap-1">
+                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: sceneLighting.cave.torch_color }} />
+                <span className="text-[9px] text-white/30">Torch</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: sceneLighting.cave.crystal_color }} />
+                <span className="text-[9px] text-white/30">Crystal</span>
+              </div>
+              <span className="text-[9px] text-white/20">Bleed: {sceneLighting.cave.entrance_light_bleed.toFixed(3)}</span>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Lighting */}
       <section>
@@ -169,6 +252,11 @@ export function SceneBuilder() {
             Apply Lighting
           </button>
         )}
+      </section>
+
+      {/* AI Lighting Advisor */}
+      <section className="bg-surface-panel rounded-lg border border-gold/10">
+        <LightingAdvisor />
       </section>
 
       {/* Camera */}

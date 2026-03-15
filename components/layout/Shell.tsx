@@ -30,6 +30,7 @@ const COMMAND_ROUTES = [
   '/avatars',
   '/fashion',
   '/generate',
+  '/customers',
 ]
 
 export function Shell({ children }: { children: ReactNode }) {
