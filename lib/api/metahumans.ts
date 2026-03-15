@@ -41,8 +41,8 @@ export interface PersonaProfile {
 
 export interface MetaHumanCreateRequest {
   name: string
-  unreal_blueprint_path: string
-  skeletal_mesh_path: string
+  unreal_blueprint_path?: string
+  skeletal_mesh_path?: string
   skeleton_type?: string
   gender?: string
   age_range?: string
@@ -68,8 +68,11 @@ export async function getMetahuman(id: string): Promise<MetaHuman> {
 export async function createMetahuman(
   req: MetaHumanCreateRequest
 ): Promise<MetaHuman> {
+  const name = req.name.trim()
   return apiPost<MetaHuman>('/v1/metahumans', {
     ...req,
+    unreal_blueprint_path: req.unreal_blueprint_path ?? `/Game/Fab/MetaHuman/MHC_${name}/BP_MHC_${name}`,
+    skeletal_mesh_path: req.skeletal_mesh_path ?? `/Game/Fab/MetaHuman/MHC_${name}/SKM_MHC_${name}_BodyMesh`,
     skeleton_type: req.skeleton_type ?? 'metahuman',
   })
 }

@@ -21,8 +21,10 @@ import {
   Send,
   Brain,
   Loader2,
+  UserPlus,
+  X,
 } from 'lucide-react'
-import { listMetahumans, seedMetahumans, syncMetahumans } from '@/lib/api/metahumans'
+import { listMetahumans, seedMetahumans, syncMetahumans, createMetahuman } from '@/lib/api/metahumans'
 import type { MetaHuman } from '@/lib/api/metahumans'
 import { getWardrobeInventory, searchWardrobeCandidates, approveWardrobeCandidate } from '@/lib/api/fashion'
 import type { WardrobeItem, WardrobeCandidate } from '@/lib/api/fashion'
@@ -73,6 +75,11 @@ export default function AvatarsPage() {
   const [busy, setBusy] = useState(false)
 
   const [rightTab, setRightTab] = useState<'voice' | 'brain' | 'jewelry'>('voice')
+  const [showRegister, setShowRegister] = useState(false)
+  const [regName, setRegName] = useState('')
+  const [regGender, setRegGender] = useState('female')
+  const [regArchetype, setRegArchetype] = useState('')
+  const [registering, setRegistering] = useState(false)
 
   const loadAvatars = useCallback(async () => {
     setLoading(true)
@@ -160,6 +167,12 @@ export default function AvatarsPage() {
         {/* Actions bar */}
         <div className="flex items-center gap-2 px-3 py-2 border-b border-surface-border shrink-0">
           <button
+            onClick={() => setShowRegister(!showRegister)}
+            className="px-2 py-1 text-[10px] bg-purple-500/10 text-purple-400 rounded hover:bg-purple-500/20 flex items-center gap-1"
+          >
+            <UserPlus className="h-3 w-3" /> Add
+          </button>
+          <button
             onClick={() => seedMetahumans().then(() => { toast.success('Seeded'); loadAvatars() }).catch(() => toast.error('Failed'))}
             className="px-2 py-1 text-[10px] bg-gold/10 text-gold rounded hover:bg-gold/20"
           >
@@ -172,6 +185,47 @@ export default function AvatarsPage() {
             Sync UE
           </button>
         </div>
+
+        {showRegister && (
+          <div className="px-3 py-2 border-b border-purple-500/20 bg-purple-500/5 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-semibold text-purple-400 uppercase tracking-wider">Register MetaHuman</span>
+              <button onClick={() => setShowRegister(false)} className="text-white/30 hover:text-white/60"><X className="h-3 w-3" /></button>
+            </div>
+            <input type="text" placeholder="Name (e.g. Henri)" value={regName} onChange={(e) => setRegName(e.target.value)}
+              className="w-full h-7 px-2 bg-surface border border-surface-border rounded text-[10px] text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-purple-500" />
+            <div className="flex gap-2">
+              <select value={regGender} onChange={(e) => setRegGender(e.target.value)}
+                className="flex-1 h-7 px-2 bg-surface border border-surface-border rounded text-[10px] text-white focus:outline-none focus:ring-1 focus:ring-purple-500">
+                <option value="female">Female</option>
+                <option value="male">Male</option>
+              </select>
+              <input type="text" placeholder="Archetype" value={regArchetype} onChange={(e) => setRegArchetype(e.target.value)}
+                className="flex-1 h-7 px-2 bg-surface border border-surface-border rounded text-[10px] text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-purple-500" />
+            </div>
+            <button
+              disabled={registering || !regName.trim()}
+              onClick={async () => {
+                setRegistering(true)
+                try {
+                  await createMetahuman({
+                    name: regName.trim(),
+                    skeleton_type: 'metahuman',
+                    gender: regGender,
+                    brand_archetype: regArchetype || 'supporting',
+                  })
+                  toast.success(`${regName} registered`)
+                  setRegName(''); setRegArchetype(''); setShowRegister(false)
+                  loadAvatars()
+                } catch { toast.error('Registration failed') }
+                finally { setRegistering(false) }
+              }}
+              className="w-full py-1.5 bg-purple-600 text-white text-[10px] font-semibold rounded hover:bg-purple-500 disabled:opacity-40 transition-colors"
+            >
+              {registering ? 'Registering...' : 'Register MetaHuman'}
+            </button>
+          </div>
+        )}
 
         {/* Avatar grid */}
         <div className="p-2">

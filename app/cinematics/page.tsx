@@ -35,10 +35,14 @@ import {
   getBehaviorScripts,
   createBehaviorScript,
   createScheduleSlot,
+  deleteScheduleSlot,
   updateSwitchoverConfig,
+  getSwitchoverConfig,
+  getScheduleSlots,
 } from '@/lib/api/cinematic'
-import type { CinematicPlaylist, CinematicClip, FeedMode } from '@/lib/types/cinematic'
+import type { CinematicPlaylist, CinematicClip, FeedMode, SwitchoverConfig, ScheduleSlot } from '@/lib/types/cinematic'
 import { FEED_MODE_COLORS, FEED_MODE_LABELS, CLIP_STATUS_COLORS } from '@/lib/types/cinematic'
+import { vmPowerAction } from '@/lib/api/vm-control'
 import { useSwitchoverStore } from '@/lib/stores/switchover-store'
 import { useSceneStateStore } from '@/lib/stores/scene-state-store'
 import { LiveViewport } from '@/components/studio/LiveViewport'
@@ -89,7 +93,7 @@ export default function CinematicsPage() {
   const [activePlaylist, setActivePlaylist] = useState<CinematicPlaylist | null>(null)
   const [clips, setClips] = useState<CinematicClip[]>([])
 
-  const [rightTab, setRightTab] = useState<'shots' | 'camera' | 'audio' | 'format'>('shots')
+  const [rightTab, setRightTab] = useState<'shots' | 'camera' | 'audio' | 'format' | 'schedule'>('shots')
 
   const [bgMusicUrl, setBgMusicUrl] = useState('')
   const [voiceoverUrl, setVoiceoverUrl] = useState('')
@@ -103,7 +107,19 @@ export default function CinematicsPage() {
   const musicFileRef = useRef<HTMLInputElement>(null)
   const voiceFileRef = useRef<HTMLInputElement>(null)
 
+  const [switchConfig, setSwitchConfig] = useState<SwitchoverConfig | null>(null)
+  const [scheduleSlots, setScheduleSlots] = useState<ScheduleSlot[]>([])
+  const [newSlotStart, setNewSlotStart] = useState('')
+  const [newSlotEnd, setNewSlotEnd] = useState('')
+  const [newSlotMode, setNewSlotMode] = useState<FeedMode>('cinematic')
+  const [newSlotLabel, setNewSlotLabel] = useState('')
+
   useEffect(() => { refreshAll() }, [refreshAll])
+
+  useEffect(() => {
+    getSwitchoverConfig(environment).then(setSwitchConfig).catch(() => setSwitchConfig(null))
+    getScheduleSlots(environment).then(setScheduleSlots).catch(() => setScheduleSlots([]))
+  }, [environment])
 
   useEffect(() => {
     getActivePlaylist(environment)
@@ -207,6 +223,7 @@ export default function CinematicsPage() {
               { id: 'camera' as const, label: 'Camera', icon: Camera },
               { id: 'audio' as const, label: 'Audio', icon: Music },
               { id: 'format' as const, label: 'Format', icon: Monitor },
+              { id: 'schedule' as const, label: 'Schedule', icon: Film },
             ]).map((t) => (
               <button
                 key={t.id}
@@ -502,6 +519,174 @@ export default function CinematicsPage() {
                     </div>
                   </button>
                 ))}
+              </div>
+            )}
+
+            {rightTab === 'schedule' && (
+              <div className="space-y-4">
+                {/* Current feed mode */}
+                <div className="p-3 rounded-lg border border-surface-border bg-surface">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">Feed Mode</span>
+                    <span className="flex items-center gap-1.5 text-[10px]">
+                      <span className="h-2 w-2 rounded-full animate-pulse" style={{ backgroundColor: FEED_MODE_COLORS[feedMode] }} />
+                      <span className="font-semibold" style={{ color: FEED_MODE_COLORS[feedMode] }}>{FEED_MODE_LABELS[feedMode]}</span>
+                    </span>
+                  </div>
+                  {feedSince && (
+                    <p className="text-[9px] text-white/30">Since: {new Date(feedSince).toLocaleString()}</p>
+                  )}
+                </div>
+
+                {/* Switchover config */}
+                <div>
+                  <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wider mb-2">Switchover Config</p>
+                  <div className="p-3 rounded-lg border border-surface-border bg-surface space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[9px] text-white/30 block mb-1">Live Start</label>
+                        <input
+                          type="time"
+                          value={switchConfig?.live_hours_start ?? '08:00'}
+                          onChange={(e) => setSwitchConfig((c) => c ? { ...c, live_hours_start: e.target.value } : c)}
+                          className="w-full h-7 px-2 bg-surface border border-surface-border rounded text-[10px] text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[9px] text-white/30 block mb-1">Live End</label>
+                        <input
+                          type="time"
+                          value={switchConfig?.live_hours_end ?? '22:00'}
+                          onChange={(e) => setSwitchConfig((c) => c ? { ...c, live_hours_end: e.target.value } : c)}
+                          className="w-full h-7 px-2 bg-surface border border-surface-border rounded text-[10px] text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[9px] text-white/30 block mb-1">Pre-generate (hours before cinematic)</label>
+                      <input
+                        type="number" min={1} max={24}
+                        value={switchConfig?.pre_generate_hours ?? 6}
+                        onChange={(e) => setSwitchConfig((c) => c ? { ...c, pre_generate_hours: Number(e.target.value) } : c)}
+                        className="w-full h-7 px-2 bg-surface border border-surface-border rounded text-[10px] text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                      />
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-1.5 text-[9px] text-white/40 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={switchConfig?.auto_switchover ?? true}
+                          onChange={(e) => setSwitchConfig((c) => c ? { ...c, auto_switchover: e.target.checked } : c)}
+                          className="h-3 w-3 rounded accent-cyan-500"
+                        />
+                        Auto-switchover at scheduled times
+                      </label>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-1.5 text-[9px] text-white/40 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={switchConfig?.snapshot_on_switchover ?? true}
+                          onChange={(e) => setSwitchConfig((c) => c ? { ...c, snapshot_on_switchover: e.target.checked } : c)}
+                          className="h-3 w-3 rounded accent-cyan-500"
+                        />
+                        Capture snapshot on switchover
+                      </label>
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (!switchConfig) return
+                        updateSwitchoverConfig(switchConfig)
+                          .then(() => toast.success('Switchover config saved'))
+                          .catch(() => toast.error('Failed to save config'))
+                      }}
+                      className="w-full py-1.5 bg-cyan-600 text-white text-[10px] font-semibold rounded hover:bg-cyan-500 transition-colors"
+                    >
+                      Save Config
+                    </button>
+                  </div>
+                </div>
+
+                {/* Schedule slots */}
+                <div>
+                  <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wider mb-2">Schedule Slots</p>
+                  {scheduleSlots.length > 0 ? (
+                    <div className="space-y-1.5 mb-3">
+                      {scheduleSlots.map((slot) => (
+                        <div key={slot.id} className="flex items-center justify-between p-2 rounded border border-surface-border bg-surface">
+                          <div>
+                            <span className="text-[10px] font-medium" style={{ color: FEED_MODE_COLORS[slot.mode] }}>{FEED_MODE_LABELS[slot.mode]}</span>
+                            <p className="text-[8px] text-white/30">
+                              {new Date(slot.start_time).toLocaleString()} → {new Date(slot.end_time).toLocaleString()}
+                            </p>
+                            {slot.label && <p className="text-[8px] text-white/20">{slot.label}</p>}
+                          </div>
+                          <button
+                            onClick={() => deleteScheduleSlot(slot.id).then(() => {
+                              setScheduleSlots((s) => s.filter((x) => x.id !== slot.id))
+                              toast.success('Slot removed')
+                            }).catch(() => toast.error('Delete failed'))}
+                            className="text-red-400/50 hover:text-red-400 text-[9px]"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-[9px] text-white/20 mb-3">No schedule slots configured</p>
+                  )}
+                  <div className="p-3 rounded-lg border border-surface-border bg-surface space-y-2">
+                    <p className="text-[9px] text-white/30 font-semibold">Add Slot</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input type="datetime-local" value={newSlotStart} onChange={(e) => setNewSlotStart(e.target.value)}
+                        className="h-7 px-2 bg-surface border border-surface-border rounded text-[9px] text-white focus:outline-none focus:ring-1 focus:ring-cyan-500" />
+                      <input type="datetime-local" value={newSlotEnd} onChange={(e) => setNewSlotEnd(e.target.value)}
+                        className="h-7 px-2 bg-surface border border-surface-border rounded text-[9px] text-white focus:outline-none focus:ring-1 focus:ring-cyan-500" />
+                    </div>
+                    <div className="flex gap-2">
+                      <select value={newSlotMode} onChange={(e) => setNewSlotMode(e.target.value as FeedMode)}
+                        className="flex-1 h-7 px-2 bg-surface border border-surface-border rounded text-[10px] text-white focus:outline-none focus:ring-1 focus:ring-cyan-500">
+                        <option value="live">Live (3D)</option>
+                        <option value="cinematic">Cinematic</option>
+                      </select>
+                      <input type="text" placeholder="Label" value={newSlotLabel} onChange={(e) => setNewSlotLabel(e.target.value)}
+                        className="flex-1 h-7 px-2 bg-surface border border-surface-border rounded text-[10px] text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-cyan-500" />
+                    </div>
+                    <button
+                      onClick={async () => {
+                        if (!newSlotStart || !newSlotEnd) { toast.error('Set start and end times'); return }
+                        try {
+                          await createScheduleSlot(
+                            environment,
+                            new Date(newSlotStart).toISOString(),
+                            new Date(newSlotEnd).toISOString(),
+                            newSlotMode,
+                            undefined,
+                            newSlotLabel || undefined,
+                          )
+                          toast.success('Schedule slot added')
+                          setNewSlotStart(''); setNewSlotEnd(''); setNewSlotLabel('')
+                          getScheduleSlots(environment).then(setScheduleSlots).catch(() => {})
+                        } catch { toast.error('Failed to add slot') }
+                      }}
+                      className="w-full py-1.5 bg-cyan-600 text-white text-[10px] font-semibold rounded hover:bg-cyan-500 transition-colors"
+                    >
+                      Add Schedule Slot
+                    </button>
+                  </div>
+                </div>
+
+                {/* Manual capture + VM controls */}
+                <div className="space-y-2">
+                  <button
+                    onClick={() => { captureSnapshot(); toast.success('Snapshot captured') }}
+                    className="w-full py-2 border border-cyan-500/30 text-cyan-400 text-[10px] font-semibold rounded hover:bg-cyan-500/10 transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <Camera className="h-3 w-3" />
+                    Capture Current State
+                  </button>
+                </div>
               </div>
             )}
           </div>
