@@ -91,7 +91,7 @@ export default function AvatarsPage() {
     finally { setLoading(false) }
   }, [selected])
 
-  useEffect(() => { loadAvatars() }, [loadAvatars])
+  useEffect(() => { loadAvatars(); sceneStore.setEnvironment('avatar') }, [loadAvatars])
 
   useEffect(() => {
     if (!selected) return

@@ -138,7 +138,7 @@ export default function ScenesPage() {
           {ENVIRONMENTS.map((env) => (
             <button
               key={env.id}
-              onClick={() => setSelectedEnv(env.id)}
+              onClick={() => { setSelectedEnv(env.id); sceneStore.setEnvironment(ENV_TO_VM_ROLE[env.id] || 'landing') }}
               className={`flex flex-col items-start w-full p-3 rounded-lg border transition-colors text-left ${
                 selectedEnv === env.id
                   ? 'border-blue-500 bg-blue-500/5'

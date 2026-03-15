@@ -18,15 +18,36 @@ import {
   Circle,
   AlertTriangle,
   Camera,
+  Loader2,
+  Wifi,
+  WifiOff,
 } from 'lucide-react'
 import { useSceneStateStore } from '@/lib/stores/scene-state-store'
 import { useSwitchoverStore } from '@/lib/stores/switchover-store'
 import { FEED_MODE_COLORS } from '@/lib/types/cinematic'
 import { loadScene, loadAvatar, addWardrobe, addJewelry, sendCommand } from '@/lib/api/scene-control'
 import { exportToShopify, exportImage } from '@/lib/api/export'
+import { createPixelStreamSession } from '@/lib/api/streaming'
 
 export function LiveViewport() {
-  const streamUrl = process.env.NEXT_PUBLIC_PIXEL_STREAM_URL || ''
+  const { streamUrl: dynamicStreamUrl, environment, setStream, sessionId } = useSceneStateStore()
+  const fallbackStreamUrl = process.env.NEXT_PUBLIC_PIXEL_STREAM_URL || ''
+  const streamUrl = dynamicStreamUrl || fallbackStreamUrl
+  const [connecting, setConnecting] = useState(false)
+
+  async function connectToEnvironment() {
+    setConnecting(true)
+    try {
+      const res = await createPixelStreamSession({ environment })
+      if (res) {
+        setStream(res.stream_url, null, res.session_id)
+        toast.success(`Connected to ${environment} stream`)
+      } else {
+        toast.error('No available VM for this environment')
+      }
+    } catch { toast.error('Failed to connect — is the VM running?') }
+    finally { setConnecting(false) }
+  }
   const [fullscreen, setFullscreen] = useState(false)
   const [pushing, setPushing] = useState(false)
   const [deploying, setDeploying] = useState(false)
@@ -120,13 +141,28 @@ export function LiveViewport() {
       allow="autoplay; fullscreen"
     />
   ) : (
-    <div className="flex flex-col items-center justify-center h-full gap-3">
+    <div className="flex flex-col items-center justify-center h-full gap-4">
       <MonitorPlay className="h-16 w-16 text-white/6" />
       <h3 className="text-sm font-medium text-white/25">Live Viewport</h3>
-      <p className="text-[11px] text-white/12 max-w-sm text-center">
-        Set NEXT_PUBLIC_PIXEL_STREAM_URL to connect to the Unreal Engine viewport.
-        Changes will be applied to the scene in real-time as you edit.
+      <p className="text-[11px] text-white/15 max-w-sm text-center">
+        No Pixel Stream connected. Start a VM and connect to see the 3D viewport.
       </p>
+      <button
+        onClick={connectToEnvironment}
+        disabled={connecting}
+        className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white text-xs font-semibold rounded-lg hover:bg-cyan-500 disabled:opacity-40 transition-colors"
+      >
+        {connecting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wifi className="h-3.5 w-3.5" />}
+        {connecting ? 'Connecting...' : `Connect to ${environment}`}
+      </button>
+      {sessionId && (
+        <button
+          onClick={() => setStream(null, null, null)}
+          className="flex items-center gap-1.5 text-[10px] text-white/20 hover:text-white/40 transition-colors"
+        >
+          <WifiOff className="h-3 w-3" /> Disconnect
+        </button>
+      )}
     </div>
   )
 
@@ -169,9 +205,12 @@ export function LiveViewport() {
       {/* Viewport header */}
       <div className="flex items-center justify-between h-9 px-3 bg-surface-panel/80 backdrop-blur border-b border-surface-border shrink-0">
         <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full animate-pulse" style={{ backgroundColor: FEED_MODE_COLORS[feedMode] }} />
+          <span className="h-2 w-2 rounded-full animate-pulse" style={{ backgroundColor: streamUrl ? FEED_MODE_COLORS[feedMode] : '#6b7280' }} />
           <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">
-            {feedMode === 'live' ? 'Live' : 'Cinematic'}
+            {streamUrl ? (feedMode === 'live' ? 'Live' : 'Cinematic') : 'Offline'}
+          </span>
+          <span className="text-[10px] text-cyan-400/50 border-l border-surface-border pl-2 ml-1 capitalize">
+            {environment}
           </span>
           {scene && (
             <span className="text-[10px] text-gold/50 border-l border-surface-border pl-2 ml-1">
@@ -185,6 +224,16 @@ export function LiveViewport() {
           )}
         </div>
         <div className="flex items-center gap-1">
+          {!streamUrl ? (
+            <button onClick={connectToEnvironment} disabled={connecting} className="flex items-center gap-1 px-2 py-0.5 text-[9px] bg-cyan-600/20 text-cyan-400 rounded hover:bg-cyan-600/30 disabled:opacity-40" title="Connect to VM stream">
+              {connecting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Wifi className="h-3 w-3" />}
+              Connect
+            </button>
+          ) : (
+            <button onClick={() => setStream(null, null, null)} className="flex items-center gap-1 px-2 py-0.5 text-[9px] text-white/30 rounded hover:bg-white/5 hover:text-white/50" title="Disconnect stream">
+              <WifiOff className="h-3 w-3" />
+            </button>
+          )}
           <button onClick={handleSnapshot} disabled={snapping} className="p-1 rounded hover:bg-white/10 text-white/40 hover:text-white/70 disabled:opacity-30" title="Capture scene snapshot">
             <Camera className="h-3.5 w-3.5" />
           </button>

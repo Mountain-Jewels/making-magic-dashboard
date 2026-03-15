@@ -21,6 +21,11 @@ interface SceneState {
   wardrobe: string[]
   jewelry: string[]
 
+  environment: string
+  streamUrl: string | null
+  activeNodeId: string | null
+  sessionId: string | null
+
   edits: SceneEdit[]
   dirty: boolean
   lastPushed: number | null
@@ -32,13 +37,15 @@ interface SceneState {
   setEmotion: (emotion: string) => void
   addWardrobe: (item: string) => void
   addJewelry: (sku: string) => void
+  setEnvironment: (env: string) => void
+  setStream: (streamUrl: string | null, nodeId: string | null, sessionId: string | null) => void
   recordEdit: (edit: Omit<SceneEdit, 'timestamp'>) => void
   markPushed: () => void
   clearEdits: () => void
   reset: () => void
 }
 
-const INITIAL: Pick<SceneState, 'scene' | 'avatar' | 'lighting' | 'camera' | 'emotion' | 'wardrobe' | 'jewelry' | 'edits' | 'dirty' | 'lastPushed'> = {
+const INITIAL: Pick<SceneState, 'scene' | 'avatar' | 'lighting' | 'camera' | 'emotion' | 'wardrobe' | 'jewelry' | 'environment' | 'streamUrl' | 'activeNodeId' | 'sessionId' | 'edits' | 'dirty' | 'lastPushed'> = {
   scene: null,
   avatar: null,
   lighting: null,
@@ -46,6 +53,10 @@ const INITIAL: Pick<SceneState, 'scene' | 'avatar' | 'lighting' | 'camera' | 'em
   emotion: null,
   wardrobe: [],
   jewelry: [],
+  environment: 'landing',
+  streamUrl: null,
+  activeNodeId: null,
+  sessionId: null,
   edits: [],
   dirty: false,
   lastPushed: null,
@@ -102,6 +113,10 @@ export const useSceneStateStore = create<SceneState>((set) => ({
       dirty: true,
       edits: [...s.edits, { type: 'jewelry', payload: { sku }, label: `Add jewelry: ${sku}`, timestamp: Date.now() }],
     })),
+
+  setEnvironment: (environment) => set({ environment }),
+
+  setStream: (streamUrl, activeNodeId, sessionId) => set({ streamUrl, activeNodeId, sessionId }),
 
   recordEdit: (edit) =>
     set((s) => ({
