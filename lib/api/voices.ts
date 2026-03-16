@@ -4,17 +4,19 @@
  */
 
 /**
- * Voice API — ElevenLabs voices, preview, clone
+ * Voice API — pull voice info from concierge avatars
  */
 
 import { apiGet, apiPost } from './client'
-import type { Voice, VoicePreviewResponse, CloneVoiceRequest, CloneVoiceResponse } from './types'
+import type { Voice, VoicePreviewResponse } from './types'
 
 export async function getVoices(): Promise<Voice[]> {
   try {
-    const res = await apiGet<{ voices?: Voice[]; data?: Voice[] }>('/voices')
-    const arr = (res as { voices?: Voice[] })?.voices ?? (res as { data?: Voice[] })?.data
-    return Array.isArray(arr) ? arr : []
+    const res = await apiGet<Array<{ voice_id?: string; name?: string; [k: string]: unknown }>>('/concierge/avatars')
+    if (!Array.isArray(res)) return []
+    return res
+      .filter((a) => a.voice_id)
+      .map((a) => ({ id: a.voice_id!, name: a.name ?? a.voice_id! }) as Voice)
   } catch {
     return []
   }
@@ -22,24 +24,14 @@ export async function getVoices(): Promise<Voice[]> {
 
 export async function previewVoice(
   voiceId: string,
-  text?: string
-): Promise<VoicePreviewResponse> {
+  text?: string,
+): Promise<VoicePreviewResponse | null> {
   try {
-    return await apiPost<VoicePreviewResponse>('/voices/preview', {
+    return await apiPost<VoicePreviewResponse>('/concierge/speak', {
       voice_id: voiceId,
       text: text ?? 'Hello, this is a sample of my voice.',
     })
   } catch {
-    return null as unknown as VoicePreviewResponse
-  }
-}
-
-export async function cloneVoice(
-  request: CloneVoiceRequest
-): Promise<CloneVoiceResponse> {
-  try {
-    return await apiPost<CloneVoiceResponse>('/voices/clone', request)
-  } catch {
-    return null as unknown as CloneVoiceResponse
+    return null
   }
 }

@@ -4,22 +4,19 @@
  */
 
 /**
- * Jewelry API — Shopify product data
+ * Jewelry API — product engine data (categories, shapes, configuration)
  */
 
 import { apiGet } from './client'
 import type { JewelryCategory, JewelryProduct } from './types'
 
 export async function getCategories(): Promise<JewelryCategory[]> {
-  console.log('[Jewelry API] Fetching categories...')
   try {
-    const res = await apiGet<{ categories?: JewelryCategory[] }>('/jewelry/categories')
-    console.log('[Jewelry API] Categories response:', res)
+    const res = await apiGet<{ categories?: JewelryCategory[] }>('/products/categories')
     const arr = (res as { categories?: JewelryCategory[] })?.categories
     return Array.isArray(arr) ? arr : []
-  } catch (err) {
-    console.error('[Jewelry API] Categories error:', err)
-    throw err
+  } catch {
+    return []
   }
 }
 
@@ -41,12 +38,20 @@ export async function getProducts(params?: {
   if (params?.limit) p.limit = String(params.limit)
   const search = new URLSearchParams(p).toString()
   const query = search ? `?${search}` : ''
-  const res = await apiGet<{ products?: JewelryProduct[]; total?: number }>(`/jewelry/products${query}`)
-  const arr = (res as { products?: JewelryProduct[] })?.products
-  const total = (res as { total?: number })?.total ?? 0
-  return { products: Array.isArray(arr) ? arr : [], total }
+  try {
+    const res = await apiGet<{ products?: JewelryProduct[]; total?: number }>(`/products/shapes${query}`)
+    const arr = (res as { products?: JewelryProduct[] })?.products
+    const total = (res as { total?: number })?.total ?? 0
+    return { products: Array.isArray(arr) ? arr : [], total }
+  } catch {
+    return { products: [], total: 0 }
+  }
 }
 
-export async function getProduct(id: string): Promise<JewelryProduct> {
-  return apiGet<JewelryProduct>(`/jewelry/${encodeURIComponent(id)}`)
+export async function getProduct(id: string): Promise<JewelryProduct | null> {
+  try {
+    return await apiGet<JewelryProduct>(`/products/configure?product_id=${encodeURIComponent(id)}`)
+  } catch {
+    return null
+  }
 }

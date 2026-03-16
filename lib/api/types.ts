@@ -21,17 +21,6 @@ export interface VoicePreviewResponse {
   duration_seconds?: number
 }
 
-export interface CloneVoiceRequest {
-  name: string
-  description?: string
-  sample_files: string[] // URLs or base64
-}
-
-export interface CloneVoiceResponse {
-  voice_id: string
-  status: 'pending' | 'ready' | 'failed'
-}
-
 // ─── Generate ───
 export interface GenerateImageRequest {
   prompt: string

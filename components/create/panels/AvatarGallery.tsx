@@ -73,7 +73,8 @@ export function AvatarGallery() {
     setPreviewLoading(true)
     try {
       const res = await previewVoice(voiceId, 'Hello, welcome to Mountain Jewels')
-      const audioPath = res.audio_url ?? res.url
+      if (!res) return
+      const audioPath = (res as Record<string, unknown>).audio_url as string ?? (res as Record<string, unknown>).url as string
       if (audioPath && apiBase) {
         const fullUrl = audioPath.startsWith('http') ? audioPath : `${apiBase}${audioPath.startsWith('/') ? '' : '/'}${audioPath}`
         const audio = new Audio(fullUrl)
