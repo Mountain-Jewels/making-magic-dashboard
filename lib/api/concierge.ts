@@ -1,3 +1,8 @@
+/**
+ * © 2026 Mountain Jewels LLC. All rights reserved.
+ * Proprietary and confidential.
+ */
+
 const STUDIO_ENGINE_URL =
   process.env.NEXT_PUBLIC_STUDIO_ENGINE_URL?.replace(/\/$/, '') ?? 'http://localhost:8100'
 

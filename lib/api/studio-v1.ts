@@ -1,5 +1,6 @@
 /**
- * Studio Engine V1 API client
+ * © 2026 Mountain Jewels LLC. All rights reserved.
+ * Proprietary and confidential.
  */
 
 import type {

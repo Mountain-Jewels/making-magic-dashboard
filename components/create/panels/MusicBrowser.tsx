@@ -10,14 +10,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { toast } from 'sonner'
 import { useSceneStore } from '@/lib/stores/scene-store'
-import { generateMusic, getMusicStatus } from '@/lib/api/generate'
+import { generateMusic, getMusicStatus, suggestMusicTrim, confirmMusicTrim } from '@/lib/api/generate'
 import { apiGet } from '@/lib/api/client'
 import { uploadAsset, getAssetUrl } from '@/lib/api/assets'
 import type { MusicLibraryResponse } from '@/lib/api/types'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { Volume2, Search, Music, Upload, Loader2 } from 'lucide-react'
+import { Volume2, Search, Music, Upload, Loader2, Scissors } from 'lucide-react'
 
 const GENRES = ['Classical', 'Pop', 'Country', 'Jazz', 'Electronic', 'Orchestral', 'Ambient']
 const MOODS = ['Uplifting', 'Romantic', 'Dramatic', 'Calm', 'Energetic', 'Mysterious']
@@ -63,6 +63,14 @@ export function MusicBrowser() {
   const [spotifyResults, setSpotifyResults] = useState<SpotifyTrack[]>([])
   const [spotifySearching, setSpotifySearching] = useState(false)
   const [spotifyError, setSpotifyError] = useState<string | null>(null)
+
+  const [trimUrl, setTrimUrl] = useState('')
+  const [trimUseCase, setTrimUseCase] = useState('event')
+  const [trimEventType, setTrimEventType] = useState('birthday')
+  const [trimSuggestion, setTrimSuggestion] = useState<Record<string, unknown> | null>(null)
+  const [trimSuggestionId, setTrimSuggestionId] = useState<string | null>(null)
+  const [trimming, setTrimming] = useState(false)
+  const [trimResult, setTrimResult] = useState<Record<string, unknown> | null>(null)
 
   const ensureScene = useCallback(() => {
     if (currentScene) return currentScene.id
@@ -201,7 +209,7 @@ export function MusicBrowser() {
       </div>
 
       <Tabs defaultValue="spotify" className="w-full">
-        <TabsList className="w-full grid grid-cols-3 bg-[#1A1A24] h-8">
+        <TabsList className="w-full grid grid-cols-4 bg-[#1A1A24] h-8">
           <TabsTrigger
             value="spotify"
             className="text-xs data-[state=active]:bg-[#D4AF37]/20 data-[state=active]:text-[#D4AF37]"
@@ -219,6 +227,13 @@ export function MusicBrowser() {
             className="text-xs data-[state=active]:bg-[#D4AF37]/20 data-[state=active]:text-[#D4AF37]"
           >
             Generate
+          </TabsTrigger>
+          <TabsTrigger
+            value="trim"
+            className="text-xs data-[state=active]:bg-[#D4AF37]/20 data-[state=active]:text-[#D4AF37]"
+          >
+            <Scissors className="h-3 w-3 mr-1 inline-block" />
+            Trim
           </TabsTrigger>
         </TabsList>
 
@@ -386,10 +401,11 @@ export function MusicBrowser() {
                   setUploading(true)
                   try {
                     const res = await uploadAsset(file, 'music')
-                    const { url } = await getAssetUrl(res.id)
-                    if (url) {
-                      setGeneratedTracks((prev) => [...prev, { url, id: res.id }])
-                      playPreview(url)
+                    if (!res) throw new Error('Upload returned empty')
+                    const assetUrl = await getAssetUrl(res.id)
+                    if (assetUrl?.url) {
+                      setGeneratedTracks((prev) => [...prev, { url: assetUrl.url, id: res.id }])
+                      playPreview(assetUrl.url)
                     }
                   } catch (err) {
                     toast.error(err instanceof Error ? err.message : 'Upload failed')
@@ -527,6 +543,128 @@ export function MusicBrowser() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Trim Tab — AI selects the right portion of a track for events */}
+        <TabsContent value="trim" className="mt-3 space-y-3">
+          <p className="text-xs text-white/50">
+            AI analyzes audio and suggests the best clip for your event (e.g. 15s of &ldquo;Happy Birthday&rdquo; for a birthday cinematic).
+          </p>
+          <div>
+            <label className="text-xs text-white/50 mb-1.5 block">Audio URL or track</label>
+            <input
+              type="text"
+              placeholder="Paste audio URL or select from library..."
+              value={trimUrl}
+              onChange={(e) => setTrimUrl(e.target.value)}
+              className="w-full h-9 rounded-md bg-[#1A1A24] border border-[#2A2A35] px-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[#D4AF37]/50"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-xs text-white/50 mb-1 block">Use Case</label>
+              <select
+                value={trimUseCase}
+                onChange={(e) => setTrimUseCase(e.target.value)}
+                className="w-full rounded-md bg-[#1A1A24] border border-[#2A2A35] px-2 py-1.5 text-sm text-white focus:outline-none focus:border-[#D4AF37]/50"
+              >
+                <option value="event">Event / Cinematic</option>
+                <option value="social">Social Media</option>
+                <option value="intro">Intro / Outro</option>
+                <option value="background">Background Loop</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs text-white/50 mb-1 block">Event Type</label>
+              <select
+                value={trimEventType}
+                onChange={(e) => setTrimEventType(e.target.value)}
+                className="w-full rounded-md bg-[#1A1A24] border border-[#2A2A35] px-2 py-1.5 text-sm text-white focus:outline-none focus:border-[#D4AF37]/50"
+              >
+                <option value="birthday">Birthday</option>
+                <option value="anniversary">Anniversary</option>
+                <option value="engagement">Engagement</option>
+                <option value="holiday">Holiday</option>
+                <option value="wedding">Wedding</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+          </div>
+          <Button
+            className="w-full bg-[#D4AF37] text-black hover:bg-[#D4AF37]/90 font-medium"
+            disabled={!trimUrl.trim() || trimming}
+            onClick={async () => {
+              setTrimming(true)
+              setTrimSuggestion(null)
+              setTrimResult(null)
+              const res = await suggestMusicTrim({
+                audio_url: trimUrl.trim(),
+                use_case: trimUseCase,
+                event_type: trimEventType,
+              })
+              if (res) {
+                setTrimSuggestionId(res.id)
+                setTrimSuggestion(res.suggestion)
+              }
+              setTrimming(false)
+            }}
+          >
+            {trimming ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Scissors className="h-4 w-4 mr-2" />}
+            {trimSuggestion ? 'Re-analyze' : 'Analyze & Suggest Trim'}
+          </Button>
+
+          {trimSuggestion && (
+            <div className="rounded-lg border border-yellow-600/30 bg-yellow-900/10 p-3 space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-yellow-500">AI Trim Suggestion</p>
+              <pre className="text-xs text-neutral-300 max-h-24 overflow-auto whitespace-pre-wrap">
+                {JSON.stringify(trimSuggestion, null, 2)}
+              </pre>
+              <div className="flex gap-2 pt-1">
+                <Button
+                  size="sm"
+                  className="bg-[#D4AF37] text-black hover:bg-[#D4AF37]/90 text-xs"
+                  disabled={trimming || !trimSuggestionId}
+                  onClick={async () => {
+                    if (!trimSuggestionId) return
+                    setTrimming(true)
+                    const res = await confirmMusicTrim(trimSuggestionId)
+                    if (res?.result) {
+                      setTrimResult(res.result)
+                      const outputUrl = (res.result as Record<string, unknown>)?.output_url as string | undefined
+                      if (outputUrl) {
+                        setGeneratedTracks((prev) => [...prev, { url: outputUrl, id: `trim-${Date.now()}` }])
+                        playPreview(outputUrl)
+                        toast.success('Music trimmed! Use it from Generated tracks.')
+                      }
+                    }
+                    setTrimming(false)
+                  }}
+                >
+                  Confirm & Trim
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-xs border-white/20 text-white/60"
+                  onClick={() => {
+                    setTrimSuggestion(null)
+                    setTrimSuggestionId(null)
+                  }}
+                >
+                  Reject
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {trimResult && (
+            <div className="rounded-lg border border-green-600/30 bg-green-900/10 p-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-green-500 mb-1">Trim Complete</p>
+              <pre className="text-xs text-neutral-300 max-h-20 overflow-auto whitespace-pre-wrap">
+                {JSON.stringify(trimResult, null, 2)}
+              </pre>
             </div>
           )}
         </TabsContent>

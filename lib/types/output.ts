@@ -1,4 +1,7 @@
-// ─── Output Profile (Spec Section 16) ───
+/**
+ * © 2026 Mountain Jewels LLC. All rights reserved.
+ * Proprietary and confidential.
+ */
 
 export type OutputFormat = 'still_image' | '2d_video' | '3d_video' | '3d_interactive'
 

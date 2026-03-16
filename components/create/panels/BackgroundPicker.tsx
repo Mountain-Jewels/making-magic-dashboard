@@ -184,7 +184,9 @@ export function BackgroundPicker() {
     setUploading(true)
     try {
       const res = await uploadAsset(file, 'background')
-      const { url } = await getAssetUrl(res.id)
+      if (!res) throw new Error('Upload failed')
+      const assetUrlResult = await getAssetUrl(res.id)
+      const url = assetUrlResult?.url
       if (url) {
         setGeneratedBackgrounds((prev) => [
           ...prev,

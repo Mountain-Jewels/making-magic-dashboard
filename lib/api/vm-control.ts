@@ -1,3 +1,8 @@
+/**
+ * © 2026 Mountain Jewels LLC. All rights reserved.
+ * Proprietary and confidential.
+ */
+
 import { apiGet, apiPost, apiPut } from './client'
 import type {
   VmNode,

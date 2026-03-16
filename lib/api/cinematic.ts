@@ -1,3 +1,8 @@
+/**
+ * © 2026 Mountain Jewels LLC. All rights reserved.
+ * Proprietary and confidential.
+ */
+
 import { apiDelete, apiGet, apiPost } from './client'
 import type {
   AvatarBehaviorScript,

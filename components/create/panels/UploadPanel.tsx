@@ -81,6 +81,7 @@ export function UploadPanel() {
           setUploadProgress(total > 0 ? Math.round((loaded / total) * 100) : 0)
         },
       })
+      if (!res) throw new Error('Upload returned empty')
       setAssets((prev) => [
         ...prev,
         {
@@ -134,7 +135,8 @@ export function UploadPanel() {
   const getDisplayUrl = useCallback(async (asset: Asset): Promise<string | null> => {
     if (urlCache[asset.id]) return urlCache[asset.id]
     try {
-      const { url } = await getAssetUrl(asset.id)
+      const result = await getAssetUrl(asset.id)
+      const url = result?.url ?? ''
       setUrlCache((c) => ({ ...c, [asset.id]: url }))
       return url
     } catch {
@@ -369,8 +371,8 @@ function AssetThumbnailLoader({
   useEffect(() => {
     let cancelled = false
     getAssetUrl(asset.id)
-      .then(({ url }) => {
-        if (!cancelled) onUrlLoaded(url)
+      .then((result) => {
+        if (!cancelled && result?.url) onUrlLoaded(result.url)
       })
       .catch(() => {})
     return () => { cancelled = true }

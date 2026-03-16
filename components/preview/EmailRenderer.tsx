@@ -5,6 +5,8 @@
 
 'use client'
 
+import DOMPurify from 'dompurify'
+
 import type { EmailTemplate } from '@/lib/types/preview'
 
 function interpolate(template: string, vars: Record<string, string>): string {
@@ -37,7 +39,7 @@ export function EmailRenderer({ template, personalization, device }: EmailRender
       <div className="bg-white p-6">
         <div className="h-1 bg-brand-gold rounded mb-6" />
         <div
-          dangerouslySetInnerHTML={{ __html: bodyHtml }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(bodyHtml) }}
           className="text-gray-700 leading-relaxed [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-4 [&_p]:mb-3"
         />
         <div className="text-center mt-6">

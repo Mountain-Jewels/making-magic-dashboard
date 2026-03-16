@@ -1,3 +1,8 @@
+/**
+ * © 2026 Mountain Jewels LLC. All rights reserved.
+ * Proprietary and confidential.
+ */
+
 import { getMsalInstance, loginRequest } from './msalConfig'
 
 export async function getAccessToken(): Promise<string | null> {

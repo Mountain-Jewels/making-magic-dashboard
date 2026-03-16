@@ -1,5 +1,6 @@
 /**
- * TypeScript interfaces for Studio Engine V1 API
+ * © 2026 Mountain Jewels LLC. All rights reserved.
+ * Proprietary and confidential.
  */
 
 export interface Transform {

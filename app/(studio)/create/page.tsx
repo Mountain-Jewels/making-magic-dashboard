@@ -85,13 +85,15 @@ function CreatePageContent() {
         sceneNameRef.current || scene.name,
         currentSceneIdRef.current ?? undefined
       )
+      if (!res) throw new Error('Save returned empty')
       currentSceneIdRef.current = res.id
       sceneNameRef.current = res.name
-      const loaded = stateToScene(res.state as Record<string, unknown>)
+      const rawState = (res as unknown as Record<string, unknown>).state as Record<string, unknown> | undefined
+      const loaded = stateToScene(rawState ?? res.recipe ?? {})
       loaded.id = res.id
       loaded.name = res.name
       loadSceneIntoStore(loaded)
-      lastSavedRef.current = JSON.stringify(res.state)
+      lastSavedRef.current = JSON.stringify(rawState ?? res.recipe)
       const url = new URL(window.location.href)
       url.searchParams.set('scene', res.id)
       window.history.replaceState({}, '', url.toString())
@@ -104,13 +106,16 @@ function CreatePageContent() {
     isLoadingFromUrl.current = true
     try {
       const res = await loadScene(id)
-      const scene = stateToScene(res.state as Record<string, unknown>)
+      if (!res) throw new Error('Scene not found')
+      const rawLoadState = (res as unknown as Record<string, unknown>).state as Record<string, unknown> | undefined
+      const sceneState = rawLoadState ?? res.recipe ?? {}
+      const scene = stateToScene(sceneState)
       scene.id = res.id
       scene.name = res.name
       loadSceneIntoStore(scene)
       currentSceneIdRef.current = res.id
       sceneNameRef.current = res.name
-      lastSavedRef.current = JSON.stringify(res.state)
+      lastSavedRef.current = JSON.stringify(sceneState)
       const url = new URL(window.location.href)
       url.searchParams.set('scene', id)
       window.history.replaceState({}, '', url.toString())

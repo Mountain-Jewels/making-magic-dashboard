@@ -1,5 +1,6 @@
 /**
- * Zustand store for Scene Recipe candidate workflow state
+ * © 2026 Mountain Jewels LLC. All rights reserved.
+ * Proprietary and confidential.
  */
 
 import { create } from 'zustand'

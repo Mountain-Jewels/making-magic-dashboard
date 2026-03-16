@@ -1,3 +1,8 @@
+/**
+ * © 2026 Mountain Jewels LLC. All rights reserved.
+ * Proprietary and confidential.
+ */
+
 import type { ConciergeIdleEvent } from '@/lib/api/concierge'
 
 type IdlePhase = ConciergeIdleEvent

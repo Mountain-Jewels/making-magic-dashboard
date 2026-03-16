@@ -6,10 +6,11 @@
 'use client'
 
 import { useState } from 'react'
-import { Check, AlertTriangle, Download } from 'lucide-react'
+import { Check, AlertTriangle, Download, Loader2 } from 'lucide-react'
 import { useOutputStore } from '@/lib/stores/output-store'
 import type { PlatformPreset } from '@/lib/types/output'
 import { Button } from '@/components/ui/button'
+import { suggestSocialClips, confirmSocialClips } from '@/lib/api/generate'
 
 const PLATFORM_LABELS: Record<PlatformPreset, string> = {
   shopify_pdp: 'Shopify PDP',
@@ -43,6 +44,10 @@ const SOCIAL_PLATFORMS: PlatformPreset[] = [
 export function SocialExportPanel() {
   const { getPlatformSpec } = useOutputStore()
   const [selected, setSelected] = useState<Set<PlatformPreset>>(new Set())
+  const [exporting, setExporting] = useState(false)
+  const [suggestion, setSuggestion] = useState<Record<string, unknown> | null>(null)
+  const [suggestionId, setSuggestionId] = useState<string | null>(null)
+  const [result, setResult] = useState<Record<string, unknown> | null>(null)
 
   const toggle = (platform: PlatformPreset) => {
     setSelected((prev) => {
@@ -98,19 +103,64 @@ export function SocialExportPanel() {
       </div>
       <div className="flex items-center gap-3">
         <Button
-          onClick={() => {}}
-          disabled={selected.size === 0}
+          onClick={async () => {
+            setExporting(true)
+            setSuggestion(null)
+            setResult(null)
+            const platforms = Array.from(selected)
+            const resp = await suggestSocialClips({
+              video_url: '',
+              platforms,
+              context: 'social media export',
+            })
+            if (resp) {
+              setSuggestionId(resp.id)
+              setSuggestion(resp.suggestion)
+            }
+            setExporting(false)
+          }}
+          disabled={selected.size === 0 || exporting}
           className="border-brand-gold text-brand-gold hover:bg-brand-gold/10"
         >
-          <Download className="h-4 w-4 mr-2" />
-          Export for Selected ({selected.size})
+          {exporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+          {suggestion ? 'Re-analyze' : `Export for Selected (${selected.size})`}
         </Button>
-        {selected.size > 0 && (
+        {suggestion && suggestionId && (
+          <Button
+            onClick={async () => {
+              setExporting(true)
+              const resp = await confirmSocialClips(suggestionId)
+              if (resp) setResult(resp.result)
+              setExporting(false)
+            }}
+            disabled={exporting}
+            className="bg-brand-gold text-black hover:bg-brand-gold/80"
+          >
+            Confirm & Generate
+          </Button>
+        )}
+        {selected.size > 0 && !suggestion && (
           <span className="text-sm text-text-muted">
-            Batch export generates correctly-sized files for each selected platform
+            AI will suggest optimal trim points and crops per platform
           </span>
         )}
       </div>
+      {suggestion && (
+        <div className="rounded-lg border border-yellow-600/30 bg-yellow-900/10 p-3">
+          <p className="text-xs font-semibold uppercase tracking-wider text-yellow-500 mb-1">AI Suggestion</p>
+          <pre className="text-xs text-neutral-300 max-h-32 overflow-auto">
+            {JSON.stringify(suggestion, null, 2)}
+          </pre>
+        </div>
+      )}
+      {result && (
+        <div className="rounded-lg border border-green-600/30 bg-green-900/10 p-3">
+          <p className="text-xs font-semibold uppercase tracking-wider text-green-500 mb-1">Export Complete</p>
+          <pre className="text-xs text-neutral-300 max-h-32 overflow-auto">
+            {JSON.stringify(result, null, 2)}
+          </pre>
+        </div>
+      )}
     </div>
   )
 }
